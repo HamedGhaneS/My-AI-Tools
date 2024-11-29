@@ -12,5 +12,5 @@ While these scripts are primarily created for my personal use, I'm sharing them 
 - These tools are created for learning and practical purposes
 - Feel free to use and modify them for your needs
 
- *Hamed Ghane*
+ **Hamed Ghane**,
  *2024.11.29*
