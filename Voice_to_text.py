@@ -1,12 +1,39 @@
+"""
+Audio Transcription GUI Application
+Created by: Hamed Ghane
+Date: November 29, 2024
+
+This script creates a GUI application for transcribing audio files to text using OpenAI's Whisper model.
+It provides a user-friendly interface with progress indication and status updates.
+
+Requirements:
+- PyQt5 (pip install PyQt5)
+- openai (pip install openai)
+
+API Key Setup:
+1. Option 1 (Recommended for GitHub): 
+   - Create a separate file (e.g., 'sk.py')
+   - Add your OpenAI API key: HamedKey = "your-api-key-here"
+   - Import it as: from sk import Hamedkey
+   
+2. Option 2 (Direct usage):
+   - Replace 'Hamedkey' below with your actual OpenAI API key
+   
+"""
+
 import sys
 import openai
 from pathlib import Path
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QFileDialog, 
                            QVBoxLayout, QWidget, QLabel, QTextEdit, QProgressBar)
 from PyQt5.QtCore import Qt, QTimer
-from sk import Hamedkey
+from sk import Hamedkey  # Replace this with your API key import method
 
 def create_window():
+    """
+    Creates and configures the main application window with all UI elements.
+    Returns the configured window object.
+    """
     # Create the main window
     window = QMainWindow()
     window.setWindowTitle('Audio Transcription')
@@ -23,24 +50,24 @@ def create_window():
     welcome_label.setStyleSheet('font-size: 16px; margin: 10px;')
     layout.addWidget(welcome_label)
     
-    # Add status label
+    # Add status label for showing process updates
     status_label = QLabel('')
     status_label.setAlignment(Qt.AlignCenter)
     layout.addWidget(status_label)
     
-    # Add progress bar (initially hidden)
+    # Add a progress bar (initially hidden) to show the processing state
     progress_bar = QProgressBar()
     progress_bar.setRange(0, 0)  # Infinite progress bar
     progress_bar.hide()
     layout.addWidget(progress_bar)
     
-    # Add text area for transcription
+    # Add text area for displaying transcription results
     transcription_text = QTextEdit()
     transcription_text.setPlaceholderText("Transcription will appear here...")
     transcription_text.setReadOnly(True)
     layout.addWidget(transcription_text)
     
-    # Create upload button with styling
+    # Create and style upload button
     upload_btn = QPushButton('Upload Audio File')
     upload_btn.setStyleSheet('''
         QPushButton {
@@ -63,10 +90,16 @@ def create_window():
     layout.addWidget(upload_btn, alignment=Qt.AlignCenter)
     
     def transcribe_audio(file_path):
+        """
+        Handles the audio transcription process using OpenAI's Whisper model.
+        Updates the UI with results or error messages.
+        """
         try:
-            client = openai.OpenAI(api_key=Hamedkey)
+            # Initialize OpenAI client with API key
+            client = openai.OpenAI(api_key=Hamedkey)  # Replace 'Hamedkey' with your API key variable
             audio_file = Path(file_path)
             
+            # Perform transcription
             with audio_file.open("rb") as audio:
                 transcript = client.audio.transcriptions.create(
                     model="whisper-1",
@@ -74,7 +107,7 @@ def create_window():
                     response_format="text"
                 )
             
-            # Update UI after transcription
+            # Update UI with successful transcription
             progress_bar.hide()
             transcription_text.setText(transcript)
             status_label.setText("Transcription completed!")
@@ -82,12 +115,17 @@ def create_window():
             upload_btn.setEnabled(True)
             
         except Exception as e:
+            # Handle and display any errors
             progress_bar.hide()
             status_label.setText(f"Error: {str(e)}")
             status_label.setStyleSheet('color: red;')
             upload_btn.setEnabled(True)
     
     def upload_audio():
+        """
+        Handles the file selection process and initiates transcription.
+        Shows progress indicators and updates UI state.
+        """
         file_dialog = QFileDialog()
         file_dialog.setFileMode(QFileDialog.ExistingFile)
         file_dialog.setNameFilter("Audio Files (*.mp3 *.wav *.m4a *.ogg);;All Files (*.*)")
@@ -97,13 +135,13 @@ def create_window():
             if selected_files:
                 file_path = selected_files[0]
                 
-                # Disable upload button and show processing state
+                # Update UI to show processing state
                 upload_btn.setEnabled(False)
                 status_label.setText("Transcription in progress... Please wait.")
                 status_label.setStyleSheet('color: blue;')
                 progress_bar.show()
                 
-                # Use QTimer to process in the next event loop iteration
+                # Use QTimer to prevent UI freezing
                 QTimer.singleShot(100, lambda: transcribe_audio(file_path))
     
     # Connect button to upload function
@@ -112,21 +150,13 @@ def create_window():
     return window
 
 def main():
-    # Check if QApplication already exists
-    app = QApplication.instance()
-    if app is None:
-        app = QApplication(sys.argv)
-    
+    """
+    Initializes and runs the application.
+    """
+    app = QApplication(sys.argv)
     window = create_window()
     window.show()
-    
-    # Use a different approach for Jupyter vs regular Python
-    if 'ipykernel' in sys.modules:
-        # We're in Jupyter
-        return window
-    else:
-        # We're in regular Python
-        sys.exit(app.exec_())
+    sys.exit(app.exec_())
 
 if __name__ == '__main__':
     main()
