@@ -1,7 +1,8 @@
 # My AI Tools
 
-![AI Collaboration](https://github.com/HamedGhaneS/My-AI-Tools/blob/main/Images/AI.jpeg)
-
+<p align="center">
+  <img src="https://github.com/HamedGhaneS/My-AI-Tools/blob/main/Images/AI.jpeg" alt="AI Collaboration" width="600"/>
+</p>
 A personal collection of AI-powered scripts and tools that I create for my own needs and share for anyone who might find them useful.
 
 ## Purpose
