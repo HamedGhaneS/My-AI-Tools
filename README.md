@@ -3,7 +3,7 @@
 <p align="center">
   <img src="https://github.com/HamedGhaneS/My-AI-Tools/blob/main/Images/AI.jpeg" alt="AI Collaboration" width="600"/>
 </p>
-A personal collection of AI-powered scripts and tools that I create for my own needs and share for anyone who might find them useful.
+A personal collection of AI-based scripts and tools that I create for my own needs and share for anyone who might find them useful.
 
 ## Purpose
 This repository serves as a collection of various AI-based utilities and tools that I develop while learning and working with different AI technologies.
