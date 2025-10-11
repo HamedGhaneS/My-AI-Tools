@@ -11,318 +11,46 @@
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlZvaWNlIEZsYXNoY2FyZHMiLAogICJzaG9ydF9uYW1lIjogIkZsYXNoY2FyZHMiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzY2N2VlYSIsCiAgInRoZW1lX2NvbG9yIjogIiM2NjdlZWEiLAogICJpY29ucyI6IFt7InNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnJTNFJTNDdGV4dCB5PScuOWVtJyBmb250LXNpemU9JzkwJyUzRSVGMCU5RiU4RSVBNCUzQy90ZXh0JTNFJTNDL3N2ZyUzRSIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCJ9XQp9">
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            padding-bottom: 100px;
-        }
-        
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        
-        .security-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-        
-        .ai-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: linear-gradient(135deg, #8b5cf6, #6366f1);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-left: 8px;
-        }
-        
-        h1 {
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .ai-selector {
-            margin: 16px 0;
-            padding: 12px;
-            background: #f3f4f6;
-            border-radius: 12px;
-        }
-        
-        .ai-selector select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #667eea;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            color: #667eea;
-            background: white;
-            cursor: pointer;
-        }
-        
-        .mode-selector {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .mode-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .mode-btn.active {
-            background: #667eea;
-            color: white;
-        }
-        
-        .mode-btn.inactive {
-            background: #e0e0e0;
-            color: #666;
-        }
-        
-        .mic-button {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: none;
-            background: #667eea;
-            color: white;
-            font-size: 48px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
-            transition: all 0.3s;
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        .mic-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        
-        .mic-button.listening {
-            background: #ef4444;
-            animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        .result-box {
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .result-box.question {
-            background: #f3f4f6;
-        }
-        
-        .result-box.answer {
-            background: #d1fae5;
-        }
-        
-        .result-box.error {
-            background: #fee2e2;
-            border: 2px solid #ef4444;
-        }
-        
-        .label {
-            font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
-        
-        .btn-warning {
-            background: #fbbf24;
-            color: #92400e;
-        }
-        
-        .api-section {
-            margin: 20px 0;
-            padding: 16px;
-            background: #f9fafb;
-            border-radius: 12px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .api-section h4 {
-            color: #667eea;
-            margin-bottom: 8px;
-        }
-        
-        .flashcard-item {
-            padding: 15px;
-            background: #f9fafb;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            position: relative;
-            padding-right: 50px;
-        }
-        
-        .delete-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            font-size: 18px;
-        }
-        
-        .settings-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: white;
-            border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            cursor: pointer;
-            font-size: 24px;
-        }
-        
-        .input-field {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 14px;
-            margin: 10px 0;
-        }
-        
-        .practice-card {
-            min-height: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f9fafb;
-            border-radius: 15px;
-            padding: 30px;
-            margin: 20px 0;
-            font-size: 20px;
-            line-height: 1.6;
-            text-align: center;
-        }
-        
-        .security-info {
-            background: #f0f9ff;
-            border-left: 4px solid #3b82f6;
-            padding: 12px;
-            margin: 16px 0;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #1e40af;
-        }
-        
-        .error-details {
-            background: #fee2e2;
-            border-left: 4px solid #ef4444;
-            padding: 12px;
-            margin: 16px 0;
-            border-radius: 8px;
-            font-size: 12px;
-            color: #991b1b;
-            font-family: monospace;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        .loading {
-            animation: spin 1s linear infinite;
-        }
-        
-        .cost-info {
-            background: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 12px;
-            margin: 12px 0;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #92400e;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; padding-bottom: 100px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .security-badge { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 16px; }
+        .ai-badge { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-left: 8px; }
+        h1 { color: #667eea; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 14px; }
+        .ai-selector { margin: 16px 0; padding: 12px; background: #f3f4f6; border-radius: 12px; }
+        .ai-selector select { width: 100%; padding: 12px; border: 2px solid #667eea; border-radius: 10px; font-size: 16px; font-weight: 600; color: #667eea; background: white; cursor: pointer; }
+        .mode-selector { display: flex; gap: 10px; margin-top: 15px; }
+        .mode-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .mode-btn.active { background: #667eea; color: white; }
+        .mode-btn.inactive { background: #e0e0e0; color: #666; }
+        .mic-button { width: 120px; height: 120px; border-radius: 50%; border: none; background: #667eea; color: white; font-size: 48px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 auto; transition: all 0.3s; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); }
+        .mic-button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .mic-button.listening { background: #ef4444; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .result-box { padding: 12px; border-radius: 10px; margin-bottom: 15px; }
+        .result-box.question { background: #f3f4f6; }
+        .result-box.answer { background: #d1fae5; }
+        .result-box.error { background: #fee2e2; border: 2px solid #ef4444; }
+        .label { font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-warning { background: #fbbf24; color: #92400e; }
+        .api-section { margin: 20px 0; padding: 16px; background: #f9fafb; border-radius: 12px; border-left: 4px solid #667eea; }
+        .api-section h4 { color: #667eea; margin-bottom: 8px; }
+        .flashcard-item { padding: 15px; background: #f9fafb; border-radius: 10px; margin-bottom: 10px; position: relative; padding-right: 50px; }
+        .delete-btn { position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 18px; }
+        .settings-btn { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer; font-size: 24px; }
+        .input-field { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 14px; margin: 10px 0; }
+        .practice-card { min-height: 150px; display: flex; align-items: center; justify-content: center; background: #f9fafb; border-radius: 15px; padding: 30px; margin: 20px 0; font-size: 20px; line-height: 1.6; text-align: center; }
+        .security-info { background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 12px; margin: 16px 0; border-radius: 8px; font-size: 13px; color: #1e40af; }
+        .error-details { background: #fee2e2; border-left: 4px solid #ef4444; padding: 12px; margin: 16px 0; border-radius: 8px; font-size: 12px; color: #991b1b; font-family: monospace; max-height: 200px; overflow-y: auto; }
+        .hidden { display: none; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .loading { animation: spin 1s linear infinite; }
+        .cost-info { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 12px 0; border-radius: 8px; font-size: 13px; color: #92400e; }
     </style>
 </head>
 <body>
@@ -346,22 +74,15 @@
             </div>
             
             <div class="mode-selector">
-                <button class="mode-btn active" onclick="setMode('create')">
-                    ✏️ Create Cards
-                </button>
-                <button class="mode-btn inactive" onclick="setMode('practice')">
-                    🎮 Practice (<span id="cardCount">0</span>)
-                </button>
+                <button class="mode-btn active" onclick="setMode('create')">✏️ Create Cards</button>
+                <button class="mode-btn inactive" onclick="setMode('practice')">🎮 Practice (<span id="cardCount">0</span>)</button>
             </div>
         </div>
         
         <!-- Settings Panel -->
         <div id="settingsPanel" class="card hidden">
             <h3>⚙️ API Settings</h3>
-            
-            <div class="security-info">
-                🔒 <strong>Your API keys are encrypted</strong> before storage using device fingerprint.
-            </div>
+            <div class="security-info">🔒 <strong>Your API keys are encrypted</strong> before storage using device fingerprint.</div>
             
             <!-- Gemini Section -->
             <div class="api-section">
@@ -371,9 +92,7 @@
                     <br>Get key: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #667eea;">Google AI Studio</a>
                 </p>
                 <input type="password" id="geminiKey" class="input-field" placeholder="Paste Gemini API key (starts with AIza...)">
-                <button class="btn btn-warning" onclick="testApiKey('gemini')" style="margin-bottom: 10px;">
-                    🧪 Test Gemini Key
-                </button>
+                <button class="btn btn-warning" onclick="testApiKey('gemini')" style="margin-bottom: 10px;">🧪 Test Gemini Key</button>
             </div>
             
             <!-- OpenAI GPT Section -->
@@ -384,9 +103,7 @@
                     <br>Get key: <a href="https://platform.openai.com/api-keys" target="_blank" style="color: #667eea;">OpenAI Platform</a>
                 </p>
                 <input type="password" id="gptKey" class="input-field" placeholder="Paste OpenAI API key (starts with sk-)">
-                <button class="btn btn-warning" onclick="testApiKey('gpt')" style="margin-bottom: 10px;">
-                    🧪 Test GPT Key
-                </button>
+                <button class="btn btn-warning" onclick="testApiKey('gpt')" style="margin-bottom: 10px;">🧪 Test GPT Key</button>
             </div>
             
             <!-- Claude Section -->
@@ -397,9 +114,7 @@
                     <br>Get key: <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color: #667eea;">Anthropic Console</a>
                 </p>
                 <input type="password" id="claudeKey" class="input-field" placeholder="Paste Claude API key (starts with sk-ant-)">
-                <button class="btn btn-warning" onclick="testApiKey('claude')" style="margin-bottom: 10px;">
-                    🧪 Test Claude Key
-                </button>
+                <button class="btn btn-warning" onclick="testApiKey('claude')" style="margin-bottom: 10px;">🧪 Test Claude Key</button>
             </div>
             
             <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -412,18 +127,10 @@
         <div id="createMode">
             <!-- Voice Input -->
             <div class="card" style="text-align: center;">
-                <button id="micButton" class="mic-button" onclick="startListening()">
-                    🎤
-                </button>
-                <p id="statusText" style="margin-top: 20px; color: #666; font-size: 14px;">
-                    Tap to speak in Persian or English
-                </p>
-                <p id="aiStatus" style="margin-top: 10px; color: #667eea; font-size: 13px; font-weight: 600;">
-                    Using: Gemini (Free)
-                </p>
-                <button id="needKeyBtn" class="btn btn-warning hidden" style="margin-top: 10px;" onclick="toggleSettings()">
-                    ⚠️ Add API Key First
-                </button>
+                <button id="micButton" class="mic-button" onclick="startListening()">🎤</button>
+                <p id="statusText" style="margin-top: 20px; color: #666; font-size: 14px;">Tap to speak in Persian or English</p>
+                <p id="aiStatus" style="margin-top: 10px; color: #667eea; font-size: 13px; font-weight: 600;">Using: Gemini (Free)</p>
+                <button id="needKeyBtn" class="btn btn-warning hidden" style="margin-top: 10px;" onclick="toggleSettings()">⚠️ Add API Key First</button>
             </div>
             
             <!-- Results -->
@@ -442,17 +149,13 @@
                     <div class="label" style="color: #ef4444;">❌ ERROR:</div>
                     <div class="result-box error" id="errorMessage"></div>
                     <div class="error-details" id="errorDetails"></div>
-                    <button class="btn btn-warning" onclick="toggleSettings()" style="margin-top: 10px;">
-                        Check API Key Settings
-                    </button>
+                    <button class="btn btn-warning" onclick="toggleSettings()" style="margin-top: 10px;">Check API Key Settings</button>
                 </div>
                 
                 <div id="translationBox" class="hidden">
                     <div class="label" style="color: #10b981;">✨ POLISHED ENGLISH:</div>
                     <div class="result-box answer" id="translationText"></div>
-                    <button class="btn btn-success" onclick="saveFlashcard()">
-                        ➕ Save as Flashcard
-                    </button>
+                    <button class="btn btn-success" onclick="saveFlashcard()">➕ Save as Flashcard</button>
                 </div>
             </div>
             
@@ -474,12 +177,8 @@
                 <div id="practiceAnswer" class="hidden"></div>
             </div>
             
-            <button id="showAnswerBtn" class="btn btn-primary" onclick="showAnswer()">
-                Show Answer
-            </button>
-            <button id="nextCardBtn" class="btn btn-success hidden" onclick="nextCard()">
-                ✓ Next Card
-            </button>
+            <button id="showAnswerBtn" class="btn btn-primary" onclick="showAnswer()">Show Answer</button>
+            <button id="nextCardBtn" class="btn btn-success hidden" onclick="nextCard()">✓ Next Card</button>
         </div>
     </div>
     
@@ -496,25 +195,19 @@
             ctx.fillText('fingerprint', 2, 2);
             return canvas.toDataURL().slice(-50);
         }
-        
         function simpleEncrypt(text, key) {
             let encrypted = '';
             for (let i = 0; i < text.length; i++) {
-                encrypted += String.fromCharCode(
-                    text.charCodeAt(i) ^ key.charCodeAt(i % key.length)
-                );
+                encrypted += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
             }
             return btoa(encrypted);
         }
-        
         function simpleDecrypt(encrypted, key) {
             try {
                 const decoded = atob(encrypted);
                 let decrypted = '';
                 for (let i = 0; i < decoded.length; i++) {
-                    decrypted += String.fromCharCode(
-                        decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length)
-                    );
+                    decrypted += String.fromCharCode(decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length));
                 }
                 return decrypted;
             } catch {
@@ -527,11 +220,7 @@
             mode: 'create',
             flashcards: [],
             aiProvider: 'gemini',
-            apiKeys: {
-                gemini: '',
-                gpt: '',
-                claude: ''
-            },
+            apiKeys: { gemini: '', gpt: '', claude: '' },
             transcript: '',
             translation: '',
             currentCardIndex: 0,
@@ -544,19 +233,8 @@
         function loadData() {
             const savedCards = localStorage.getItem('flashcards');
             const savedProvider = localStorage.getItem('aiProvider');
-            
-            if (savedCards) {
-                state.flashcards = JSON.parse(savedCards);
-                updateCardCount();
-                renderFlashcards();
-            }
-            
-            if (savedProvider) {
-                state.aiProvider = savedProvider;
-                document.getElementById('aiProvider').value = savedProvider;
-            }
-            
-            // Load encrypted API keys
+            if (savedCards) { state.flashcards = JSON.parse(savedCards); updateCardCount(); renderFlashcards(); }
+            if (savedProvider) { state.aiProvider = savedProvider; document.getElementById('aiProvider').value = savedProvider; }
             ['gemini', 'gpt', 'claude'].forEach(provider => {
                 const encrypted = localStorage.getItem(`${provider}ApiKey_enc`);
                 if (encrypted) {
@@ -567,45 +245,28 @@
                     }
                 }
             });
-            
             updateAIProvider();
         }
         
         function updateAIProvider() {
             state.aiProvider = document.getElementById('aiProvider').value;
             localStorage.setItem('aiProvider', state.aiProvider);
-            
-            const names = {
-                gemini: 'Gemini (Free)',
-                gpt: 'GPT-4o (Paid)',
-                claude: 'Claude Sonnet (Paid)'
-            };
-            
+            const names = { gemini: 'Gemini (Free)', gpt: 'GPT-4o (Paid)', claude: 'Claude Sonnet (Paid)' };
             document.getElementById('aiStatus').textContent = `Using: ${names[state.aiProvider]}`;
             checkApiKey();
         }
-        
         function checkApiKey() {
             const needKeyBtn = document.getElementById('needKeyBtn');
             const currentKey = state.apiKeys[state.aiProvider];
-            
-            if (!currentKey) {
-                needKeyBtn.classList.remove('hidden');
-            } else {
-                needKeyBtn.classList.add('hidden');
-            }
+            if (!currentKey) needKeyBtn.classList.remove('hidden'); else needKeyBtn.classList.add('hidden');
         }
-        
         function toggleSettings() {
             const panel = document.getElementById('settingsPanel');
             const btn = document.getElementById('settingsBtn');
-            panel.classList.toggle('hidden');
-            btn.classList.toggle('hidden');
+            panel.classList.toggle('hidden'); btn.classList.toggle('hidden');
         }
-        
         function saveAllKeys() {
             let saved = 0;
-            
             ['gemini', 'gpt', 'claude'].forEach(provider => {
                 const key = document.getElementById(`${provider}Key`).value.trim();
                 if (key && !key.startsWith('••••')) {
@@ -615,99 +276,59 @@
                     saved++;
                 }
             });
-            
-            if (saved > 0) {
-                alert(`✅ Saved ${saved} API key(s)!\n\nKeys are encrypted and stored securely.`);
-                checkApiKey();
-            } else {
-                alert('No new keys to save. Existing keys are already stored.');
-            }
+            if (saved > 0) { alert(`✅ Saved ${saved} API key(s)!\n\nKeys are encrypted and stored securely.`); checkApiKey(); }
+            else { alert('No new keys to save. Existing keys are already stored.'); }
         }
         
         // Test API Keys
         async function testApiKey(provider) {
             const keyInput = document.getElementById(`${provider}Key`).value.trim();
             const testKey = keyInput.startsWith('••••') ? state.apiKeys[provider] : keyInput;
-            
-            if (!testKey) {
-                alert('Please enter an API key first!');
-                return;
-            }
-            
+            if (!testKey) { alert('Please enter an API key first!'); return; }
             alert('Testing API key... Please wait.');
-            
             try {
                 let response, data;
-                
                 if (provider === 'gemini') {
+                    // FIXED: use v1beta and -latest
                     response = await fetch(
-                        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${testKey}`,
+                        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${testKey}`,
                         {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                contents: [{ parts: [{ text: "Say 'Hello'" }] }]
-                            })
+                            body: JSON.stringify({ contents: [{ parts: [{ text: "Say 'Hello'" }] }] })
                         }
                     );
                     data = await response.json();
-                    
                     if (response.ok && data.candidates) {
                         alert('✅ Gemini API key works!\n\n' + data.candidates[0].content.parts[0].text);
                     } else {
                         alert('❌ Gemini Error: ' + JSON.stringify(data, null, 2));
                     }
-                    
                 } else if (provider === 'gpt') {
-                    response = await fetch(
-                        'https://api.openai.com/v1/chat/completions',
-                        {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${testKey}`
-                            },
-                            body: JSON.stringify({
-                                model: 'gpt-4o-mini',
-                                messages: [{ role: 'user', content: "Say 'Hello'" }],
-                                max_tokens: 50
-                            })
-                        }
-                    );
+                    response = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${testKey}` },
+                        body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: "Say 'Hello'" }], max_tokens: 50 })
+                    });
                     data = await response.json();
-                    
                     if (response.ok && data.choices) {
                         alert('✅ OpenAI API key works!\n\n' + data.choices[0].message.content);
                     } else {
                         alert('❌ OpenAI Error: ' + JSON.stringify(data, null, 2));
                     }
-                    
                 } else if (provider === 'claude') {
-                    response = await fetch(
-                        'https://api.anthropic.com/v1/messages',
-                        {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'x-api-key': testKey,
-                                'anthropic-version': '2023-06-01'
-                            },
-                            body: JSON.stringify({
-                                model: 'claude-sonnet-4-20250514',
-                                max_tokens: 100,
-                                messages: [{ role: 'user', content: "Say 'Hello'" }]
-                            })
-                        }
-                    );
+                    response = await fetch('https://api.anthropic.com/v1/messages', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-api-key': testKey, 'anthropic-version': '2023-06-01' },
+                        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 100, messages: [{ role: 'user', content: "Say 'Hello'" }] })
+                    });
                     data = await response.json();
-                    
                     if (response.ok && data.content) {
                         alert('✅ Claude API key works!\n\n' + data.content[0].text);
                     } else {
                         alert('❌ Claude Error: ' + JSON.stringify(data, null, 2));
                     }
                 }
-                
             } catch (error) {
                 alert('❌ Network Error: ' + error.message);
             }
@@ -715,75 +336,42 @@
         
         function setMode(mode) {
             state.mode = mode;
-            
             const buttons = document.querySelectorAll('.mode-btn');
             buttons[0].className = mode === 'create' ? 'mode-btn active' : 'mode-btn inactive';
             buttons[1].className = mode === 'practice' ? 'mode-btn active' : 'mode-btn inactive';
-            
             document.getElementById('createMode').classList.toggle('hidden', mode !== 'create');
             document.getElementById('practiceMode').classList.toggle('hidden', mode !== 'practice');
-            
             if (mode === 'practice') {
-                if (state.flashcards.length === 0) {
-                    alert('Create some flashcards first!');
-                    setMode('create');
-                    return;
-                }
+                if (state.flashcards.length === 0) { alert('Create some flashcards first!'); setMode('create'); return; }
                 startPractice();
             }
         }
         
         function startListening() {
-            if (!state.apiKeys[state.aiProvider]) {
-                alert('Please add your API key in settings first!');
-                toggleSettings();
-                return;
-            }
-            
-            if (!('webkitSpeechRecognition' in window)) {
-                alert('Sorry, your browser doesn\'t support voice input. Try Safari or Chrome.');
-                return;
-            }
-            
+            if (!state.apiKeys[state.aiProvider]) { alert('Please add your API key in settings first!'); toggleSettings(); return; }
+            if (!('webkitSpeechRecognition' in window)) { alert('Sorry, your browser doesn\'t support voice input. Try Safari or Chrome.'); return; }
             const recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'fa-IR';
-            
+            recognition.continuous = false; recognition.interimResults = false; recognition.lang = 'fa-IR';
             recognition.onstart = () => {
                 state.isListening = true;
                 document.getElementById('micButton').classList.add('listening');
                 document.getElementById('micButton').textContent = '🔴';
                 document.getElementById('statusText').textContent = '🎤 Listening...';
             };
-            
             recognition.onresult = (event) => {
                 const spokenText = event.results[0][0].transcript;
-                state.transcript = spokenText;
-                showTranscript();
-                getTranslation(spokenText);
+                state.transcript = spokenText; showTranscript(); getTranslation(spokenText);
             };
-            
-            recognition.onerror = (event) => {
-                console.error('Speech error:', event.error);
-                resetMicButton();
-                alert('Speech Error: ' + event.error);
-            };
-            
-            recognition.onend = () => {
-                resetMicButton();
-            };
-            
+            recognition.onerror = (event) => { console.error('Speech error:', event.error); resetMicButton(); alert('Speech Error: ' + event.error); };
+            recognition.onend = () => { resetMicButton(); };
             recognition.start();
         }
-        
         function resetMicButton() {
             state.isListening = false;
             document.getElementById('micButton').classList.remove('listening');
             document.getElementById('micButton').textContent = '🎤';
             document.getElementById('statusText').textContent = 'Tap to speak in Persian or English';
         }
-        
         function showTranscript() {
             document.getElementById('resultsCard').classList.remove('hidden');
             document.getElementById('transcriptBox').classList.remove('hidden');
@@ -795,76 +383,46 @@
             document.getElementById('loadingBox').classList.remove('hidden');
             document.getElementById('translationBox').classList.add('hidden');
             document.getElementById('errorBox').classList.add('hidden');
-            
             const prompt = `Translate this to natural, polished English. If it's already English, improve it to sound more natural and fluent. Only provide the translation, nothing else:\n\n"${text}"`;
-            
             try {
                 let response, data;
-                
                 if (state.aiProvider === 'gemini') {
+                    // FIXED: use v1beta and -latest
                     response = await fetch(
-                        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${state.apiKeys.gemini}`,
+                        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${state.apiKeys.gemini}`,
                         {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                contents: [{ parts: [{ text: prompt }] }]
-                            })
+                            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                         }
                     );
                     data = await response.json();
-                    
                     if (response.ok && data.candidates) {
                         state.translation = data.candidates[0].content.parts[0].text.trim();
                         showTranslation();
                     } else {
                         showError('Gemini API Error', JSON.stringify(data, null, 2));
                     }
-                    
                 } else if (state.aiProvider === 'gpt') {
-                    response = await fetch(
-                        'https://api.openai.com/v1/chat/completions',
-                        {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${state.apiKeys.gpt}`
-                            },
-                            body: JSON.stringify({
-                                model: 'gpt-4o-mini',
-                                messages: [{ role: 'user', content: prompt }],
-                                max_tokens: 200
-                            })
-                        }
-                    );
+                    response = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.apiKeys.gpt}` },
+                        body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: prompt }], max_tokens: 200 })
+                    });
                     data = await response.json();
-                    
                     if (response.ok && data.choices) {
                         state.translation = data.choices[0].message.content.trim();
                         showTranslation();
                     } else {
                         showError('OpenAI API Error', JSON.stringify(data, null, 2));
                     }
-                    
                 } else if (state.aiProvider === 'claude') {
-                    response = await fetch(
-                        'https://api.anthropic.com/v1/messages',
-                        {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'x-api-key': state.apiKeys.claude,
-                                'anthropic-version': '2023-06-01'
-                            },
-                            body: JSON.stringify({
-                                model: 'claude-sonnet-4-20250514',
-                                max_tokens: 200,
-                                messages: [{ role: 'user', content: prompt }]
-                            })
-                        }
-                    );
+                    response = await fetch('https://api.anthropic.com/v1/messages', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-api-key': state.apiKeys.claude, 'anthropic-version': '2023-06-01' },
+                        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 200, messages: [{ role: 'user', content: prompt }] })
+                    });
                     data = await response.json();
-                    
                     if (response.ok && data.content) {
                         state.translation = data.content[0].text.trim();
                         showTranslation();
@@ -872,11 +430,9 @@
                         showError('Claude API Error', JSON.stringify(data, null, 2));
                     }
                 }
-                
             } catch (error) {
                 showError('Network Error', error.message);
             }
-            
             document.getElementById('loadingBox').classList.add('hidden');
         }
         
@@ -886,58 +442,31 @@
             document.getElementById('errorMessage').textContent = message;
             document.getElementById('errorDetails').textContent = details;
         }
-        
         function showTranslation() {
             document.getElementById('translationBox').classList.remove('hidden');
             document.getElementById('errorBox').classList.add('hidden');
             document.getElementById('translationText').textContent = state.translation;
         }
-        
         function saveFlashcard() {
-            if (!state.transcript || !state.translation) {
-                alert('Need both question and translation!');
-                return;
-            }
-            
-            const newCard = {
-                id: Date.now(),
-                question: state.transcript,
-                answer: state.translation,
-                created: new Date().toISOString(),
-                aiProvider: state.aiProvider,
-                reviewCount: 0
-            };
-            
+            if (!state.transcript || !state.translation) { alert('Need both question and translation!'); return; }
+            const newCard = { id: Date.now(), question: state.transcript, answer: state.translation, created: new Date().toISOString(), aiProvider: state.aiProvider, reviewCount: 0 };
             state.flashcards.unshift(newCard);
             localStorage.setItem('flashcards', JSON.stringify(state.flashcards));
-            
-            state.transcript = '';
-            state.translation = '';
+            state.transcript = ''; state.translation = '';
             document.getElementById('resultsCard').classList.add('hidden');
             document.getElementById('transcriptBox').classList.add('hidden');
             document.getElementById('translationBox').classList.add('hidden');
-            
-            updateCardCount();
-            renderFlashcards();
-            
+            updateCardCount(); renderFlashcards();
             alert('Flashcard saved! 🎉');
         }
-        
         function updateCardCount() {
             document.getElementById('cardCount').textContent = state.flashcards.length;
             document.getElementById('listCount').textContent = state.flashcards.length;
-            
-            if (state.flashcards.length > 0) {
-                document.getElementById('flashcardsList').classList.remove('hidden');
-            }
+            if (state.flashcards.length > 0) document.getElementById('flashcardsList').classList.remove('hidden');
         }
-        
         function renderFlashcards() {
-            const container = document.getElementById('cardsContainer');
-            container.innerHTML = '';
-            
+            const container = document.getElementById('cardsContainer'); container.innerHTML = '';
             const aiEmojis = { gemini: '🌟', gpt: '⚡', claude: '🧠' };
-            
             state.flashcards.forEach(card => {
                 const cardEl = document.createElement('div');
                 cardEl.className = 'flashcard-item';
@@ -956,61 +485,36 @@
                 container.appendChild(cardEl);
             });
         }
-        
         function deleteCard(id) {
             if (confirm('Delete this flashcard?')) {
                 state.flashcards = state.flashcards.filter(card => card.id !== id);
                 localStorage.setItem('flashcards', JSON.stringify(state.flashcards));
-                updateCardCount();
-                renderFlashcards();
+                updateCardCount(); renderFlashcards();
             }
         }
-        
-        function startPractice() {
-            state.currentCardIndex = 0;
-            state.showingAnswer = false;
-            showPracticeCard();
-        }
-        
+        function startPractice() { state.currentCardIndex = 0; state.showingAnswer = false; showPracticeCard(); }
         function showPracticeCard() {
             const card = state.flashcards[state.currentCardIndex];
             document.getElementById('currentCard').textContent = state.currentCardIndex + 1;
             document.getElementById('totalCards').textContent = state.flashcards.length;
-            
-            document.getElementById('practiceQuestion').innerHTML = `
-                <div style="color: #667eea; font-size: 14px; margin-bottom: 10px;">QUESTION:</div>
-                ${card.question}
-            `;
-            document.getElementById('practiceAnswer').innerHTML = `
-                <div style="color: #10b981; font-size: 14px; margin-bottom: 10px;">ANSWER:</div>
-                ${card.answer}
-            `;
-            
+            document.getElementById('practiceQuestion').innerHTML = `<div style="color: #667eea; font-size: 14px; margin-bottom: 10px;">QUESTION:</div>${card.question}`;
+            document.getElementById('practiceAnswer').innerHTML = `<div style="color: #10b981; font-size: 14px; margin-bottom: 10px;">ANSWER:</div>${card.answer}`;
             document.getElementById('practiceQuestion').classList.remove('hidden');
             document.getElementById('practiceAnswer').classList.add('hidden');
             document.getElementById('showAnswerBtn').classList.remove('hidden');
             document.getElementById('nextCardBtn').classList.add('hidden');
         }
-        
         function showAnswer() {
             document.getElementById('practiceAnswer').classList.remove('hidden');
             document.getElementById('showAnswerBtn').classList.add('hidden');
             document.getElementById('nextCardBtn').classList.remove('hidden');
         }
-        
         function nextCard() {
             state.flashcards[state.currentCardIndex].reviewCount += 1;
             localStorage.setItem('flashcards', JSON.stringify(state.flashcards));
-            
-            if (state.currentCardIndex < state.flashcards.length - 1) {
-                state.currentCardIndex++;
-                showPracticeCard();
-            } else {
-                alert('🎉 You reviewed all cards!');
-                setMode('create');
-            }
+            if (state.currentCardIndex < state.flashcards.length - 1) { state.currentCardIndex++; showPracticeCard(); }
+            else { alert('🎉 You reviewed all cards!'); setMode('create'); }
         }
-        
         window.onload = loadData;
     </script>
 </body>
