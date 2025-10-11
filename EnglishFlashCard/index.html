@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#667eea">
-    <title>🎤 Voice Flashcards (Secure)</title>
+    <title>🎤 Voice Flashcards (Debug)</title>
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlZvaWNlIEZsYXNoY2FyZHMiLAogICJzaG9ydF9uYW1lIjogIkZsYXNoY2FyZHMiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzY2N2VlYSIsCiAgInRoZW1lX2NvbG9yIjogIiM2NjdlZWEiLAogICJpY29ucyI6IFt7InNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnJTNFJTNDdGV4dCB5PScuOWVtJyBmb250LXNpemU9JzkwJyUzRSVGMCU5RiU4RSVBNCUzQy90ZXh0JTNFJTNDL3N2ZyUzRSIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCJ9XQp9">
@@ -50,6 +50,19 @@
             font-size: 13px;
             font-weight: 600;
             margin-bottom: 16px;
+        }
+        
+        .debug-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-left: 8px;
         }
         
         h1 {
@@ -132,6 +145,11 @@
         
         .result-box.answer {
             background: #d1fae5;
+        }
+        
+        .result-box.error {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
         }
         
         .label {
@@ -244,6 +262,19 @@
             color: #1e40af;
         }
         
+        .error-details {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            padding: 12px;
+            margin: 16px 0;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #991b1b;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
         .hidden {
             display: none;
         }
@@ -262,8 +293,9 @@
     <div class="container">
         <!-- Header -->
         <div class="card">
-            <div class="security-badge">
-                🔒 Encrypted Storage
+            <div>
+                <span class="security-badge">🔒 Encrypted Storage</span>
+                <span class="debug-badge">🐛 Debug Mode</span>
             </div>
             <h1>🎤 Voice Flashcards</h1>
             <p class="subtitle">Speak Persian or English - Get polished translations!</p>
@@ -283,7 +315,7 @@
             <h3>⚙️ API Settings</h3>
             
             <div class="security-info">
-                🔒 <strong>Your API key is encrypted</strong> before storage using your device's fingerprint. It never leaves your phone unencrypted.
+                🔒 <strong>Your API key is encrypted</strong> before storage. Debug mode will show detailed error messages.
             </div>
             
             <p class="subtitle">
@@ -292,8 +324,13 @@
                     Google AI Studio
                 </a>
             </p>
-            <input type="password" id="apiKeyInput" class="input-field" placeholder="Paste your API key here">
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <input type="password" id="apiKeyInput" class="input-field" placeholder="Paste your API key here (starts with AIza...)">
+            
+            <button class="btn btn-warning" onclick="testApiKey()" style="margin-bottom: 10px;">
+                🧪 Test API Key
+            </button>
+            
+            <div style="display: flex; gap: 10px;">
                 <button class="btn btn-primary" onclick="saveApiKey()">Save Key</button>
                 <button class="btn" style="background: #e0e0e0; color: #666;" onclick="toggleSettings()">Cancel</button>
             </div>
@@ -324,6 +361,15 @@
                 <div id="loadingBox" class="hidden" style="text-align: center; padding: 20px;">
                     <div class="loading" style="font-size: 32px;">⏳</div>
                     <p style="color: #667eea;">Getting translation...</p>
+                </div>
+                
+                <div id="errorBox" class="hidden">
+                    <div class="label" style="color: #ef4444;">❌ ERROR:</div>
+                    <div class="result-box error" id="errorMessage"></div>
+                    <div class="error-details" id="errorDetails"></div>
+                    <button class="btn btn-warning" onclick="toggleSettings()" style="margin-top: 10px;">
+                        Check API Key Settings
+                    </button>
                 </div>
                 
                 <div id="translationBox" class="hidden">
@@ -366,19 +412,16 @@
     <button id="settingsBtn" class="settings-btn" onclick="toggleSettings()">⚙️</button>
     
     <script>
-        // Simple encryption/decryption using device fingerprint
-        // TUTORIAL: This creates a unique "key" based on your device
+        // Simple encryption/decryption
         function getDeviceFingerprint() {
-            // Create a unique ID based on device characteristics
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             ctx.textBaseline = 'top';
             ctx.font = '14px Arial';
             ctx.fillText('fingerprint', 2, 2);
-            return canvas.toDataURL().slice(-50); // Use last 50 chars as fingerprint
+            return canvas.toDataURL().slice(-50);
         }
         
-        // TUTORIAL: Simple XOR encryption (better than nothing!)
         function simpleEncrypt(text, key) {
             let encrypted = '';
             for (let i = 0; i < text.length; i++) {
@@ -386,12 +429,12 @@
                     text.charCodeAt(i) ^ key.charCodeAt(i % key.length)
                 );
             }
-            return btoa(encrypted); // Base64 encode
+            return btoa(encrypted);
         }
         
         function simpleDecrypt(encrypted, key) {
             try {
-                const decoded = atob(encrypted); // Base64 decode
+                const decoded = atob(encrypted);
                 let decrypted = '';
                 for (let i = 0; i < decoded.length; i++) {
                     decrypted += String.fromCharCode(
@@ -417,7 +460,7 @@
             deviceKey: getDeviceFingerprint()
         };
         
-        // Load saved data on startup
+        // Load saved data
         function loadData() {
             const savedCards = localStorage.getItem('flashcards');
             const encryptedKey = localStorage.getItem('geminiApiKey_enc');
@@ -428,7 +471,6 @@
                 renderFlashcards();
             }
             
-            // TUTORIAL: Decrypt the API key when loading
             if (encryptedKey) {
                 const decrypted = simpleDecrypt(encryptedKey, state.deviceKey);
                 if (decrypted) {
@@ -440,7 +482,6 @@
             checkApiKey();
         }
         
-        // Check if API key exists
         function checkApiKey() {
             const needKeyBtn = document.getElementById('needKeyBtn');
             if (!state.apiKey) {
@@ -450,7 +491,6 @@
             }
         }
         
-        // Toggle settings panel
         function toggleSettings() {
             const panel = document.getElementById('settingsPanel');
             const btn = document.getElementById('settingsBtn');
@@ -458,35 +498,75 @@
             btn.classList.toggle('hidden');
         }
         
-        // Save API key with encryption
         function saveApiKey() {
             const key = document.getElementById('apiKeyInput').value.trim();
             if (key && !key.startsWith('••••')) {
+                if (!key.startsWith('AIza')) {
+                    alert('⚠️ Warning: Gemini API keys usually start with "AIza". Please verify your key.');
+                }
                 state.apiKey = key;
-                // TUTORIAL: Encrypt before storing
                 const encrypted = simpleEncrypt(key, state.deviceKey);
                 localStorage.setItem('geminiApiKey_enc', encrypted);
-                alert('API key saved and encrypted! 🔒✅');
-                toggleSettings();
+                alert('API key saved and encrypted! 🔒✅\n\nClick "Test API Key" to verify it works.');
                 checkApiKey();
             } else if (state.apiKey) {
-                // User didn't change it, just close
                 toggleSettings();
             } else {
                 alert('Please enter an API key');
             }
         }
         
-        // Set mode
+        // Test API Key function
+        async function testApiKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            const testKey = key.startsWith('••••') ? state.apiKey : key;
+            
+            if (!testKey) {
+                alert('Please enter an API key first!');
+                return;
+            }
+            
+            alert('Testing API key... Please wait.');
+            
+            try {
+                const response = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${testKey}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{ text: "Say 'Hello'" }]
+                            }]
+                        })
+                    }
+                );
+                
+                const data = await response.json();
+                
+                if (response.ok && data.candidates && data.candidates[0]) {
+                    alert('✅ SUCCESS! Your API key is working correctly!\n\nResponse: ' + data.candidates[0].content.parts[0].text);
+                } else if (response.status === 400) {
+                    alert('❌ ERROR: Bad Request\n\nYour API key format may be incorrect. Make sure you copied the entire key from Google AI Studio.');
+                } else if (response.status === 403) {
+                    alert('❌ ERROR: Permission Denied\n\nYour API key may not have permission to use the Gemini API. Try creating a new key at: https://aistudio.google.com/app/apikey');
+                } else if (response.status === 429) {
+                    alert('❌ ERROR: Rate Limit Exceeded\n\nYou\'ve made too many requests. Wait a minute and try again.');
+                } else {
+                    alert('❌ ERROR: ' + response.status + '\n\n' + JSON.stringify(data, null, 2));
+                }
+            } catch (error) {
+                alert('❌ NETWORK ERROR\n\nCould not connect to Google API. Check your internet connection.\n\nError: ' + error.message);
+            }
+        }
+        
         function setMode(mode) {
             state.mode = mode;
             
-            // Update buttons
             const buttons = document.querySelectorAll('.mode-btn');
             buttons[0].className = mode === 'create' ? 'mode-btn active' : 'mode-btn inactive';
             buttons[1].className = mode === 'practice' ? 'mode-btn active' : 'mode-btn inactive';
             
-            // Show/hide sections
             document.getElementById('createMode').classList.toggle('hidden', mode !== 'create');
             document.getElementById('practiceMode').classList.toggle('hidden', mode !== 'practice');
             
@@ -500,7 +580,6 @@
             }
         }
         
-        // Voice recognition
         function startListening() {
             if (!state.apiKey) {
                 alert('Please add your Gemini API key in settings first!');
@@ -535,7 +614,7 @@
             recognition.onerror = (event) => {
                 console.error('Speech recognition error:', event.error);
                 resetMicButton();
-                alert('Error: ' + event.error);
+                alert('Speech Error: ' + event.error);
             };
             
             recognition.onend = () => {
@@ -552,20 +631,19 @@
             document.getElementById('statusText').textContent = 'Tap to speak in Persian or English';
         }
         
-        // Show transcript
         function showTranscript() {
             document.getElementById('resultsCard').classList.remove('hidden');
             document.getElementById('transcriptBox').classList.remove('hidden');
             document.getElementById('transcriptText').textContent = state.transcript;
+            document.getElementById('errorBox').classList.add('hidden');
         }
         
-        // Get translation from Gemini API
         async function getTranslation(text) {
             document.getElementById('loadingBox').classList.remove('hidden');
             document.getElementById('translationBox').classList.add('hidden');
+            document.getElementById('errorBox').classList.add('hidden');
             
             try {
-                // TUTORIAL: API key is decrypted in memory, sent over HTTPS
                 const response = await fetch(
                     `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${state.apiKey}`,
                     {
@@ -583,27 +661,66 @@
                 
                 const data = await response.json();
                 
-                if (data.candidates && data.candidates[0]) {
+                console.log('API Response:', data);
+                
+                if (!response.ok) {
+                    showError(
+                        `API Error (${response.status})`,
+                        `Status: ${response.status}\n\n` +
+                        `Response: ${JSON.stringify(data, null, 2)}\n\n` +
+                        `Possible causes:\n` +
+                        `- Invalid API key\n` +
+                        `- API quota exceeded\n` +
+                        `- API key lacks permissions\n\n` +
+                        `Try clicking "Test API Key" in settings.`
+                    );
+                    return;
+                }
+                
+                if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
                     state.translation = data.candidates[0].content.parts[0].text.trim();
                     showTranslation();
                 } else {
-                    alert('Unexpected response from API');
+                    showError(
+                        'Unexpected API response format',
+                        `The API returned data but in an unexpected format.\n\n` +
+                        `Full response:\n${JSON.stringify(data, null, 2)}\n\n` +
+                        `This might mean:\n` +
+                        `- The API format changed\n` +
+                        `- Content was blocked by safety filters\n` +
+                        `- API quota issue`
+                    );
                 }
             } catch (error) {
                 console.error('Translation error:', error);
-                alert('Failed to get translation. Check your API key and internet connection.');
+                showError(
+                    'Network or connection error',
+                    `Error: ${error.message}\n\n` +
+                    `Stack: ${error.stack}\n\n` +
+                    `This usually means:\n` +
+                    `- No internet connection\n` +
+                    `- Network firewall blocking the request\n` +
+                    `- CORS issue\n\n` +
+                    `Check your internet connection and try again.`
+                );
             }
             
             document.getElementById('loadingBox').classList.add('hidden');
         }
         
-        // Show translation
+        function showError(message, details) {
+            document.getElementById('errorBox').classList.remove('hidden');
+            document.getElementById('translationBox').classList.add('hidden');
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorDetails').textContent = details;
+        }
+        
         function showTranslation() {
             document.getElementById('translationBox').classList.remove('hidden');
+            document.getElementById('errorBox').classList.add('hidden');
             document.getElementById('translationText').textContent = state.translation;
         }
         
-        // Save flashcard
         function saveFlashcard() {
             if (!state.transcript || !state.translation) {
                 alert('Need both question and translation!');
@@ -621,7 +738,6 @@
             state.flashcards.unshift(newCard);
             localStorage.setItem('flashcards', JSON.stringify(state.flashcards));
             
-            // Reset
             state.transcript = '';
             state.translation = '';
             document.getElementById('resultsCard').classList.add('hidden');
@@ -634,7 +750,6 @@
             alert('Flashcard saved! 🎉');
         }
         
-        // Update card count
         function updateCardCount() {
             document.getElementById('cardCount').textContent = state.flashcards.length;
             document.getElementById('listCount').textContent = state.flashcards.length;
@@ -644,7 +759,6 @@
             }
         }
         
-        // Render flashcards
         function renderFlashcards() {
             const container = document.getElementById('cardsContainer');
             container.innerHTML = '';
@@ -665,7 +779,6 @@
             });
         }
         
-        // Delete card
         function deleteCard(id) {
             if (confirm('Delete this flashcard?')) {
                 state.flashcards = state.flashcards.filter(card => card.id !== id);
@@ -675,7 +788,6 @@
             }
         }
         
-        // Practice mode
         function startPractice() {
             state.currentCardIndex = 0;
             state.showingAnswer = false;
@@ -709,7 +821,6 @@
         }
         
         function nextCard() {
-            // Update review count
             state.flashcards[state.currentCardIndex].reviewCount += 1;
             localStorage.setItem('flashcards', JSON.stringify(state.flashcards));
             
@@ -722,7 +833,6 @@
             }
         }
         
-        // Initialize on load
         window.onload = loadData;
     </script>
 </body>
