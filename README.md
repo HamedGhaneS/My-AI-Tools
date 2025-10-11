@@ -17,3 +17,9 @@ While these scripts are primarily created for my personal use, I'm sharing them 
 
  **Hamed Ghane**,
  *2024.11.29*
+ 
+## Tools Available
+
+### 🎤 English FlashCard
+AI-powered voice flashcards for language learning using speech recognition and Gemini API.
+[Launch App](https://hamedghanes.github.io/My-AI-Tools/EnglishFlashCard/)
