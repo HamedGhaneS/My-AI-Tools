@@ -6,9 +6,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#667eea">
-    <title>🎤 Voice Flashcards (Debug)</title>
+    <title>🎤 Voice Flashcards - Multi-AI</title>
     
-    <!-- PWA Manifest -->
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlZvaWNlIEZsYXNoY2FyZHMiLAogICJzaG9ydF9uYW1lIjogIkZsYXNoY2FyZHMiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzY2N2VlYSIsCiAgInRoZW1lX2NvbG9yIjogIiM2NjdlZWEiLAogICJpY29ucyI6IFt7InNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnJTNFJTNDdGV4dCB5PScuOWVtJyBmb250LXNpemU9JzkwJyUzRSVGMCU5RiU4RSVBNCUzQy90ZXh0JTNFJTNDL3N2ZyUzRSIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCJ9XQp9">
     
     <style>
@@ -52,11 +51,11 @@
             margin-bottom: 16px;
         }
         
-        .debug-badge {
+        .ai-badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
             color: white;
             padding: 8px 16px;
             border-radius: 20px;
@@ -73,6 +72,25 @@
         .subtitle {
             color: #666;
             font-size: 14px;
+        }
+        
+        .ai-selector {
+            margin: 16px 0;
+            padding: 12px;
+            background: #f3f4f6;
+            border-radius: 12px;
+        }
+        
+        .ai-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+            background: white;
+            cursor: pointer;
         }
         
         .mode-selector {
@@ -182,14 +200,22 @@
             color: white;
         }
         
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-        
         .btn-warning {
             background: #fbbf24;
             color: #92400e;
+        }
+        
+        .api-section {
+            margin: 20px 0;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .api-section h4 {
+            color: #667eea;
+            margin-bottom: 8px;
         }
         
         .flashcard-item {
@@ -287,6 +313,16 @@
         .loading {
             animation: spin 1s linear infinite;
         }
+        
+        .cost-info {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #92400e;
+        }
     </style>
 </head>
 <body>
@@ -294,11 +330,20 @@
         <!-- Header -->
         <div class="card">
             <div>
-                <span class="security-badge">🔒 Encrypted Storage</span>
-                <span class="debug-badge">🐛 Debug Mode</span>
+                <span class="security-badge">🔒 Encrypted</span>
+                <span class="ai-badge">🤖 Multi-AI</span>
             </div>
             <h1>🎤 Voice Flashcards</h1>
-            <p class="subtitle">Speak Persian or English - Get polished translations!</p>
+            <p class="subtitle">Choose your AI: Gemini (Free) • GPT-4 • Claude</p>
+            
+            <!-- AI Provider Selection -->
+            <div class="ai-selector">
+                <select id="aiProvider" onchange="updateAIProvider()">
+                    <option value="gemini">🌟 Gemini 1.5 Flash (FREE - Recommended)</option>
+                    <option value="gpt">⚡ GPT-4o (Paid - $0.0025/request)</option>
+                    <option value="claude">🧠 Claude Sonnet 4 (Paid - $0.003/request)</option>
+                </select>
+            </div>
             
             <div class="mode-selector">
                 <button class="mode-btn active" onclick="setMode('create')">
@@ -315,23 +360,50 @@
             <h3>⚙️ API Settings</h3>
             
             <div class="security-info">
-                🔒 <strong>Your API key is encrypted</strong> before storage. Debug mode will show detailed error messages.
+                🔒 <strong>Your API keys are encrypted</strong> before storage using device fingerprint.
             </div>
             
-            <p class="subtitle">
-                Get your free Gemini API key from: 
-                <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #667eea;">
-                    Google AI Studio
-                </a>
-            </p>
-            <input type="password" id="apiKeyInput" class="input-field" placeholder="Paste your API key here (starts with AIza...)">
+            <!-- Gemini Section -->
+            <div class="api-section">
+                <h4>🌟 Gemini API (Google)</h4>
+                <p style="font-size: 13px; color: #666; margin-bottom: 8px;">
+                    <strong>FREE:</strong> 1,500 requests/day • 15/minute
+                    <br>Get key: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #667eea;">Google AI Studio</a>
+                </p>
+                <input type="password" id="geminiKey" class="input-field" placeholder="Paste Gemini API key (starts with AIza...)">
+                <button class="btn btn-warning" onclick="testApiKey('gemini')" style="margin-bottom: 10px;">
+                    🧪 Test Gemini Key
+                </button>
+            </div>
             
-            <button class="btn btn-warning" onclick="testApiKey()" style="margin-bottom: 10px;">
-                🧪 Test API Key
-            </button>
+            <!-- OpenAI GPT Section -->
+            <div class="api-section">
+                <h4>⚡ OpenAI GPT-4 API</h4>
+                <p style="font-size: 13px; color: #666; margin-bottom: 8px;">
+                    <strong>Paid:</strong> ~$0.0025 per translation
+                    <br>Get key: <a href="https://platform.openai.com/api-keys" target="_blank" style="color: #667eea;">OpenAI Platform</a>
+                </p>
+                <input type="password" id="gptKey" class="input-field" placeholder="Paste OpenAI API key (starts with sk-)">
+                <button class="btn btn-warning" onclick="testApiKey('gpt')" style="margin-bottom: 10px;">
+                    🧪 Test GPT Key
+                </button>
+            </div>
             
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-primary" onclick="saveApiKey()">Save Key</button>
+            <!-- Claude Section -->
+            <div class="api-section">
+                <h4>🧠 Claude API (Anthropic)</h4>
+                <p style="font-size: 13px; color: #666; margin-bottom: 8px;">
+                    <strong>Paid:</strong> ~$0.003 per translation
+                    <br>Get key: <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color: #667eea;">Anthropic Console</a>
+                </p>
+                <input type="password" id="claudeKey" class="input-field" placeholder="Paste Claude API key (starts with sk-ant-)">
+                <button class="btn btn-warning" onclick="testApiKey('claude')" style="margin-bottom: 10px;">
+                    🧪 Test Claude Key
+                </button>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="saveAllKeys()">💾 Save All Keys</button>
                 <button class="btn" style="background: #e0e0e0; color: #666;" onclick="toggleSettings()">Cancel</button>
             </div>
         </div>
@@ -345,6 +417,9 @@
                 </button>
                 <p id="statusText" style="margin-top: 20px; color: #666; font-size: 14px;">
                     Tap to speak in Persian or English
+                </p>
+                <p id="aiStatus" style="margin-top: 10px; color: #667eea; font-size: 13px; font-weight: 600;">
+                    Using: Gemini (Free)
                 </p>
                 <button id="needKeyBtn" class="btn btn-warning hidden" style="margin-top: 10px;" onclick="toggleSettings()">
                     ⚠️ Add API Key First
@@ -394,7 +469,7 @@
                 Card <span id="currentCard">1</span> of <span id="totalCards">0</span>
             </div>
             
-            <div class="practice-card" id="practiceCardContent">
+            <div class="practice-card">
                 <div id="practiceQuestion"></div>
                 <div id="practiceAnswer" class="hidden"></div>
             </div>
@@ -412,7 +487,7 @@
     <button id="settingsBtn" class="settings-btn" onclick="toggleSettings()">⚙️</button>
     
     <script>
-        // Simple encryption/decryption
+        // Encryption functions
         function getDeviceFingerprint() {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -451,7 +526,12 @@
         let state = {
             mode: 'create',
             flashcards: [],
-            apiKey: '',
+            aiProvider: 'gemini',
+            apiKeys: {
+                gemini: '',
+                gpt: '',
+                claude: ''
+            },
             transcript: '',
             translation: '',
             currentCardIndex: 0,
@@ -463,7 +543,7 @@
         // Load saved data
         function loadData() {
             const savedCards = localStorage.getItem('flashcards');
-            const encryptedKey = localStorage.getItem('geminiApiKey_enc');
+            const savedProvider = localStorage.getItem('aiProvider');
             
             if (savedCards) {
                 state.flashcards = JSON.parse(savedCards);
@@ -471,20 +551,45 @@
                 renderFlashcards();
             }
             
-            if (encryptedKey) {
-                const decrypted = simpleDecrypt(encryptedKey, state.deviceKey);
-                if (decrypted) {
-                    state.apiKey = decrypted;
-                    document.getElementById('apiKeyInput').value = '••••••••' + decrypted.slice(-8);
-                }
+            if (savedProvider) {
+                state.aiProvider = savedProvider;
+                document.getElementById('aiProvider').value = savedProvider;
             }
             
+            // Load encrypted API keys
+            ['gemini', 'gpt', 'claude'].forEach(provider => {
+                const encrypted = localStorage.getItem(`${provider}ApiKey_enc`);
+                if (encrypted) {
+                    const decrypted = simpleDecrypt(encrypted, state.deviceKey);
+                    if (decrypted) {
+                        state.apiKeys[provider] = decrypted;
+                        document.getElementById(`${provider}Key`).value = '••••••••' + decrypted.slice(-8);
+                    }
+                }
+            });
+            
+            updateAIProvider();
+        }
+        
+        function updateAIProvider() {
+            state.aiProvider = document.getElementById('aiProvider').value;
+            localStorage.setItem('aiProvider', state.aiProvider);
+            
+            const names = {
+                gemini: 'Gemini (Free)',
+                gpt: 'GPT-4o (Paid)',
+                claude: 'Claude Sonnet (Paid)'
+            };
+            
+            document.getElementById('aiStatus').textContent = `Using: ${names[state.aiProvider]}`;
             checkApiKey();
         }
         
         function checkApiKey() {
             const needKeyBtn = document.getElementById('needKeyBtn');
-            if (!state.apiKey) {
+            const currentKey = state.apiKeys[state.aiProvider];
+            
+            if (!currentKey) {
                 needKeyBtn.classList.remove('hidden');
             } else {
                 needKeyBtn.classList.add('hidden');
@@ -498,28 +603,31 @@
             btn.classList.toggle('hidden');
         }
         
-        function saveApiKey() {
-            const key = document.getElementById('apiKeyInput').value.trim();
-            if (key && !key.startsWith('••••')) {
-                if (!key.startsWith('AIza')) {
-                    alert('⚠️ Warning: Gemini API keys usually start with "AIza". Please verify your key.');
+        function saveAllKeys() {
+            let saved = 0;
+            
+            ['gemini', 'gpt', 'claude'].forEach(provider => {
+                const key = document.getElementById(`${provider}Key`).value.trim();
+                if (key && !key.startsWith('••••')) {
+                    state.apiKeys[provider] = key;
+                    const encrypted = simpleEncrypt(key, state.deviceKey);
+                    localStorage.setItem(`${provider}ApiKey_enc`, encrypted);
+                    saved++;
                 }
-                state.apiKey = key;
-                const encrypted = simpleEncrypt(key, state.deviceKey);
-                localStorage.setItem('geminiApiKey_enc', encrypted);
-                alert('API key saved and encrypted! 🔒✅\n\nClick "Test API Key" to verify it works.');
+            });
+            
+            if (saved > 0) {
+                alert(`✅ Saved ${saved} API key(s)!\n\nKeys are encrypted and stored securely.`);
                 checkApiKey();
-            } else if (state.apiKey) {
-                toggleSettings();
             } else {
-                alert('Please enter an API key');
+                alert('No new keys to save. Existing keys are already stored.');
             }
         }
         
-        // Test API Key function
-        async function testApiKey() {
-            const key = document.getElementById('apiKeyInput').value.trim();
-            const testKey = key.startsWith('••••') ? state.apiKey : key;
+        // Test API Keys
+        async function testApiKey(provider) {
+            const keyInput = document.getElementById(`${provider}Key`).value.trim();
+            const testKey = keyInput.startsWith('••••') ? state.apiKeys[provider] : keyInput;
             
             if (!testKey) {
                 alert('Please enter an API key first!');
@@ -529,34 +637,79 @@
             alert('Testing API key... Please wait.');
             
             try {
-                const response = await fetch(
-                    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${testKey}`,
-                    {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{
-                                parts: [{ text: "Say 'Hello'" }]
-                            }]
-                        })
+                let response, data;
+                
+                if (provider === 'gemini') {
+                    response = await fetch(
+                        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${testKey}`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: "Say 'Hello'" }] }]
+                            })
+                        }
+                    );
+                    data = await response.json();
+                    
+                    if (response.ok && data.candidates) {
+                        alert('✅ Gemini API key works!\n\n' + data.candidates[0].content.parts[0].text);
+                    } else {
+                        alert('❌ Gemini Error: ' + JSON.stringify(data, null, 2));
                     }
-                );
-                
-                const data = await response.json();
-                
-                if (response.ok && data.candidates && data.candidates[0]) {
-                    alert('✅ SUCCESS! Your API key is working correctly!\n\nResponse: ' + data.candidates[0].content.parts[0].text);
-                } else if (response.status === 400) {
-                    alert('❌ ERROR: Bad Request\n\nYour API key format may be incorrect. Make sure you copied the entire key from Google AI Studio.');
-                } else if (response.status === 403) {
-                    alert('❌ ERROR: Permission Denied\n\nYour API key may not have permission to use the Gemini API. Try creating a new key at: https://aistudio.google.com/app/apikey');
-                } else if (response.status === 429) {
-                    alert('❌ ERROR: Rate Limit Exceeded\n\nYou\'ve made too many requests. Wait a minute and try again.');
-                } else {
-                    alert('❌ ERROR: ' + response.status + '\n\n' + JSON.stringify(data, null, 2));
+                    
+                } else if (provider === 'gpt') {
+                    response = await fetch(
+                        'https://api.openai.com/v1/chat/completions',
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${testKey}`
+                            },
+                            body: JSON.stringify({
+                                model: 'gpt-4o-mini',
+                                messages: [{ role: 'user', content: "Say 'Hello'" }],
+                                max_tokens: 50
+                            })
+                        }
+                    );
+                    data = await response.json();
+                    
+                    if (response.ok && data.choices) {
+                        alert('✅ OpenAI API key works!\n\n' + data.choices[0].message.content);
+                    } else {
+                        alert('❌ OpenAI Error: ' + JSON.stringify(data, null, 2));
+                    }
+                    
+                } else if (provider === 'claude') {
+                    response = await fetch(
+                        'https://api.anthropic.com/v1/messages',
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-api-key': testKey,
+                                'anthropic-version': '2023-06-01'
+                            },
+                            body: JSON.stringify({
+                                model: 'claude-sonnet-4-20250514',
+                                max_tokens: 100,
+                                messages: [{ role: 'user', content: "Say 'Hello'" }]
+                            })
+                        }
+                    );
+                    data = await response.json();
+                    
+                    if (response.ok && data.content) {
+                        alert('✅ Claude API key works!\n\n' + data.content[0].text);
+                    } else {
+                        alert('❌ Claude Error: ' + JSON.stringify(data, null, 2));
+                    }
                 }
+                
             } catch (error) {
-                alert('❌ NETWORK ERROR\n\nCould not connect to Google API. Check your internet connection.\n\nError: ' + error.message);
+                alert('❌ Network Error: ' + error.message);
             }
         }
         
@@ -581,8 +734,8 @@
         }
         
         function startListening() {
-            if (!state.apiKey) {
-                alert('Please add your Gemini API key in settings first!');
+            if (!state.apiKeys[state.aiProvider]) {
+                alert('Please add your API key in settings first!');
                 toggleSettings();
                 return;
             }
@@ -612,7 +765,7 @@
             };
             
             recognition.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
+                console.error('Speech error:', event.error);
                 resetMicButton();
                 alert('Speech Error: ' + event.error);
             };
@@ -643,66 +796,85 @@
             document.getElementById('translationBox').classList.add('hidden');
             document.getElementById('errorBox').classList.add('hidden');
             
+            const prompt = `Translate this to natural, polished English. If it's already English, improve it to sound more natural and fluent. Only provide the translation, nothing else:\n\n"${text}"`;
+            
             try {
-                const response = await fetch(
-                    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${state.apiKey}`,
-                    {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{
-                                parts: [{
-                                    text: `Translate this to natural, polished English. If it's already English, improve it to sound more natural and fluent. Only provide the translation, nothing else:\n\n"${text}"`
-                                }]
-                            }]
-                        })
+                let response, data;
+                
+                if (state.aiProvider === 'gemini') {
+                    response = await fetch(
+                        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${state.apiKeys.gemini}`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: prompt }] }]
+                            })
+                        }
+                    );
+                    data = await response.json();
+                    
+                    if (response.ok && data.candidates) {
+                        state.translation = data.candidates[0].content.parts[0].text.trim();
+                        showTranslation();
+                    } else {
+                        showError('Gemini API Error', JSON.stringify(data, null, 2));
                     }
-                );
-                
-                const data = await response.json();
-                
-                console.log('API Response:', data);
-                
-                if (!response.ok) {
-                    showError(
-                        `API Error (${response.status})`,
-                        `Status: ${response.status}\n\n` +
-                        `Response: ${JSON.stringify(data, null, 2)}\n\n` +
-                        `Possible causes:\n` +
-                        `- Invalid API key\n` +
-                        `- API quota exceeded\n` +
-                        `- API key lacks permissions\n\n` +
-                        `Try clicking "Test API Key" in settings.`
+                    
+                } else if (state.aiProvider === 'gpt') {
+                    response = await fetch(
+                        'https://api.openai.com/v1/chat/completions',
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${state.apiKeys.gpt}`
+                            },
+                            body: JSON.stringify({
+                                model: 'gpt-4o-mini',
+                                messages: [{ role: 'user', content: prompt }],
+                                max_tokens: 200
+                            })
+                        }
                     );
-                    return;
+                    data = await response.json();
+                    
+                    if (response.ok && data.choices) {
+                        state.translation = data.choices[0].message.content.trim();
+                        showTranslation();
+                    } else {
+                        showError('OpenAI API Error', JSON.stringify(data, null, 2));
+                    }
+                    
+                } else if (state.aiProvider === 'claude') {
+                    response = await fetch(
+                        'https://api.anthropic.com/v1/messages',
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-api-key': state.apiKeys.claude,
+                                'anthropic-version': '2023-06-01'
+                            },
+                            body: JSON.stringify({
+                                model: 'claude-sonnet-4-20250514',
+                                max_tokens: 200,
+                                messages: [{ role: 'user', content: prompt }]
+                            })
+                        }
+                    );
+                    data = await response.json();
+                    
+                    if (response.ok && data.content) {
+                        state.translation = data.content[0].text.trim();
+                        showTranslation();
+                    } else {
+                        showError('Claude API Error', JSON.stringify(data, null, 2));
+                    }
                 }
                 
-                if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
-                    state.translation = data.candidates[0].content.parts[0].text.trim();
-                    showTranslation();
-                } else {
-                    showError(
-                        'Unexpected API response format',
-                        `The API returned data but in an unexpected format.\n\n` +
-                        `Full response:\n${JSON.stringify(data, null, 2)}\n\n` +
-                        `This might mean:\n` +
-                        `- The API format changed\n` +
-                        `- Content was blocked by safety filters\n` +
-                        `- API quota issue`
-                    );
-                }
             } catch (error) {
-                console.error('Translation error:', error);
-                showError(
-                    'Network or connection error',
-                    `Error: ${error.message}\n\n` +
-                    `Stack: ${error.stack}\n\n` +
-                    `This usually means:\n` +
-                    `- No internet connection\n` +
-                    `- Network firewall blocking the request\n` +
-                    `- CORS issue\n\n` +
-                    `Check your internet connection and try again.`
-                );
+                showError('Network Error', error.message);
             }
             
             document.getElementById('loadingBox').classList.add('hidden');
@@ -732,6 +904,7 @@
                 question: state.transcript,
                 answer: state.translation,
                 created: new Date().toISOString(),
+                aiProvider: state.aiProvider,
                 reviewCount: 0
             };
             
@@ -763,10 +936,15 @@
             const container = document.getElementById('cardsContainer');
             container.innerHTML = '';
             
+            const aiEmojis = { gemini: '🌟', gpt: '⚡', claude: '🧠' };
+            
             state.flashcards.forEach(card => {
                 const cardEl = document.createElement('div');
                 cardEl.className = 'flashcard-item';
                 cardEl.innerHTML = `
+                    <div style="font-size: 11px; color: #999; margin-bottom: 4px;">
+                        ${aiEmojis[card.aiProvider] || '🤖'} ${card.aiProvider}
+                    </div>
                     <div style="font-size: 14px; color: #666; margin-bottom: 8px;">
                         Q: ${card.question}
                     </div>
