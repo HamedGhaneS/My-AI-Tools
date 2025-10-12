@@ -185,6 +185,16 @@
         .save-menu button:hover { background: rgba(59, 130, 246, 0.3); }
         .save-menu button:first-child { border-radius: 8px 8px 0 0; }
         .save-menu button:last-child { border-radius: 0 0 8px 8px; }
+        .canvas-center-marker {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: rgba(255, 255, 0, 0.3);
+            border: 1px solid rgba(255, 255, 0, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
     </style>
 </head>
 <body>
@@ -214,7 +224,7 @@
                 <option value="4">4 Links (Quadruple Pendulum)</option>
                 <option value="5">5 Links (Quintuple Pendulum)</option>
             </select>
-            <p class="info-text">Change link count and click Start to apply</p>
+            <p class="info-text">⚠️ Changes apply when you click Start</p>
         </div>
 
         <div class="param-group">
@@ -250,11 +260,11 @@
             </div>
         </div>
 
-        <p class="info-text">💡 <strong>Tip:</strong> Changes apply when you click Start. Use persistent mode to see full chaotic patterns!</p>
+        <p class="info-text">💡 Pivot is at canvas center. Full workspace visible for inverted pendulums!</p>
     </div>
 
     <div class="canvas-container">
-        <canvas id="canvas" width="900" height="800"></canvas>
+        <canvas id="canvas" width="900" height="900"></canvas>
     </div>
 
     <script>
@@ -263,6 +273,10 @@
         
         // Colors for up to 5 pendulums
         const pendulumColors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
+        
+        // FIXED: Origin at exact center
+        const ORIGIN_X = canvas.width / 2;
+        const ORIGIN_Y = canvas.height / 2;
         
         // State
         let isRunning = false;
@@ -280,9 +294,7 @@
             masses: [1.0, 1.0, 1.0, 1.0, 1.0],
             lengths: [120, 120, 120, 120, 120],
             thetas: [Math.PI / 2, Math.PI / 2 + 0.087, Math.PI / 2 + 0.174, Math.PI / 2 + 0.26, Math.PI / 2 + 0.35],
-            omegas: [0, 0, 0, 0, 0],
-            originX: canvas.width / 2,
-            originY: canvas.height / 2  // CENTER for upward/downward visibility
+            omegas: [0, 0, 0, 0, 0]
         };
         
         let initialParams = JSON.parse(JSON.stringify(params));
@@ -293,6 +305,20 @@
         
         const FADING_WINDOW = 2.0;
         const dt = 0.02;
+        
+        // Draw center marker (for debugging - can be removed)
+        function drawCenterMarker() {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(ORIGIN_X - 10, ORIGIN_Y);
+            ctx.lineTo(ORIGIN_X + 10, ORIGIN_Y);
+            ctx.moveTo(ORIGIN_X, ORIGIN_Y - 10);
+            ctx.lineTo(ORIGIN_X, ORIGIN_Y + 10);
+            ctx.stroke();
+            ctx.restore();
+        }
         
         // Generate dynamic controls for pendulums
         function generateControls() {
@@ -417,7 +443,6 @@
             
             // Forward elimination
             for (let i = 0; i < n; i++) {
-                // Find pivot
                 let maxRow = i;
                 for (let k = i + 1; k < n; k++) {
                     if (Math.abs(augmented[k][i]) > Math.abs(augmented[maxRow][i])) {
@@ -426,7 +451,6 @@
                 }
                 [augmented[i], augmented[maxRow]] = [augmented[maxRow], augmented[i]];
                 
-                // Eliminate column
                 for (let k = i + 1; k < n; k++) {
                     const factor = augmented[k][i] / augmented[i][i];
                     for (let j = i; j <= n; j++) {
@@ -453,7 +477,6 @@
             const n = numLinks;
             const effectiveDt = dt * params.speed;
             
-            // Current state
             const state = [...params.thetas.slice(0, n), ...params.omegas.slice(0, n)];
             
             // K1
@@ -493,13 +516,13 @@
             simulationTime += effectiveDt;
         }
         
-        // Get positions of all masses
+        // Get positions of all masses - FIXED to use correct origin
         function getPositions() {
             const positions = [];
-            let x = params.originX;
-            let y = params.originY;
+            let x = ORIGIN_X;
+            let y = ORIGIN_Y;
             
-            positions.push({x, y}); // Pivot
+            positions.push({x, y}); // Pivot at center
             
             for (let i = 0; i < numLinks; i++) {
                 x += params.lengths[i] * Math.sin(params.thetas[i]);
@@ -555,6 +578,9 @@
         function draw() {
             ctx.fillStyle = trajectoryMode === 'persistent' ? 'rgba(10, 14, 39, 0.05)' : 'rgba(10, 14, 39, 0.3)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw center marker
+            drawCenterMarker();
             
             const positions = getPositions();
             
@@ -620,16 +646,13 @@
             }
             
             if (mode === 'individual') {
-                // Save each link separately
                 for (let i = 0; i < numLinks; i++) {
                     saveSingleTrajectory(i);
                 }
                 alert(`Saved ${numLinks} separate trajectory images!`);
             } else if (mode === 'end') {
-                // Save only end effector
                 saveSingleTrajectory(numLinks - 1);
             } else {
-                // Save all combined
                 saveCombinedTrajectory();
             }
         }
@@ -640,16 +663,13 @@
             saveCanvas.height = canvas.height;
             const saveCtx = saveCanvas.getContext('2d');
             
-            // Background
             saveCtx.fillStyle = '#0a0e27';
             saveCtx.fillRect(0, 0, saveCanvas.width, saveCanvas.height);
             
-            // Draw initial state (ghost)
             saveCtx.globalAlpha = 0.3;
             drawInitialState(saveCtx, linkIndex);
             saveCtx.globalAlpha = 1.0;
             
-            // Draw trajectory
             const traj = fullTrajectories[linkIndex];
             saveCtx.strokeStyle = pendulumColors[linkIndex];
             saveCtx.lineWidth = 2;
@@ -660,10 +680,8 @@
             }
             saveCtx.stroke();
             
-            // Add info box
             drawInfoBox(saveCtx, `Link ${linkIndex + 1} Trajectory`, linkIndex);
             
-            // Download
             saveCanvas.toBlob(blob => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -680,16 +698,13 @@
             saveCanvas.height = canvas.height;
             const saveCtx = saveCanvas.getContext('2d');
             
-            // Background
             saveCtx.fillStyle = '#0a0e27';
             saveCtx.fillRect(0, 0, saveCanvas.width, saveCanvas.height);
             
-            // Draw initial state
             saveCtx.globalAlpha = 0.3;
             drawInitialState(saveCtx, -1);
             saveCtx.globalAlpha = 1.0;
             
-            // Draw all trajectories
             for (let i = 0; i < numLinks; i++) {
                 const traj = fullTrajectories[i];
                 saveCtx.strokeStyle = pendulumColors[i];
@@ -702,10 +717,8 @@
                 saveCtx.stroke();
             }
             
-            // Add info box
             drawInfoBox(saveCtx, 'All Trajectories', -1);
             
-            // Download
             saveCanvas.toBlob(blob => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -718,8 +731,8 @@
         
         function drawInitialState(ctx, highlightLink) {
             const positions = [];
-            let x = params.originX;
-            let y = params.originY;
+            let x = ORIGIN_X;
+            let y = ORIGIN_Y;
             positions.push({x, y});
             
             for (let i = 0; i < numLinks; i++) {
@@ -728,7 +741,6 @@
                 positions.push({x, y});
             }
             
-            // Draw rods
             ctx.lineWidth = 2;
             for (let i = 0; i < numLinks; i++) {
                 ctx.strokeStyle = highlightLink === i ? pendulumColors[i] : '#666';
@@ -738,7 +750,6 @@
                 ctx.stroke();
             }
             
-            // Draw masses
             for (let i = 0; i < numLinks; i++) {
                 ctx.fillStyle = highlightLink === i ? pendulumColors[i] : '#666';
                 ctx.beginPath();
@@ -753,19 +764,16 @@
             const boxWidth = 280;
             const boxHeight = linkIndex >= 0 ? 180 : 200;
             
-            // Semi-transparent background
             ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
             ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
             ctx.strokeStyle = '#3b82f6';
             ctx.lineWidth = 2;
             ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
             
-            // Title
             ctx.fillStyle = '#3b82f6';
             ctx.font = 'bold 16px Arial';
             ctx.fillText(title, boxX + 10, boxY + 25);
             
-            // Info
             ctx.fillStyle = '#e0e0e0';
             ctx.font = '12px Arial';
             let yPos = boxY + 50;
@@ -799,7 +807,6 @@
             this.className = isRunning ? 'btn-danger' : 'btn-success';
             
             if (isRunning) {
-                // Save initial state
                 initialParams = JSON.parse(JSON.stringify(params));
                 animate();
             }
@@ -812,7 +819,6 @@
                 document.getElementById('startStopBtn').className = 'btn-success';
             }
             
-            // Clear everything
             params = JSON.parse(JSON.stringify(initialParams));
             params.omegas = [0, 0, 0, 0, 0];
             simulationTime = 0;
@@ -831,14 +837,12 @@
             document.getElementById('saveMenu').classList.toggle('active');
         });
         
-        // Close save menu when clicking outside
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.save-dropdown')) {
                 document.getElementById('saveMenu').classList.remove('active');
             }
         });
         
-        // Trajectory mode
         document.getElementById('fadingMode').addEventListener('click', function() {
             trajectoryMode = 'fading';
             this.classList.add('active');
@@ -851,20 +855,17 @@
             document.getElementById('fadingMode').classList.remove('active');
         });
         
-        // Speed slider
         document.getElementById('speed').addEventListener('input', function() {
             params.speed = parseFloat(this.value);
             document.getElementById('speedVal').textContent = this.value + 'x';
         });
         
-        // Gravity slider
         document.getElementById('gravity').addEventListener('input', function() {
             params.g = parseFloat(this.value);
             document.getElementById('gVal').textContent = this.value + ' m/s²';
             updateNaturalPeriod();
         });
         
-        // Damping slider
         document.getElementById('damping').addEventListener('input', function() {
             params.damping = parseFloat(this.value);
             document.getElementById('dampVal').textContent = this.value;
