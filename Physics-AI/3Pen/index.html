@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Triple Pendulum - Advanced</title>
+    <title>N-Link Pendulum Simulator</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -19,7 +19,7 @@
             background: rgba(0, 0, 0, 0.7);
             padding: 20px;
             border-radius: 12px;
-            width: 300px;
+            width: 320px;
             height: fit-content;
             border: 1px solid #0f4c75;
             max-height: 95vh;
@@ -51,24 +51,27 @@
             padding-bottom: 15px;
             border-bottom: 1px solid #333;
         }
-        .param-group:last-child {
-            border-bottom: none;
-        }
-        .param {
-            margin-bottom: 12px;
-        }
+        .param-group:last-child { border-bottom: none; }
+        .param { margin-bottom: 12px; }
         label {
             display: block;
             margin-bottom: 5px;
             font-size: 12px;
             color: #aaa;
         }
-        input[type="range"] {
+        input[type="range"], select {
             width: 100%;
             height: 6px;
             border-radius: 3px;
             background: #333;
             outline: none;
+        }
+        select {
+            height: auto;
+            padding: 8px;
+            font-size: 14px;
+            color: #e0e0e0;
+            border: 1px solid #3b82f6;
         }
         input[type="range"]::-webkit-slider-thumb {
             appearance: none;
@@ -110,66 +113,17 @@
             gap: 10px;
             margin-bottom: 10px;
         }
-        .btn-row button {
-            margin-bottom: 0;
-        }
-        .btn-primary {
-            background: #3b82f6;
-            color: white;
-        }
-        .btn-primary:hover {
-            background: #2563eb;
-        }
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
-        .btn-success:hover {
-            background: #059669;
-        }
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
-        .btn-secondary:hover {
-            background: #4b5563;
-        }
-        .btn-purple {
-            background: #8b5cf6;
-            color: white;
-        }
-        .btn-purple:hover {
-            background: #7c3aed;
-        }
-        .color-legend {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            font-size: 12px;
-        }
-        .color-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .color-box {
-            width: 30px;
-            height: 4px;
-            border-radius: 2px;
-        }
-        .info-text {
-            font-size: 11px;
-            color: #888;
-            line-height: 1.4;
-            margin-top: 10px;
-        }
+        .btn-row button { margin-bottom: 0; }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn-secondary:hover { background: #4b5563; }
+        .btn-purple { background: #8b5cf6; color: white; }
+        .btn-purple:hover { background: #7c3aed; }
         .mode-toggle {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -186,43 +140,81 @@
             font-size: 12px;
             transition: all 0.3s;
         }
-        .mode-btn.active {
-            background: #3b82f6;
-            color: white;
+        .mode-btn.active { background: #3b82f6; color: white; }
+        .info-text {
+            font-size: 11px;
+            color: #888;
+            line-height: 1.4;
+            margin-top: 10px;
         }
-        .info-badge {
-            display: inline-block;
-            background: #10b981;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: bold;
-            margin-left: 8px;
+        .pendulum-controls {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
         }
-        .warning-badge {
-            display: inline-block;
-            background: #fbbf24;
-            color: #000;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: bold;
-            margin-left: 8px;
+        .pendulum-controls h4 {
+            font-size: 13px;
+            margin-bottom: 10px;
         }
+        .save-dropdown {
+            position: relative;
+        }
+        .save-menu {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            z-index: 1000;
+        }
+        .save-menu.active { display: block; }
+        .save-menu button {
+            margin: 0;
+            border-radius: 0;
+            text-align: left;
+            background: transparent;
+            color: #e0e0e0;
+            font-size: 13px;
+            padding: 10px 15px;
+        }
+        .save-menu button:hover { background: rgba(59, 130, 246, 0.3); }
+        .save-menu button:first-child { border-radius: 8px 8px 0 0; }
+        .save-menu button:last-child { border-radius: 0 0 8px 8px; }
     </style>
 </head>
 <body>
     <div class="controls">
-        <h2>🎯 Triple Pendulum</h2>
+        <h2>🎯 N-Link Pendulum</h2>
         
         <div class="param-group">
             <button id="startStopBtn" class="btn-success">▶️ Start</button>
-            <div class="btn-row">
-                <button id="resetBtn" class="btn-secondary">🔄 Reset</button>
-                <button id="clearBtn" class="btn-secondary">🧹 Clear</button>
+            <button id="stopBtn" class="btn-secondary">⏹️ Stop & Clear</button>
+            
+            <div class="save-dropdown">
+                <button id="saveBtn" class="btn-purple">💾 Save Trajectory ▼</button>
+                <div class="save-menu" id="saveMenu">
+                    <button onclick="saveTrajectory('all')">💾 All Trajectories Combined</button>
+                    <button onclick="saveTrajectory('end')">💾 End Effector Only</button>
+                    <button onclick="saveTrajectory('individual')">💾 Each Link Separately</button>
+                </div>
             </div>
-            <button id="saveBtn" class="btn-purple">💾 Save Trajectory</button>
+        </div>
+
+        <div class="param-group">
+            <h3 style="font-size: 14px; margin-bottom: 10px; color: #3b82f6;">🔗 Number of Links</h3>
+            <select id="numLinks" onchange="updateLinkCount()">
+                <option value="1">1 Link (Simple Pendulum)</option>
+                <option value="2">2 Links (Double Pendulum)</option>
+                <option value="3" selected>3 Links (Triple Pendulum)</option>
+                <option value="4">4 Links (Quadruple Pendulum)</option>
+                <option value="5">5 Links (Quintuple Pendulum)</option>
+            </select>
+            <p class="info-text">Change link count and click Start to apply</p>
         </div>
 
         <div class="param-group">
@@ -231,10 +223,6 @@
                 <button class="mode-btn" id="fadingMode">⏱️ Fading (2s)</button>
                 <button class="mode-btn active" id="persistentMode">♾️ Persistent</button>
             </div>
-            <p class="info-text">
-                <strong>Fading:</strong> Shows only last 2 seconds<br>
-                <strong>Persistent:</strong> Full trajectory history
-            </p>
         </div>
 
         <div class="param-group">
@@ -246,56 +234,9 @@
             <div class="param">
                 <label>Natural Period <span class="value-display" id="naturalPeriod">--</span></label>
             </div>
-            <p class="info-text">Natural period is calculated from: T ≈ 2π√(L/g)</p>
         </div>
 
-        <div class="param-group">
-            <h3 style="font-size: 14px; margin-bottom: 10px; color: #ef4444;">🔴 Pendulum 1</h3>
-            <div class="param">
-                <label>Length (L₁) <span class="value-display" id="l1Val">120</span></label>
-                <input type="range" id="l1" min="50" max="250" step="5" value="120">
-            </div>
-            <div class="param">
-                <label>Mass (m₁) <span class="value-display" id="m1Val">1.0</span></label>
-                <input type="range" id="m1" min="0.5" max="5" step="0.1" value="1">
-            </div>
-            <div class="param">
-                <label>Start Angle (θ₁) <span class="value-display" id="a1Val">90°</span></label>
-                <input type="range" id="a1" min="-180" max="180" step="5" value="90">
-            </div>
-        </div>
-
-        <div class="param-group">
-            <h3 style="font-size: 14px; margin-bottom: 10px; color: #3b82f6;">🔵 Pendulum 2</h3>
-            <div class="param">
-                <label>Length (L₂) <span class="value-display" id="l2Val">120</span></label>
-                <input type="range" id="l2" min="50" max="250" step="5" value="120">
-            </div>
-            <div class="param">
-                <label>Mass (m₂) <span class="value-display" id="m2Val">1.0</span></label>
-                <input type="range" id="m2" min="0.5" max="5" step="0.1" value="1">
-            </div>
-            <div class="param">
-                <label>Start Angle (θ₂) <span class="value-display" id="a2Val">95°</span></label>
-                <input type="range" id="a2" min="-180" max="180" step="5" value="95">
-            </div>
-        </div>
-
-        <div class="param-group">
-            <h3 style="font-size: 14px; margin-bottom: 10px; color: #10b981;">🟢 Pendulum 3</h3>
-            <div class="param">
-                <label>Length (L₃) <span class="value-display" id="l3Val">120</span></label>
-                <input type="range" id="l3" min="50" max="250" step="5" value="120">
-            </div>
-            <div class="param">
-                <label>Mass (m₃) <span class="value-display" id="m3Val">1.0</span></label>
-                <input type="range" id="m3" min="0.5" max="5" step="0.1" value="1">
-            </div>
-            <div class="param">
-                <label>Start Angle (θ₃) <span class="value-display" id="a3Val">100°</span></label>
-                <input type="range" id="a3" min="-180" max="180" step="5" value="100">
-            </div>
-        </div>
+        <div id="pendulumControls"></div>
 
         <div class="param-group">
             <h3 style="font-size: 14px; margin-bottom: 10px; color: #fbbf24;">⚙️ Physics</h3>
@@ -309,205 +250,276 @@
             </div>
         </div>
 
-        <p class="info-text">💡 <strong>Tip:</strong> Use persistent mode to see the full chaotic attractor pattern. Save it when done!</p>
+        <p class="info-text">💡 <strong>Tip:</strong> Changes apply when you click Start. Use persistent mode to see full chaotic patterns!</p>
     </div>
 
     <div class="canvas-container">
-        <canvas id="canvas" width="800" height="700"></canvas>
-        <div class="color-legend">
-            <div class="color-item">
-                <div class="color-box" style="background: #ef4444;"></div>
-                <span>Pendulum 1</span>
-            </div>
-            <div class="color-item">
-                <div class="color-box" style="background: #3b82f6;"></div>
-                <span>Pendulum 2</span>
-            </div>
-            <div class="color-item">
-                <div class="color-box" style="background: #10b981;"></div>
-                <span>End Effector (3)</span>
-            </div>
-        </div>
+        <canvas id="canvas" width="900" height="800"></canvas>
     </div>
 
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         
+        // Colors for up to 5 pendulums
+        const pendulumColors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
+        
         // State
         let isRunning = false;
         let animationId = null;
-        let trajectoryMode = 'persistent'; // 'persistent' or 'fading'
-        let simulationTime = 0; // Track elapsed simulation time
+        let trajectoryMode = 'persistent';
+        let simulationTime = 0;
+        let numLinks = 3;
         
         // Physics parameters
         let params = {
             g: 9.81,
             damping: 0.999,
             speed: 1.0,
-            m1: 1.0, m2: 1.0, m3: 1.0,
-            L1: 120, L2: 120, L3: 120,
-            theta1: Math.PI / 2,
-            theta2: Math.PI / 2 + 0.087,
-            theta3: Math.PI / 2 + 0.174,
-            omega1: 0, omega2: 0, omega3: 0,
+            numLinks: 3,
+            masses: [1.0, 1.0, 1.0, 1.0, 1.0],
+            lengths: [120, 120, 120, 120, 120],
+            thetas: [Math.PI / 2, Math.PI / 2 + 0.087, Math.PI / 2 + 0.174, Math.PI / 2 + 0.26, Math.PI / 2 + 0.35],
+            omegas: [0, 0, 0, 0, 0],
             originX: canvas.width / 2,
-            originY: 100
+            originY: canvas.height / 2  // CENTER for upward/downward visibility
         };
         
-        // Initial parameters
-        let initialParams = {...params};
+        let initialParams = JSON.parse(JSON.stringify(params));
         
-        // Trails with timestamps for fading mode
-        const trail1 = [];
-        const trail2 = [];
-        const trail3 = []; // End effector - this is what we'll save
+        // Trails for each link
+        const trails = [[], [], [], [], []];
+        const fullTrajectories = [[], [], [], [], []];
         
-        // Full trajectory storage for saving
-        const fullTrajectory = [];
-        
-        // Colors
-        const colors = {
-            p1: '#ef4444',
-            p2: '#3b82f6',
-            p3: '#10b981',
-            pivot: '#fbbf24'
-        };
-        
-        // Time step
+        const FADING_WINDOW = 2.0;
         const dt = 0.02;
-        const FADING_WINDOW = 2.0; // 2 seconds for fading mode
         
-        // Calculate natural period T = 2π√(L_avg/g)
+        // Generate dynamic controls for pendulums
+        function generateControls() {
+            const container = document.getElementById('pendulumControls');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < numLinks; i++) {
+                const color = pendulumColors[i];
+                const div = document.createElement('div');
+                div.className = 'pendulum-controls';
+                div.innerHTML = `
+                    <h4 style="color: ${color};">🔗 Pendulum ${i + 1}</h4>
+                    <div class="param">
+                        <label>Length (L${i + 1}) <span class="value-display" id="l${i}Val">${params.lengths[i]}</span></label>
+                        <input type="range" id="l${i}" min="50" max="250" step="5" value="${params.lengths[i]}">
+                    </div>
+                    <div class="param">
+                        <label>Mass (m${i + 1}) <span class="value-display" id="m${i}Val">${params.masses[i].toFixed(1)}</span></label>
+                        <input type="range" id="m${i}" min="0.5" max="5" step="0.1" value="${params.masses[i]}">
+                    </div>
+                    <div class="param">
+                        <label>Start Angle (θ${i + 1}) <span class="value-display" id="a${i}Val">${(params.thetas[i] * 180 / Math.PI).toFixed(0)}°</span></label>
+                        <input type="range" id="a${i}" min="-180" max="180" step="5" value="${(params.thetas[i] * 180 / Math.PI).toFixed(0)}">
+                    </div>
+                `;
+                container.appendChild(div);
+            }
+            
+            // Add event listeners
+            for (let i = 0; i < numLinks; i++) {
+                document.getElementById(`l${i}`).addEventListener('input', function() {
+                    params.lengths[i] = parseFloat(this.value);
+                    document.getElementById(`l${i}Val`).textContent = this.value;
+                    updateNaturalPeriod();
+                });
+                
+                document.getElementById(`m${i}`).addEventListener('input', function() {
+                    params.masses[i] = parseFloat(this.value);
+                    document.getElementById(`m${i}Val`).textContent = parseFloat(this.value).toFixed(1);
+                });
+                
+                document.getElementById(`a${i}`).addEventListener('input', function() {
+                    const angle = parseFloat(this.value);
+                    params.thetas[i] = angle * Math.PI / 180;
+                    document.getElementById(`a${i}Val`).textContent = angle + '°';
+                });
+            }
+        }
+        
+        function updateLinkCount() {
+            numLinks = parseInt(document.getElementById('numLinks').value);
+            params.numLinks = numLinks;
+            generateControls();
+            updateNaturalPeriod();
+        }
+        
         function calculateNaturalPeriod() {
-            const L_avg = (params.L1 + params.L2 + params.L3) / 3;
-            const period = 2 * Math.PI * Math.sqrt(L_avg / (params.g * 50)); // Factor of 50 for pixel to meter conversion
+            let L_avg = 0;
+            for (let i = 0; i < numLinks; i++) {
+                L_avg += params.lengths[i];
+            }
+            L_avg /= numLinks;
+            const period = 2 * Math.PI * Math.sqrt(L_avg / (params.g * 50));
             return period;
         }
         
-        // Update natural period display
         function updateNaturalPeriod() {
             const period = calculateNaturalPeriod();
             document.getElementById('naturalPeriod').textContent = period.toFixed(2) + 's';
         }
         
-        // Calculate accelerations using Lagrangian mechanics
-        function calcAccel(t1, t2, t3, w1, w2, w3) {
-            const {m1, m2, m3, L1, L2, L3, g} = params;
+        // Lagrangian mechanics for N-link pendulum
+        function calcAccel() {
+            const n = numLinks;
+            const angles = params.thetas.slice(0, n);
+            const velocities = params.omegas.slice(0, n);
+            const masses = params.masses.slice(0, n);
+            const lengths = params.lengths.slice(0, n);
             
-            const c12 = Math.cos(t1 - t2), c13 = Math.cos(t1 - t3), c23 = Math.cos(t2 - t3);
-            const s12 = Math.sin(t1 - t2), s13 = Math.sin(t1 - t3), s23 = Math.sin(t2 - t3);
-            const s1 = Math.sin(t1), s2 = Math.sin(t2), s3 = Math.sin(t3);
+            // Build mass matrix and force vector
+            const A = Array(n).fill().map(() => Array(n).fill(0));
+            const F = Array(n).fill(0);
             
-            const M1 = m1 + m2 + m3, M2 = m2 + m3;
+            for (let i = 0; i < n; i++) {
+                // Mass matrix elements
+                for (let j = 0; j < n; j++) {
+                    let sum = 0;
+                    for (let k = Math.max(i, j); k < n; k++) {
+                        sum += masses[k];
+                    }
+                    A[i][j] = sum * lengths[i] * lengths[j] * Math.cos(angles[i] - angles[j]);
+                }
+                
+                // Force vector (gravity + centrifugal)
+                let gravityTerm = 0;
+                for (let k = i; k < n; k++) {
+                    gravityTerm += masses[k];
+                }
+                F[i] = -gravityTerm * params.g * lengths[i] * Math.sin(angles[i]);
+                
+                // Centrifugal terms
+                for (let j = 0; j < n; j++) {
+                    if (i !== j) {
+                        let sum = 0;
+                        for (let k = Math.max(i, j); k < n; k++) {
+                            sum += masses[k];
+                        }
+                        F[i] += sum * lengths[i] * lengths[j] * velocities[j] * velocities[j] * Math.sin(angles[i] - angles[j]);
+                    }
+                }
+            }
             
-            // Mass matrix
-            const a11 = M1 * L1 * L1;
-            const a12 = M2 * L1 * L2 * c12;
-            const a13 = m3 * L1 * L3 * c13;
-            const a22 = M2 * L2 * L2;
-            const a23 = m3 * L2 * L3 * c23;
-            const a33 = m3 * L3 * L3;
+            // Solve A * alpha = F using Gaussian elimination
+            const alpha = solveLinearSystem(A, F);
+            return alpha;
+        }
+        
+        // Gaussian elimination solver
+        function solveLinearSystem(A, b) {
+            const n = A.length;
+            const augmented = A.map((row, i) => [...row, b[i]]);
             
-            // Force terms (includes gravity and centrifugal forces)
-            const f1 = -M1 * g * L1 * s1 - M2 * L1 * L2 * w2 * w2 * s12 - m3 * L1 * L3 * w3 * w3 * s13;
-            const f2 = -M2 * g * L2 * s2 + M2 * L1 * L2 * w1 * w1 * s12 - m3 * L2 * L3 * w3 * w3 * s23;
-            const f3 = -m3 * g * L3 * s3 + m3 * L1 * L3 * w1 * w1 * s13 + m3 * L2 * L3 * w2 * w2 * s23;
+            // Forward elimination
+            for (let i = 0; i < n; i++) {
+                // Find pivot
+                let maxRow = i;
+                for (let k = i + 1; k < n; k++) {
+                    if (Math.abs(augmented[k][i]) > Math.abs(augmented[maxRow][i])) {
+                        maxRow = k;
+                    }
+                }
+                [augmented[i], augmented[maxRow]] = [augmented[maxRow], augmented[i]];
+                
+                // Eliminate column
+                for (let k = i + 1; k < n; k++) {
+                    const factor = augmented[k][i] / augmented[i][i];
+                    for (let j = i; j <= n; j++) {
+                        augmented[k][j] -= factor * augmented[i][j];
+                    }
+                }
+            }
             
-            // Solve using Cramer's rule
-            const det = a11 * (a22 * a33 - a23 * a23) - a12 * (a12 * a33 - a23 * a13) + a13 * (a12 * a23 - a22 * a13);
+            // Back substitution
+            const x = Array(n).fill(0);
+            for (let i = n - 1; i >= 0; i--) {
+                x[i] = augmented[i][n];
+                for (let j = i + 1; j < n; j++) {
+                    x[i] -= augmented[i][j] * x[j];
+                }
+                x[i] /= augmented[i][i];
+            }
             
-            if (Math.abs(det) < 1e-10) return [0, 0, 0];
-            
-            const det1 = f1 * (a22 * a33 - a23 * a23) - a12 * (f2 * a33 - a23 * f3) + a13 * (f2 * a23 - a22 * f3);
-            const det2 = a11 * (f2 * a33 - a23 * f3) - f1 * (a12 * a33 - a23 * a13) + a13 * (a12 * f3 - f2 * a13);
-            const det3 = a11 * (a22 * f3 - f2 * a23) - a12 * (a12 * f3 - f2 * a13) + f1 * (a12 * a23 - a22 * a13);
-            
-            return [det1 / det, det2 / det, det3 / det];
+            return x;
         }
         
         // RK4 integration
         function integrate() {
-            const {theta1, theta2, theta3, omega1, omega2, omega3, speed, damping} = params;
-            const effectiveDt = dt * speed;
+            const n = numLinks;
+            const effectiveDt = dt * params.speed;
+            
+            // Current state
+            const state = [...params.thetas.slice(0, n), ...params.omegas.slice(0, n)];
             
             // K1
-            const [a1_1, a2_1, a3_1] = calcAccel(theta1, theta2, theta3, omega1, omega2, omega3);
-            const k1 = [omega1, omega2, omega3, a1_1, a2_1, a3_1];
+            const a1 = calcAccel();
+            const k1 = [...params.omegas.slice(0, n), ...a1];
             
             // K2
-            const [a1_2, a2_2, a3_2] = calcAccel(
-                theta1 + 0.5 * effectiveDt * k1[0],
-                theta2 + 0.5 * effectiveDt * k1[1],
-                theta3 + 0.5 * effectiveDt * k1[2],
-                omega1 + 0.5 * effectiveDt * k1[3],
-                omega2 + 0.5 * effectiveDt * k1[4],
-                omega3 + 0.5 * effectiveDt * k1[5]
-            );
-            const k2 = [omega1 + 0.5 * effectiveDt * k1[3], omega2 + 0.5 * effectiveDt * k1[4], omega3 + 0.5 * effectiveDt * k1[5], a1_2, a2_2, a3_2];
+            for (let i = 0; i < n; i++) {
+                params.thetas[i] = state[i] + 0.5 * effectiveDt * k1[i];
+                params.omegas[i] = state[n + i] + 0.5 * effectiveDt * k1[n + i];
+            }
+            const a2 = calcAccel();
+            const k2 = [...params.omegas.slice(0, n), ...a2];
             
             // K3
-            const [a1_3, a2_3, a3_3] = calcAccel(
-                theta1 + 0.5 * effectiveDt * k2[0],
-                theta2 + 0.5 * effectiveDt * k2[1],
-                theta3 + 0.5 * effectiveDt * k2[2],
-                omega1 + 0.5 * effectiveDt * k2[3],
-                omega2 + 0.5 * effectiveDt * k2[4],
-                omega3 + 0.5 * effectiveDt * k2[5]
-            );
-            const k3 = [omega1 + 0.5 * effectiveDt * k2[3], omega2 + 0.5 * effectiveDt * k2[4], omega3 + 0.5 * effectiveDt * k2[5], a1_3, a2_3, a3_3];
+            for (let i = 0; i < n; i++) {
+                params.thetas[i] = state[i] + 0.5 * effectiveDt * k2[i];
+                params.omegas[i] = state[n + i] + 0.5 * effectiveDt * k2[n + i];
+            }
+            const a3 = calcAccel();
+            const k3 = [...params.omegas.slice(0, n), ...a3];
             
             // K4
-            const [a1_4, a2_4, a3_4] = calcAccel(
-                theta1 + effectiveDt * k3[0],
-                theta2 + effectiveDt * k3[1],
-                theta3 + effectiveDt * k3[2],
-                omega1 + effectiveDt * k3[3],
-                omega2 + effectiveDt * k3[4],
-                omega3 + effectiveDt * k3[5]
-            );
-            const k4 = [omega1 + effectiveDt * k3[3], omega2 + effectiveDt * k3[4], omega3 + effectiveDt * k3[5], a1_4, a2_4, a3_4];
+            for (let i = 0; i < n; i++) {
+                params.thetas[i] = state[i] + effectiveDt * k3[i];
+                params.omegas[i] = state[n + i] + effectiveDt * k3[n + i];
+            }
+            const a4 = calcAccel();
+            const k4 = [...params.omegas.slice(0, n), ...a4];
             
-            // Update state
-            params.theta1 += (effectiveDt / 6) * (k1[0] + 2*k2[0] + 2*k3[0] + k4[0]);
-            params.theta2 += (effectiveDt / 6) * (k1[1] + 2*k2[1] + 2*k3[1] + k4[1]);
-            params.theta3 += (effectiveDt / 6) * (k1[2] + 2*k2[2] + 2*k3[2] + k4[2]);
-            params.omega1 = ((effectiveDt / 6) * (k1[3] + 2*k2[3] + 2*k3[3] + k4[3]) + omega1) * damping;
-            params.omega2 = ((effectiveDt / 6) * (k1[4] + 2*k2[4] + 2*k3[4] + k4[4]) + omega2) * damping;
-            params.omega3 = ((effectiveDt / 6) * (k1[5] + 2*k2[5] + 2*k3[5] + k4[5]) + omega3) * damping;
+            // Final update
+            for (let i = 0; i < n; i++) {
+                params.thetas[i] = state[i] + (effectiveDt / 6) * (k1[i] + 2*k2[i] + 2*k3[i] + k4[i]);
+                params.omegas[i] = (state[n + i] + (effectiveDt / 6) * (k1[n+i] + 2*k2[n+i] + 2*k3[n+i] + k4[n+i])) * params.damping;
+            }
             
-            // Update simulation time
             simulationTime += effectiveDt;
         }
         
-        // Get positions
-        function getPos() {
-            const {originX, originY, L1, L2, L3, theta1, theta2, theta3} = params;
+        // Get positions of all masses
+        function getPositions() {
+            const positions = [];
+            let x = params.originX;
+            let y = params.originY;
             
-            const x1 = originX + L1 * Math.sin(theta1);
-            const y1 = originY + L1 * Math.cos(theta1);
-            const x2 = x1 + L2 * Math.sin(theta2);
-            const y2 = y1 + L2 * Math.cos(theta2);
-            const x3 = x2 + L3 * Math.sin(theta3);
-            const y3 = y2 + L3 * Math.cos(theta3);
+            positions.push({x, y}); // Pivot
             
-            return {
-                pivot: {x: originX, y: originY},
-                m1: {x: x1, y: y1},
-                m2: {x: x2, y: y2},
-                m3: {x: x3, y: y3}
-            };
+            for (let i = 0; i < numLinks; i++) {
+                x += params.lengths[i] * Math.sin(params.thetas[i]);
+                y += params.lengths[i] * Math.cos(params.thetas[i]);
+                positions.push({x, y});
+            }
+            
+            return positions;
         }
         
         // Clean old trails in fading mode
         function cleanOldTrails() {
             if (trajectoryMode !== 'fading') return;
-            
             const cutoffTime = simulationTime - FADING_WINDOW;
             
-            while (trail1.length > 0 && trail1[0].t < cutoffTime) trail1.shift();
-            while (trail2.length > 0 && trail2[0].t < cutoffTime) trail2.shift();
-            while (trail3.length > 0 && trail3[0].t < cutoffTime) trail3.shift();
+            for (let i = 0; i < numLinks; i++) {
+                while (trails[i].length > 0 && trails[i][0].t < cutoffTime) {
+                    trails[i].shift();
+                }
+            }
         }
         
         // Draw trail
@@ -518,7 +530,6 @@
             ctx.lineWidth = 2;
             
             if (trajectoryMode === 'persistent') {
-                // Full opacity for persistent mode
                 ctx.strokeStyle = color;
                 ctx.beginPath();
                 ctx.moveTo(trail[0].x, trail[0].y);
@@ -527,7 +538,6 @@
                 }
                 ctx.stroke();
             } else {
-                // Fading based on time
                 for (let i = 1; i < len; i++) {
                     const age = simulationTime - trail[i].t;
                     const alpha = Math.max(0, 1 - (age / FADING_WINDOW));
@@ -543,69 +553,53 @@
         
         // Draw frame
         function draw() {
-            // Clear based on mode
-            if (trajectoryMode === 'persistent') {
-                // Slight fade for persistent mode to avoid complete opacity
-                ctx.fillStyle = 'rgba(10, 14, 39, 0.05)';
-            } else {
-                // Stronger clear for fading mode
-                ctx.fillStyle = 'rgba(10, 14, 39, 0.3)';
-            }
+            ctx.fillStyle = trajectoryMode === 'persistent' ? 'rgba(10, 14, 39, 0.05)' : 'rgba(10, 14, 39, 0.3)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            const pos = getPos();
+            const positions = getPositions();
             
-            // Update trails with timestamp
-            trail1.push({x: pos.m1.x, y: pos.m1.y, t: simulationTime});
-            trail2.push({x: pos.m2.x, y: pos.m2.y, t: simulationTime});
-            trail3.push({x: pos.m3.x, y: pos.m3.y, t: simulationTime});
+            // Update trails
+            for (let i = 0; i < numLinks; i++) {
+                const pos = positions[i + 1];
+                trails[i].push({x: pos.x, y: pos.y, t: simulationTime});
+                fullTrajectories[i].push({x: pos.x, y: pos.y});
+            }
             
-            // Store full trajectory for end effector
-            fullTrajectory.push({x: pos.m3.x, y: pos.m3.y});
-            
-            // Clean old trails if in fading mode
             cleanOldTrails();
             
             // Draw trails
-            drawTrail(trail1, colors.p1);
-            drawTrail(trail2, colors.p2);
-            drawTrail(trail3, colors.p3);
+            for (let i = 0; i < numLinks; i++) {
+                drawTrail(trails[i], pendulumColors[i]);
+            }
             
             // Draw rods
             ctx.lineWidth = 3;
-            ctx.strokeStyle = colors.p1;
-            ctx.beginPath();
-            ctx.moveTo(pos.pivot.x, pos.pivot.y);
-            ctx.lineTo(pos.m1.x, pos.m1.y);
-            ctx.stroke();
-            
-            ctx.strokeStyle = colors.p2;
-            ctx.beginPath();
-            ctx.moveTo(pos.m1.x, pos.m1.y);
-            ctx.lineTo(pos.m2.x, pos.m2.y);
-            ctx.stroke();
-            
-            ctx.strokeStyle = colors.p3;
-            ctx.beginPath();
-            ctx.moveTo(pos.m2.x, pos.m2.y);
-            ctx.lineTo(pos.m3.x, pos.m3.y);
-            ctx.stroke();
+            for (let i = 0; i < numLinks; i++) {
+                ctx.strokeStyle = pendulumColors[i];
+                ctx.beginPath();
+                ctx.moveTo(positions[i].x, positions[i].y);
+                ctx.lineTo(positions[i + 1].x, positions[i + 1].y);
+                ctx.stroke();
+            }
             
             // Draw masses
-            const drawMass = (x, y, color, r) => {
-                ctx.fillStyle = color;
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(positions[0].x, positions[0].y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            for (let i = 0; i < numLinks; i++) {
+                ctx.fillStyle = pendulumColors[i];
                 ctx.beginPath();
-                ctx.arc(x, y, r, 0, 2 * Math.PI);
+                ctx.arc(positions[i + 1].x, positions[i + 1].y, 8 + params.masses[i] * 2, 0, 2 * Math.PI);
                 ctx.fill();
                 ctx.strokeStyle = '#fff';
                 ctx.lineWidth = 2;
                 ctx.stroke();
-            };
-            
-            drawMass(pos.pivot.x, pos.pivot.y, colors.pivot, 8);
-            drawMass(pos.m1.x, pos.m1.y, colors.p1, 8 + params.m1 * 2);
-            drawMass(pos.m2.x, pos.m2.y, colors.p2, 8 + params.m2 * 2);
-            drawMass(pos.m3.x, pos.m3.y, colors.p3, 8 + params.m3 * 2);
+            }
         }
         
         // Animation loop
@@ -616,51 +610,186 @@
             animationId = requestAnimationFrame(animate);
         }
         
-        // Save trajectory as PNG
-        function saveTrajectory() {
-            if (fullTrajectory.length === 0) {
+        // Save trajectory function
+        function saveTrajectory(mode) {
+            document.getElementById('saveMenu').classList.remove('active');
+            
+            if (fullTrajectories[0].length === 0) {
                 alert('No trajectory to save! Run the simulation first.');
                 return;
             }
             
-            // Create a new canvas for the trajectory
+            if (mode === 'individual') {
+                // Save each link separately
+                for (let i = 0; i < numLinks; i++) {
+                    saveSingleTrajectory(i);
+                }
+                alert(`Saved ${numLinks} separate trajectory images!`);
+            } else if (mode === 'end') {
+                // Save only end effector
+                saveSingleTrajectory(numLinks - 1);
+            } else {
+                // Save all combined
+                saveCombinedTrajectory();
+            }
+        }
+        
+        function saveSingleTrajectory(linkIndex) {
             const saveCanvas = document.createElement('canvas');
             saveCanvas.width = canvas.width;
             saveCanvas.height = canvas.height;
             const saveCtx = saveCanvas.getContext('2d');
             
-            // Black background
+            // Background
             saveCtx.fillStyle = '#0a0e27';
             saveCtx.fillRect(0, 0, saveCanvas.width, saveCanvas.height);
             
-            // Draw full trajectory
-            saveCtx.strokeStyle = colors.p3;
+            // Draw initial state (ghost)
+            saveCtx.globalAlpha = 0.3;
+            drawInitialState(saveCtx, linkIndex);
+            saveCtx.globalAlpha = 1.0;
+            
+            // Draw trajectory
+            const traj = fullTrajectories[linkIndex];
+            saveCtx.strokeStyle = pendulumColors[linkIndex];
             saveCtx.lineWidth = 2;
             saveCtx.beginPath();
-            saveCtx.moveTo(fullTrajectory[0].x, fullTrajectory[0].y);
-            for (let i = 1; i < fullTrajectory.length; i++) {
-                saveCtx.lineTo(fullTrajectory[i].x, fullTrajectory[i].y);
+            saveCtx.moveTo(traj[0].x, traj[0].y);
+            for (let i = 1; i < traj.length; i++) {
+                saveCtx.lineTo(traj[i].x, traj[i].y);
             }
             saveCtx.stroke();
             
-            // Add title
-            saveCtx.fillStyle = '#ffffff';
-            saveCtx.font = 'bold 20px Arial';
-            saveCtx.fillText('Triple Pendulum Trajectory', 20, 40);
-            saveCtx.font = '14px Arial';
-            saveCtx.fillText(`Points: ${fullTrajectory.length} | Time: ${simulationTime.toFixed(1)}s`, 20, 65);
+            // Add info box
+            drawInfoBox(saveCtx, `Link ${linkIndex + 1} Trajectory`, linkIndex);
             
             // Download
             saveCanvas.toBlob(blob => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `triple-pendulum-trajectory-${Date.now()}.png`;
+                a.download = `pendulum-link${linkIndex + 1}-${Date.now()}.png`;
                 a.click();
                 URL.revokeObjectURL(url);
             });
+        }
+        
+        function saveCombinedTrajectory() {
+            const saveCanvas = document.createElement('canvas');
+            saveCanvas.width = canvas.width;
+            saveCanvas.height = canvas.height;
+            const saveCtx = saveCanvas.getContext('2d');
             
-            alert('Trajectory saved! Check your downloads folder.');
+            // Background
+            saveCtx.fillStyle = '#0a0e27';
+            saveCtx.fillRect(0, 0, saveCanvas.width, saveCanvas.height);
+            
+            // Draw initial state
+            saveCtx.globalAlpha = 0.3;
+            drawInitialState(saveCtx, -1);
+            saveCtx.globalAlpha = 1.0;
+            
+            // Draw all trajectories
+            for (let i = 0; i < numLinks; i++) {
+                const traj = fullTrajectories[i];
+                saveCtx.strokeStyle = pendulumColors[i];
+                saveCtx.lineWidth = 2;
+                saveCtx.beginPath();
+                saveCtx.moveTo(traj[0].x, traj[0].y);
+                for (let j = 1; j < traj.length; j++) {
+                    saveCtx.lineTo(traj[j].x, traj[j].y);
+                }
+                saveCtx.stroke();
+            }
+            
+            // Add info box
+            drawInfoBox(saveCtx, 'All Trajectories', -1);
+            
+            // Download
+            saveCanvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `pendulum-all-${Date.now()}.png`;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+        
+        function drawInitialState(ctx, highlightLink) {
+            const positions = [];
+            let x = params.originX;
+            let y = params.originY;
+            positions.push({x, y});
+            
+            for (let i = 0; i < numLinks; i++) {
+                x += initialParams.lengths[i] * Math.sin(initialParams.thetas[i]);
+                y += initialParams.lengths[i] * Math.cos(initialParams.thetas[i]);
+                positions.push({x, y});
+            }
+            
+            // Draw rods
+            ctx.lineWidth = 2;
+            for (let i = 0; i < numLinks; i++) {
+                ctx.strokeStyle = highlightLink === i ? pendulumColors[i] : '#666';
+                ctx.beginPath();
+                ctx.moveTo(positions[i].x, positions[i].y);
+                ctx.lineTo(positions[i + 1].x, positions[i + 1].y);
+                ctx.stroke();
+            }
+            
+            // Draw masses
+            for (let i = 0; i < numLinks; i++) {
+                ctx.fillStyle = highlightLink === i ? pendulumColors[i] : '#666';
+                ctx.beginPath();
+                ctx.arc(positions[i + 1].x, positions[i + 1].y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+        
+        function drawInfoBox(ctx, title, linkIndex) {
+            const boxX = 20;
+            const boxY = 20;
+            const boxWidth = 280;
+            const boxHeight = linkIndex >= 0 ? 180 : 200;
+            
+            // Semi-transparent background
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+            ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
+            
+            // Title
+            ctx.fillStyle = '#3b82f6';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(title, boxX + 10, boxY + 25);
+            
+            // Info
+            ctx.fillStyle = '#e0e0e0';
+            ctx.font = '12px Arial';
+            let yPos = boxY + 50;
+            
+            if (linkIndex >= 0) {
+                ctx.fillText(`Link: ${linkIndex + 1} of ${numLinks}`, boxX + 10, yPos);
+                yPos += 20;
+                ctx.fillText(`Length: ${initialParams.lengths[linkIndex].toFixed(0)} px`, boxX + 10, yPos);
+                yPos += 20;
+                ctx.fillText(`Mass: ${initialParams.masses[linkIndex].toFixed(1)} kg`, boxX + 10, yPos);
+                yPos += 20;
+                ctx.fillText(`Start Angle: ${(initialParams.thetas[linkIndex] * 180 / Math.PI).toFixed(0)}°`, boxX + 10, yPos);
+            } else {
+                ctx.fillText(`Links: ${numLinks}`, boxX + 10, yPos);
+            }
+            
+            yPos += 25;
+            ctx.fillText(`Gravity: ${params.g.toFixed(2)} m/s²`, boxX + 10, yPos);
+            yPos += 20;
+            ctx.fillText(`Damping: ${initialParams.damping.toFixed(3)}`, boxX + 10, yPos);
+            yPos += 20;
+            ctx.fillText(`Points: ${fullTrajectories[linkIndex >= 0 ? linkIndex : numLinks - 1].length}`, boxX + 10, yPos);
+            yPos += 20;
+            ctx.fillText(`Time: ${simulationTime.toFixed(1)}s`, boxX + 10, yPos);
         }
         
         // Controls
@@ -668,31 +797,48 @@
             isRunning = !isRunning;
             this.textContent = isRunning ? '⏸️ Pause' : '▶️ Start';
             this.className = isRunning ? 'btn-danger' : 'btn-success';
-            if (isRunning) animate();
+            
+            if (isRunning) {
+                // Save initial state
+                initialParams = JSON.parse(JSON.stringify(params));
+                animate();
+            }
         });
         
-        document.getElementById('resetBtn').addEventListener('click', function() {
-            params = {...initialParams};
-            params.omega1 = params.omega2 = params.omega3 = 0;
+        document.getElementById('stopBtn').addEventListener('click', function() {
+            if (isRunning) {
+                isRunning = false;
+                document.getElementById('startStopBtn').textContent = '▶️ Start';
+                document.getElementById('startStopBtn').className = 'btn-success';
+            }
+            
+            // Clear everything
+            params = JSON.parse(JSON.stringify(initialParams));
+            params.omegas = [0, 0, 0, 0, 0];
             simulationTime = 0;
-            trail1.length = trail2.length = trail3.length = 0;
-            fullTrajectory.length = 0;
+            
+            for (let i = 0; i < 5; i++) {
+                trails[i].length = 0;
+                fullTrajectories[i].length = 0;
+            }
+            
             ctx.fillStyle = '#0a0e27';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            if (!isRunning) draw();
+            draw();
         });
         
-        document.getElementById('clearBtn').addEventListener('click', function() {
-            trail1.length = trail2.length = trail3.length = 0;
-            fullTrajectory.length = 0;
-            ctx.fillStyle = '#0a0e27';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            if (!isRunning) draw();
+        document.getElementById('saveBtn').addEventListener('click', function() {
+            document.getElementById('saveMenu').classList.toggle('active');
         });
         
-        document.getElementById('saveBtn').addEventListener('click', saveTrajectory);
+        // Close save menu when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.save-dropdown')) {
+                document.getElementById('saveMenu').classList.remove('active');
+            }
+        });
         
-        // Trajectory mode toggle
+        // Trajectory mode
         document.getElementById('fadingMode').addEventListener('click', function() {
             trajectoryMode = 'fading';
             this.classList.add('active');
@@ -705,33 +851,27 @@
             document.getElementById('fadingMode').classList.remove('active');
         });
         
-        // Slider updates
-        const sliders = [
-            ['speed', v => { params.speed = v; }, v => v.toFixed(1) + 'x'],
-            ['l1', v => { params.L1 = v; updateNaturalPeriod(); }, v => v],
-            ['l2', v => { params.L2 = v; updateNaturalPeriod(); }, v => v],
-            ['l3', v => { params.L3 = v; updateNaturalPeriod(); }, v => v],
-            ['m1', v => params.m1 = v, v => v.toFixed(1)],
-            ['m2', v => params.m2 = v, v => v.toFixed(1)],
-            ['m3', v => params.m3 = v, v => v.toFixed(1)],
-            ['a1', v => { params.theta1 = v * Math.PI / 180; initialParams.theta1 = params.theta1; }, v => v + '°'],
-            ['a2', v => { params.theta2 = v * Math.PI / 180; initialParams.theta2 = params.theta2; }, v => v + '°'],
-            ['a3', v => { params.theta3 = v * Math.PI / 180; initialParams.theta3 = params.theta3; }, v => v + '°'],
-            ['gravity', v => { params.g = v; updateNaturalPeriod(); }, v => v.toFixed(2) + ' m/s²'],
-            ['damping', v => params.damping = v, v => v.toFixed(3)]
-        ];
+        // Speed slider
+        document.getElementById('speed').addEventListener('input', function() {
+            params.speed = parseFloat(this.value);
+            document.getElementById('speedVal').textContent = this.value + 'x';
+        });
         
-        sliders.forEach(([id, setter, formatter]) => {
-            const slider = document.getElementById(id);
-            const display = document.getElementById(id + 'Val');
-            slider.addEventListener('input', function() {
-                const val = parseFloat(this.value);
-                setter(val);
-                display.textContent = formatter(val);
-            });
+        // Gravity slider
+        document.getElementById('gravity').addEventListener('input', function() {
+            params.g = parseFloat(this.value);
+            document.getElementById('gVal').textContent = this.value + ' m/s²';
+            updateNaturalPeriod();
+        });
+        
+        // Damping slider
+        document.getElementById('damping').addEventListener('input', function() {
+            params.damping = parseFloat(this.value);
+            document.getElementById('dampVal').textContent = this.value;
         });
         
         // Initial setup
+        generateControls();
         updateNaturalPeriod();
         draw();
     </script>
