@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🔍 iOS Speech Diagnostic</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:20px}
+.container{max-width:600px;margin:0 auto}
+.card{background:#fff;border-radius:20px;padding:20px;margin-bottom:20px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+h1{color:#667eea;margin-bottom:10px}
+.info-box{background:#f0f9ff;border-left:4px solid #3b82f6;padding:12px;margin:16px 0;border-radius:8px;font-size:13px;line-height:1.6}
+.success{background:#d1fae5;border-left:4px solid #10b981}
+.warning{background:#fef3c7;border-left:4px solid #f59e0b}
+.error{background:#fee2e2;border-left:4px solid #ef4444}
+.btn{width:100%;padding:15px;border:none;border-radius:10px;font-weight:700;font-size:16px;cursor:pointer;margin:10px 0;background:#667eea;color:#fff}
+pre{background:#f3f4f6;padding:12px;border-radius:8px;font-size:12px;overflow-x:auto;margin:10px 0}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>🔍 iOS Speech Diagnostic</h1>
+    <p style="color:#666;font-size:14px;margin-bottom:20px;">Let's figure out why speech recognition isn't working</p>
+    
+    <button class="btn" onclick="runDiagnostic()">▶️ Run Full Diagnostic</button>
+    
+    <div id="results"></div>
+  </div>
+</div>
+
+<script>
+async function runDiagnostic() {
+  const results = document.getElementById('results');
+  results.innerHTML = '<p style="color:#667eea;text-align:center;">Running diagnostic...</p>';
+  
+  let report = '';
+  let issues = [];
+  
+  // 1. Device Info
+  report += '<div class="info-box"><strong>📱 Device Information:</strong><pre>';
+  report += 'User Agent: ' + navigator.userAgent + '\n';
+  report += 'Platform: ' + navigator.platform + '\n';
+  report += 'Language: ' + navigator.language + '\n';
+  
+  // Detect iOS version
+  const match = navigator.userAgent.match(/OS (\d+)_(\d+)_?(\d+)?/);
+  if (match) {
+    const version = `${match[1]}.${match[2]}${match[3] ? '.' + match[3] : ''}`;
+    report += 'iOS Version: ' + version + '\n';
+    
+    const majorVersion = parseInt(match[1]);
+    const minorVersion = parseInt(match[2]);
+    
+    if (majorVersion < 14 || (majorVersion === 14 && minorVersion < 5)) {
+      issues.push('❌ iOS version too old! Need iOS 14.5+');
+    } else if (majorVersion === 14) {
+      issues.push('⚠️ iOS 14.x has buggy speech support. Update to iOS 15+ recommended.');
+    } else {
+      report += '✅ iOS version OK (14.5+)\n';
+    }
+  }
+  report += '</pre></div>';
+  
+  // 2. Browser Detection
+  report += '<div class="info-box"><strong>🌐 Browser:</strong><pre>';
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const isChrome = /CriOS/.test(navigator.userAgent);
+  const isFirefox = /FxiOS/.test(navigator.userAgent);
+  
+  if (isSafari && !isChrome) {
+    report += '✅ Safari detected\n';
+  } else if (isChrome) {
+    report += '✅ Chrome iOS detected\n';
+  } else if (isFirefox) {
+    report += '⚠️ Firefox iOS detected (may not support speech)\n';
+    issues.push('⚠️ Firefox iOS has limited Web Speech API support');
+  } else {
+    report += '⚠️ Unknown browser\n';
+  }
+  report += '</pre></div>';
+  
+  // 3. HTTPS Check
+  report += '<div class="info-box"><strong>🔒 Security:</strong><pre>';
+  if (location.protocol === 'https:') {
+    report += '✅ HTTPS - Good!\n';
+  } else {
+    report += '❌ HTTP - Speech API requires HTTPS!\n';
+    issues.push('❌ Site must use HTTPS for microphone access');
+  }
+  report += '</pre></div>';
+  
+  // 4. Speech Recognition API Check
+  report += '<div class="info-box"><strong>🎤 Speech API Support:</strong><pre>';
+  if ('webkitSpeechRecognition' in window) {
+    report += '✅ webkitSpeechRecognition API exists\n';
+  } else if ('SpeechRecognition' in window) {
+    report += '✅ SpeechRecognition API exists\n';
+  } else {
+    report += '❌ Speech Recognition API NOT FOUND\n';
+    issues.push('❌ CRITICAL: Browser does not support Speech Recognition API');
+  }
+  report += '</pre></div>';
+  
+  // 5. MediaDevices API Check
+  report += '<div class="info-box"><strong>🎙️ Media Devices API:</strong><pre>';
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    report += '✅ getUserMedia API exists\n';
+    
+    // Try to get actual permissions
+    try {
+      const permissionStatus = await navigator.permissions.query({ name: 'microphone' });
+      report += 'Permission state: ' + permissionStatus.state + '\n';
+      
+      if (permissionStatus.state === 'granted') {
+        report += '✅ Microphone permission granted\n';
+      } else if (permissionStatus.state === 'prompt') {
+        report += '⚠️ Microphone permission not yet requested\n';
+      } else {
+        report += '❌ Microphone permission denied\n';
+        issues.push('❌ Microphone permission is denied');
+      }
+    } catch (e) {
+      report += '⚠️ Cannot check permission status (iOS limitation)\n';
+    }
+    
+    // Try to actually access microphone
+    try {
+      report += '\nAttempting to access microphone...\n';
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      report += '✅ SUCCESS! Microphone access granted\n';
+      stream.getTracks().forEach(track => track.stop());
+    } catch (error) {
+      report += '❌ FAILED: ' + error.name + ' - ' + error.message + '\n';
+      issues.push('❌ Cannot access microphone: ' + error.name);
+    }
+  } else {
+    report += '❌ getUserMedia API NOT FOUND\n';
+    issues.push('❌ Browser does not support getUserMedia');
+  }
+  report += '</pre></div>';
+  
+  // 6. Try Speech Recognition
+  if ('webkitSpeechRecognition' in window) {
+    report += '<div class="info-box"><strong>🗣️ Testing Speech Recognition:</strong><pre>';
+    try {
+      const recognition = new webkitSpeechRecognition();
+      report += '✅ Recognition object created\n';
+      
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+      
+      report += 'Settings configured\n';
+      report += 'Language: ' + recognition.lang + '\n';
+      
+      // Try to start
+      report += '\nAttempting to start recognition...\n';
+      
+      recognition.onstart = () => {
+        report += '✅ SUCCESS! Speech recognition started!\n';
+        setTimeout(() => recognition.stop(), 1000);
+        showResults(report, issues);
+      };
+      
+      recognition.onerror = (event) => {
+        report += '❌ ERROR: ' + event.error + '\n';
+        
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          report += '\n⚠️ This means iOS is blocking the Speech API at system level.\n';
+          issues.push('❌ iOS is blocking Speech Recognition (service-not-allowed)');
+        }
+        
+        showResults(report, issues);
+      };
+      
+      recognition.onend = () => {
+        report += 'Recognition ended\n';
+      };
+      
+      recognition.start();
+      
+      // Timeout after 3 seconds
+      setTimeout(() => {
+        if (!report.includes('SUCCESS')) {
+          report += '⚠️ Timeout - no response from API\n';
+          showResults(report, issues);
+        }
+      }, 3000);
+      
+    } catch (error) {
+      report += '❌ Exception: ' + error.message + '\n';
+      issues.push('❌ Cannot create Speech Recognition: ' + error.message);
+      report += '</pre></div>';
+      showResults(report, issues);
+    }
+  } else {
+    showResults(report, issues);
+  }
+}
+
+function showResults(report, issues) {
+  const results = document.getElementById('results');
+  
+  let html = report;
+  
+  // Summary
+  if (issues.length === 0) {
+    html += '<div class="info-box success"><strong>✅ All Checks Passed!</strong><br>Speech recognition should work. If it still doesn\'t, try restarting your iPhone.</div>';
+  } else {
+    html += '<div class="info-box error"><strong>❌ Issues Found:</strong><br><br>';
+    issues.forEach(issue => {
+      html += issue + '<br>';
+    });
+    html += '</div>';
+    
+    // Recommendations
+    html += '<div class="info-box warning"><strong>💡 Recommendations:</strong><br><br>';
+    
+    if (issues.some(i => i.includes('iOS version'))) {
+      html += '1. <strong>Update iOS:</strong> Go to Settings → General → Software Update<br><br>';
+    }
+    
+    if (issues.some(i => i.includes('service-not-allowed'))) {
+      html += '• <strong>iOS System Block:</strong> The Web Speech API is blocked at iOS system level. This can happen due to:<br>';
+      html += '  - Restrictions in Screen Time / Parental Controls<br>';
+      html += '  - Enterprise MDM policies<br>';
+      html += '  - iOS bug (try restarting iPhone)<br><br>';
+      html += '• <strong>Check:</strong> Settings → Screen Time → Content & Privacy Restrictions → Allowed Apps → Ensure Safari/Chrome is enabled<br><br>';
+    }
+    
+    if (issues.some(i => i.includes('permission'))) {
+      html += '• <strong>Reset Permissions:</strong><br>';
+      html += '  1. Settings → Safari → Advanced → Website Data → Remove All<br>';
+      html += '  2. Settings → Privacy & Security → Microphone → Enable for Safari/Chrome<br>';
+      html += '  3. Restart iPhone<br><br>';
+    }
+    
+    html += '• <strong>Alternative:</strong> Use a different device or native app for voice input<br>';
+    html += '</div>';
+  }
+  
+  results.innerHTML = html;
+}
+
+// Auto-run on load
+window.onload = () => {
+  setTimeout(runDiagnostic, 500);
+};
+</script>
+</body>
+</html>
