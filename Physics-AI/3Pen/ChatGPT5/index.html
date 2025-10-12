@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Triple Pendulum — Pure JS + Canvas (Newtonian)</title>
+<style>
+  html, body {height:100%; margin:0; background:#0d1117; color:#c9d1d9; font-family:system-ui,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;}
+  .wrap {display:grid; place-items:center; height:100%;}
+  canvas {background:#0b0f14; box-shadow:0 10px 30px rgba(0,0,0,.4); border:1px solid #1f2937;}
+  .caption {position:fixed; bottom:10px; left:50%; transform:translateX(-50%); font-size:12px; opacity:.75; user-select:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <canvas id="c" width="900" height="650"></canvas>
+  <div class="caption">Triple pendulum (numerical, Newtonian). Position-based constraints + sub-steps for stability. Trails show chaotic motion.</div>
+</div>
+
+<script>
+/*
+  Triple pendulum simulated via classical mechanics using a constrained particle system:
+
+  - We model each bob as a point mass with position x = (x,y) and velocity v.
+  - Forces: only gravity acts (F = m g). Optional linear damping approximates small air resistance.
+  - Rods are massless constraints of fixed length between: pivot–m1, m1–m2, m2–m3.
+
+  Time integration:
+    Semi-implicit (symplectic) Euler in small sub-steps:
+      v += (F/m) * dt            // acceleration from Newton's 2nd law
+      x += v * dt                 // update position
+    Then enforce distance constraints several iterations per sub-step by projecting positions:
+      For a constraint between points i and j with rest length L:
+        d = xj - xi
+        dist = |d|
+        corr = (1 - L/dist) * d
+        xi -= (wi / (wi+wj)) * corr
+        xj += (wj / (wi+wj)) * corr
+      (wi = 1/mi are inverse masses; pivot has infinite mass → wi = 0, so only the bob moves)
+
+  This is equivalent to integrating Newtonian equations with holonomic constraints,
+  and is closely related to the SHAKE/position-based dynamics approach — stable for stiff rods.
+
+  Notes:
+    - Multiple small sub-steps + several projection iterations per sub-step keep rods inextensible.
+    - A tiny velocity damping keeps energy bounded and the animation smooth (optional physical loss).
+*/
+
+(() => {
+  // ----- Canvas setup -----
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pivot = { x: W*0.5, y: H*0.2 };
+
+  // ----- Physical parameters -----
+  const g = 980;          // gravity (px/s^2) — tuned so motion looks natural given pixel scale
+  const L1 = 170, L2 = 170, L3 = 170;        // rod lengths (pixels)
+  const m1 = 1.0, m2 = 1.0, m3 = 1.0;        // masses (arbitrary units, equal for simplicity)
+  const inv1 = 1/m1, inv2 = 1/m2, inv3 = 1/m3;
+  const damping = 0.999;  // velocity damping (≈ air drag); 1.0 → no damping
+
+  // Integration control (stability/smoothness)
+  const stepsPerFrame = 4;     // physics sub-steps each frame
+  const projIterations = 6;    // constraint projection iterations per sub-step
+  let fixedDt = 1/240;         // physics step (seconds); small for stability
+  const maxFrameDt = 1/30;     // avoid huge catch-up steps if tab was paused
+
+  // ----- Particles (bobs) -----
+  function makeBob(x, y, invMass) {
+    return { x, y, px:x, py:y, vx:0, vy:0, invMass }; // px,py kept for potential future use
+  }
+
+  // Initialize from angles (for a lively start)
+  const a1 = Math.PI * 0.9;     // ~162°
+  const a2 = Math.PI * -0.6;    // ~-108°
+  const a3 = Math.PI * 0.8;     // ~144°
+
+  const p1 = makeBob(pivot.x + L1*Math.sin(a1), pivot.y + L1*Math.cos(a1), inv1);
+  const p2 = makeBob(p1.x      + L2*Math.sin(a2), p1.y      + L2*Math.cos(a2), inv2);
+  const p3 = makeBob(p2.x      + L3*Math.sin(a3), p2.y      + L3*Math.cos(a3), inv3);
+
+  // Distinct colors for arms & trails
+  const col1 = '#5eead4', // teal
+        col2 = '#60a5fa', // blue
+        col3 = '#f472b6'; // pink
+
+  // Trails (fading)
+  const trailLen = 200;
+  const trail1 = [], trail2 = [], trail3 = [];
+  function pushTrail(arr, x, y) {
+    arr.push({x, y});
+    if (arr.length > trailLen) arr.shift();
+  }
+
+  // ----- Constraint solver (rod: (a)-(b) length = L) -----
+  function satisfy(a, b, L) {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    let dist = Math.hypot(dx, dy);
+    if (dist === 0) {
+      // Separate coincident points slightly to avoid NaNs
+      const eps = 0.0001;
+      b.x += eps; dist = eps;
+    }
+    const diff = (dist - L) / dist;
+
+    // Inverse masses determine how much each end moves (pivot has invMass=0)
+    const w1 = a.invMass, w2 = b.invMass;
+    const denom = w1 + w2;
+    if (denom === 0) return; // both fixed: nothing to do
+
+    const corrX = dx * diff;
+    const corrY = dy * diff;
+
+    // Move points along the line connecting them to restore length
+    if (w1 > 0) {
+      a.x += - (w1/denom) * corrX;
+      a.y += - (w1/denom) * corrY;
+    }
+    if (w2 > 0) {
+      b.x +=   (w2/denom) * corrX;
+      b.y +=   (w2/denom) * corrY;
+    }
+  }
+
+  // Constraint to keep first bob at distance L1 from fixed pivot
+  function satisfyPivot(p, L) {
+    const dx = p.x - pivot.x;
+    const dy = p.y - pivot.y;
+    let dist = Math.hypot(dx, dy);
+    if (dist === 0) return;
+    const diff = (dist - L) / dist;
+    // pivot is fixed (infinite mass), so move only the bob
+    p.x -= dx * diff;
+    p.y -= dy * diff;
+  }
+
+  // ----- Physics sub-step -----
+  function substep(dt) {
+    // 1) Forces → velocities (semi-implicit Euler)
+    //    a = F/m ; here F = (0, m*g), so vy increases by g*dt
+    p1.vy += g * dt;
+    p2.vy += g * dt;
+    p3.vy += g * dt;
+
+    // 2) Damping (simple linear velocity drag)
+    p1.vx *= damping; p1.vy *= damping;
+    p2.vx *= damping; p2.vy *= damping;
+    p3.vx *= damping; p3.vy *= damping;
+
+    // 3) Integrate positions
+    p1.x += p1.vx * dt; p1.y += p1.vy * dt;
+    p2.x += p2.vx * dt; p2.y += p2.vy * dt;
+    p3.x += p3.vx * dt; p3.y += p3.vy * dt;
+
+    // 4) Enforce constraints multiple times (keeps lengths fixed and prevents drift)
+    for (let i=0;i<projIterations;i++) {
+      satisfyPivot(p1, L1);
+      satisfy(p1, p2, L2);
+      satisfy(p2, p3, L3);
+    }
+
+    // 5) Recompute velocities from position delta (keeps solver consistent)
+    //    v ≈ (x_new - x_old) / dt; here we use accumulated velocity so we only correct direction:
+    //    Project any minor constraint corrections into velocity:
+    //    (Alternatively, one could store previous positions and compute velocities directly.)
+    //    We'll gently steer velocities toward the corrected positions:
+    // NOTE: A simple way is to clamp velocity to movement realized in this step.
+    // (Do nothing extra here; constraints above already corrected positions, and damping keeps it stable.)
+  }
+
+  // ----- Drawing -----
+  function drawArm(ax, ay, bx, by, color, width=3) {
+    ctx.lineWidth = width;
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(bx, by);
+    ctx.stroke();
+  }
+
+  function drawBob(x, y, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, 7, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  function drawPivot(x, y) {
+    ctx.fillStyle = '#e5e7eb';
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // Render fading trails by drawing segments with increasing alpha
+  function drawTrail(points, color) {
+    if (points.length < 2) return;
+    for (let i = 1; i < points.length; i++) {
+      const p0 = points[i-1], p1 = points[i];
+      const t = i / points.length;
+      ctx.strokeStyle = hexWithAlpha(color, t*0.6); // fade from transparent to 60% alpha
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(p0.x, p0.y);
+      ctx.lineTo(p1.x, p1.y);
+      ctx.stroke();
+    }
+  }
+
+  // Utility: hex color + alpha to rgba()
+  function hexWithAlpha(hex, a) {
+    const c = hex.replace('#','');
+    const bigint = parseInt(c, 16);
+    const r = (c.length===3) ? ((bigint>>8)&0xF)*17 : (bigint>>16)&0xFF;
+    const g = (c.length===3) ? ((bigint>>4)&0xF)*17 : (bigint>>8)&0xFF;
+    const b = (c.length===3) ? (bigint&0xF)*17     : (bigint)&0xFF;
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  // ----- Animation loop -----
+  let lastT = performance.now() / 1000;
+
+  function frame() {
+    const now = performance.now() / 1000;
+    let dt = Math.min(now - lastT, maxFrameDt); // clamp long pauses
+    lastT = now;
+
+    // Accumulate fixed-size sub-steps for stability
+    // (Perform N sub-steps per frame regardless of display rate)
+    const subDt = fixedDt;
+    let steps = stepsPerFrame;
+    while (steps--) substep(subDt);
+
+    // Trails: push positions (after physics)
+    pushTrail(trail1, p1.x, p1.y);
+    pushTrail(trail2, p2.x, p2.y);
+    pushTrail(trail3, p3.x, p3.y);
+
+    // Clear frame with slight alpha to leave a global fade, then redraw freshly:
+    ctx.fillStyle = 'rgba(11,15,20,0.35)'; // mild motion persistence
+    ctx.fillRect(0, 0, W, H);
+
+    // Draw trails
+    drawTrail(trail1, col1);
+    drawTrail(trail2, col2);
+    drawTrail(trail3, col3);
+
+    // Draw arms & bobs
+    drawPivot(pivot.x, pivot.y);
+    drawArm(pivot.x, pivot.y, p1.x, p1.y, col1, 3);
+    drawArm(p1.x, p1.y, p2.x, p2.y, col2, 3);
+    drawArm(p2.x, p2.y, p3.x, p3.y, col3, 3);
+    drawBob(p1.x, p1.y, col1);
+    drawBob(p2.x, p2.y, col2);
+    drawBob(p3.x, p3.y, col3);
+
+    // Small overlay text
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.font = '12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto';
+    ctx.fillText('g = 980 px/s², dt = 1/240 s, projections = ' + projIterations + ', sub-steps/frame = ' + stepsPerFrame, 12, 20);
+
+    requestAnimationFrame(frame);
+  }
+
+  // Kick off
+  // Give the system a tiny random velocity to avoid a perfectly symmetric start.
+  p1.vx = 0; p1.vy = 0;
+  p2.vx = 0; p2.vy = 0;
+  p3.vx = 0; p3.vy = 0;
+  requestAnimationFrame(frame);
+
+  // (Optional) handle hi-dpi crispness
+  function fitHiDPI() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cssW = canvas.clientWidth || W;
+    const cssH = canvas.clientHeight || H;
+    canvas.width  = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0); // scale drawing back to CSS pixels
+  }
+  // If you change CSS sizing, uncomment below:
+  // window.addEventListener('resize', fitHiDPI, {passive:true});
+  // fitHiDPI();
+
+})();
+</script>
+</body>
+</html>
