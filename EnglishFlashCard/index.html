@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#667eea" />
+<title>🎤 Voice Flashcards - iOS Fixed</title>
+
+<link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlZvaWNlIEZsYXNoY2FyZHMiLAogICJzaG9ydF9uYW1lIjogIkZsYXNoY2FyZHMiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzY2N2VlYSIsCiAgInRoZW1lX2NvbG9yIjogIiM2NjdlZWEiLAogICJpY29ucyI6IFt7InNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnJTNFJTNDdGV4dCB5PScuOWVtJyBmb250LXNpemU9JzkwJyUzRSVGMCU5RiU4RSVBNCUzQy90ZXh0JTNFJTNDL3N2ZyUzRSIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCJ9XQp9" />
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:20px 20px 100px}
+.container{max-width:600px;margin:0 auto}
+.card{background:#fff;border-radius:20px;padding:20px;margin-bottom:20px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.security-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:16px}
+.ai-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;margin-left:8px}
+h1{color:#667eea;margin-bottom:10px}.subtitle{color:#666;font-size:14px}
+.ai-selector{margin:16px 0;padding:12px;background:#f3f4f6;border-radius:12px}
+.ai-selector select{width:100%;padding:12px;border:2px solid #667eea;border-radius:10px;font-size:16px;font-weight:600;color:#667eea;background:#fff;cursor:pointer}
+.mode-selector{display:flex;gap:10px;margin-top:15px}
+.mode-btn{flex:1;padding:12px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px}
+.mode-btn.active{background:#667eea;color:#fff}.mode-btn.inactive{background:#e0e0e0;color:#666}
+.mic-button{width:120px;height:120px;border-radius:50%;border:none;background:#667eea;color:#fff;font-size:48px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 auto;transition:.3s;box-shadow:0 8px 20px rgba(102,126,234,.4)}
+.mic-button:disabled{opacity:.6;cursor:not-allowed}.mic-button.listening{background:#ef4444;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.result-box{padding:12px;border-radius:10px;margin-bottom:15px}
+.result-box.question{background:#f3f4f6}.result-box.answer{background:#d1fae5}.result-box.error{background:#fee2e2;border:2px solid #ef4444}
+.label{font-size:12px;font-weight:700;margin-bottom:5px}
+.btn{width:100%;padding:15px;border:none;border-radius:10px;font-weight:700;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:#667eea;color:#fff}.btn-success{background:#10b981;color:#fff}.btn-warning{background:#fbbf24;color:#92400e}
+.api-section{margin:20px 0;padding:16px;background:#f9fafb;border-radius:12px;border-left:4px solid #667eea}
+.api-section h4{color:#667eea;margin-bottom:8px}
+.flashcard-item{padding:15px;background:#f9fafb;border-radius:10px;margin-bottom:10px;position:relative;padding-right:50px}
+.delete-btn{position:absolute;top:10px;right:10px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:18px}
+.settings-btn{position:fixed;bottom:20px;right:20px;width:60px;height:60px;border-radius:50%;background:#fff;border:none;box-shadow:0 4px 12px rgba(0,0,0,.3);cursor:pointer;font-size:24px}
+.input-field{width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;margin:10px 0}
+.practice-card{min-height:150px;display:flex;align-items:center;justify-content:center;background:#f9fafb;border-radius:15px;padding:30px;margin:20px 0;font-size:20px;line-height:1.6;text-align:center}
+.security-info{background:#f0f9ff;border-left:4px solid #3b82f6;padding:12px;margin:16px 0;border-radius:8px;font-size:13px;color:#1e40af}
+.error-details{background:#fee2e2;border-left:4px solid #ef4444;padding:12px;margin:16px 0;border-radius:8px;font-size:12px;color:#991b1b;font-family:monospace;max-height:200px;overflow-y:auto;white-space:pre-wrap}
+.hidden{display:none}@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}.loading{animation:spin 1s linear infinite}
+.row{display:flex;gap:10px;align-items:center}.grow{flex:1}.small{font-size:12px;color:#666}label{font-size:12px;color:#555;font-weight:600}
+.auth-row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.user-pill{background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700}
+.ios-tip{background:#d1fae5;border-left:4px solid #10b981;padding:12px;margin:16px 0;border-radius:8px;font-size:13px;color:#065f46;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div>
+      <span class="security-badge">🔒 Encrypted</span>
+      <span class="ai-badge">🤖 Multi-AI</span>
+    </div>
+    <h1>🎤 Voice Flashcards</h1>
+    <p class="subtitle">iOS "Abort" Bug Fixed • Multi-AI Support</p>
+
+    <div class="ai-selector">
+      <select id="aiProvider" onchange="updateAIProvider()">
+        <option value="gemini">🌟 Gemini 2.x (FREE)</option>
+        <option value="gpt">⚡ GPT-4o (Paid)</option>
+        <option value="claude">🧠 Claude Sonnet (Paid)</option>
+      </select>
+    </div>
+
+    <div class="mode-selector">
+      <button class="mode-btn active" onclick="setMode('create')">✏️ Create</button>
+      <button class="mode-btn inactive" onclick="setMode('practice')">🎮 Practice (<span id="cardCount">0</span>)</button>
+    </div>
+  </div>
+
+  <!-- iOS Tip -->
+  <div class="card ios-tip">
+    <strong>💡 iOS Tip:</strong> Speak IMMEDIATELY after tapping the mic button. iOS has a short timeout!
+  </div>
+
+  <!-- Auth -->
+  <div id="authCard" class="card">
+    <div class="auth-row">
+      <div id="who" class="small" style="color:#667eea">You are not signed in.</div>
+      <div>
+        <button id="loginBtn" class="btn btn-primary" style="width:auto;padding:10px 14px;">🔑 Sign in</button>
+        <button id="logoutBtn" class="btn" style="display:none;width:auto;background:#e5e7eb;color:#111;padding:10px 14px;">Sign out</button>
+      </div>
+    </div>
+    <div class="small" style="margin-top:10px;">Sign in to sync flashcards across devices.</div>
+  </div>
+
+  <!-- Settings -->
+  <div id="settingsPanel" class="card hidden">
+    <h3>⚙️ API Settings</h3>
+    <div class="security-info">🔒 Your API keys are encrypted before storage.</div>
+
+    <div class="api-section">
+      <h4>🌟 Gemini API (Google)</h4>
+      <p class="small" style="margin-bottom:8px;">
+        <strong>FREE:</strong> Get key at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#667eea">Google AI Studio</a>
+      </p>
+      <div class="row" style="margin-bottom:8px;">
+        <div class="grow">
+          <label>Model</label>
+          <select id="geminiModel" class="input-field" style="height:auto;">
+            <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+            <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+          </select>
+        </div>
+        <div>
+          <label>Try alternates</label><br/>
+          <input id="geminiTryAlt" type="checkbox" checked style="width:20px;height:20px;">
+        </div>
+      </div>
+      <input type="password" id="geminiKey" class="input-field" placeholder="Paste Gemini API key" />
+      <button class="btn btn-warning" onclick="testApiKey('gemini')">🧪 Test</button>
+    </div>
+
+    <div class="api-section">
+      <h4>⚡ OpenAI GPT-4</h4>
+      <p class="small" style="margin-bottom:8px;">
+        <strong>Paid</strong> • <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#667eea">Get Key</a>
+      </p>
+      <input type="password" id="gptKey" class="input-field" placeholder="Paste OpenAI key" />
+      <button class="btn btn-warning" onclick="testApiKey('gpt')">🧪 Test</button>
+    </div>
+
+    <div class="api-section">
+      <h4>🧠 Claude</h4>
+      <p class="small" style="margin-bottom:8px;">
+        <strong>Paid</strong> • <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#667eea">Get Key</a>
+      </p>
+      <input type="password" id="claudeKey" class="input-field" placeholder="Paste Claude key" />
+      <button class="btn btn-warning" onclick="testApiKey('claude')">🧪 Test</button>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button class="btn btn-primary" onclick="saveAllKeys()">💾 Save</button>
+      <button class="btn" style="background:#e0e0e0;color:#666" onclick="toggleSettings()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Create Mode -->
+  <div id="createMode">
+    <div class="card" style="text-align:center;">
+      <button id="micButton" class="mic-button" onclick="startListening()">🎤</button>
+      <p id="statusText" style="margin-top:20px;color:#666;font-size:14px;">Tap to speak in Persian or English</p>
+      <p id="aiStatus" style="margin-top:10px;color:#667eea;font-size:13px;font-weight:600;">Using: Gemini (Free)</p>
+      <button id="needKeyBtn" class="btn btn-warning hidden" style="margin-top:10px;" onclick="toggleSettings()">⚠️ Add API Key First</button>
+    </div>
+
+    <div id="resultsCard" class="card hidden">
+      <div id="transcriptBox" class="hidden">
+        <div class="label" style="color:#667eea;">YOUR SPEECH:</div>
+        <div class="result-box question" id="transcriptText"></div>
+      </div>
+
+      <div id="loadingBox" class="hidden" style="text-align:center;padding:20px;">
+        <div class="loading" style="font-size:32px;">⏳</div>
+        <p style="color:#667eea;">Getting translation...</p>
+      </div>
+
+      <div id="errorBox" class="hidden">
+        <div class="label" style="color:#ef4444;">❌ ERROR:</div>
+        <div class="result-box error" id="errorMessage"></div>
+        <div class="error-details" id="errorDetails"></div>
+        <button class="btn btn-warning" onclick="toggleSettings()" style="margin-top:10px;">Check Settings</button>
+      </div>
+
+      <div id="translationBox" class="hidden">
+        <div class="label" style="color:#10b981;">✨ POLISHED ENGLISH:</div>
+        <div class="result-box answer" id="translationText"></div>
+        <button class="btn btn-success" onclick="saveFlashcard()">➕ Save as Flashcard</button>
+      </div>
+    </div>
+
+    <div id="flashcardsList" class="card hidden">
+      <h3>📚 Your Flashcards (<span id="listCount">0</span>)</h3>
+      <div id="cardsContainer"></div>
+    </div>
+  </div>
+
+  <!-- Practice Mode -->
+  <div id="practiceMode" class="card hidden">
+    <div id="practiceProgress" style="text-align:center;color:#667eea;font-weight:bold;margin-bottom:20px;">
+      Card <span id="currentCard">1</span> of <span id="totalCards">0</span>
+    </div>
+    <div class="practice-card">
+      <div id="practiceQuestion"></div>
+      <div id="practiceAnswer" class="hidden"></div>
+    </div>
+    <button id="showAnswerBtn" class="btn btn-primary" onclick="showAnswer()">Show Answer</button>
+    <button id="nextCardBtn" class="btn btn-success hidden" onclick="nextCard()">✓ Next</button>
+  </div>
+</div>
+
+<button id="settingsBtn" class="settings-btn" onclick="toggleSettings()">⚙️</button>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig={apiKey:"AIzaSyDlPErWZz-vu-mj1H_MwACZ_w_t7CFg4XI",authDomain:"flashcards-2025.firebaseapp.com",projectId:"flashcards-2025",storageBucket:"flashcards-2025.firebasestorage.app",messagingSenderId:"844930689761",appId:"1:844930689761:web:6bc626be70439c5265a5a0"};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth(),db=firebase.firestore();
+
+function getDeviceFingerprint(){const c=document.createElement('canvas'),x=c.getContext('2d');x.textBaseline='top';x.font='14px Arial';x.fillText('fingerprint',2,2);return c.toDataURL().slice(-50)}
+function simpleEncrypt(t,k){let e='';for(let i=0;i<t.length;i++)e+=String.fromCharCode(t.charCodeAt(i)^k.charCodeAt(i%k.length));return btoa(e)}
+function simpleDecrypt(e,k){try{const d=atob(e);let r='';for(let i=0;i<d.length;i++)r+=String.fromCharCode(d.charCodeAt(i)^k.charCodeAt(i%k.length));return r}catch{return null}}
+
+let state={mode:'create',flashcards:[],aiProvider:'gemini',apiKeys:{gemini:'',gpt:'',claude:''},transcript:'',translation:'',
+currentCardIndex:0,showingAnswer:false,isListening:false,deviceKey:getDeviceFingerprint(),geminiModel:'gemini-2.5-pro',geminiTryAlternates:true};
+
+let recognitionAttempts=0;
+const MAX_ATTEMPTS=3;
+
+function loadGeminiPrefs(){const m=localStorage.getItem('geminiModel');const t=localStorage.getItem('geminiTryAlternates');if(m)state.geminiModel=m;if(t!==null)state.geminiTryAlternates=(t==='true');document.getElementById('geminiModel').value=state.geminiModel;document.getElementById('geminiTryAlt').checked=state.geminiTryAlternates}
+function saveGeminiPrefs(){state.geminiModel=document.getElementById('geminiModel').value;state.geminiTryAlternates=document.getElementById('geminiTryAlt').checked;localStorage.setItem('geminiModel',state.geminiModel);localStorage.setItem('geminiTryAlternates',state.geminiTryAlternates)}
+
+function loadData(){
+  const savedCards=localStorage.getItem('flashcards');const savedProvider=localStorage.getItem('aiProvider');
+  if(savedCards){state.flashcards=JSON.parse(savedCards);updateCardCount();renderFlashcards()}
+  if(savedProvider){state.aiProvider=savedProvider;document.getElementById('aiProvider').value=savedProvider}
+  ['gemini','gpt','claude'].forEach(p=>{const enc=localStorage.getItem(`${p}ApiKey_enc`);if(enc){const dec=simpleDecrypt(enc,state.deviceKey);if(dec){state.apiKeys[p]=dec;const el=document.getElementById(`${p}Key`);if(el)el.value='••••••••'+dec.slice(-8)}}});
+  loadGeminiPrefs();updateAIProvider();
+}
+
+const provider=new firebase.auth.GoogleAuthProvider();
+document.getElementById('loginBtn').onclick=()=>auth.signInWithPopup(provider);
+document.getElementById('logoutBtn').onclick=()=>auth.signOut();
+
+let cardsRef=null;
+auth.onAuthStateChanged(async(user)=>{
+  if(user){
+    document.getElementById('loginBtn').style.display='none';
+    document.getElementById('logoutBtn').style.display='inline-block';
+    document.getElementById('who').innerHTML=`Signed in as <span class="user-pill">${user.displayName||user.email}</span>`;
+    cardsRef=db.collection('users').doc(user.uid).collection('flashcards');
+    const local=JSON.parse(localStorage.getItem('flashcards')||'[]');
+    if(local.length){const batch=db.batch();local.forEach(c=>batch.set(cardsRef.doc(String(c.id)),c));await batch.commit();localStorage.removeItem('flashcards');}
+    cardsRef.orderBy('created','desc').onSnapshot(snap=>{state.flashcards=snap.docs.map(d=>d.data());updateCardCount();renderFlashcards();});
+  }else{
+    document.getElementById('loginBtn').style.display='inline-block';
+    document.getElementById('logoutBtn').style.display='none';
+    document.getElementById('who').textContent='You are not signed in.';
+    const local=JSON.parse(localStorage.getItem('flashcards')||'[]');
+    state.flashcards=local;updateCardCount();renderFlashcards();
+  }
+});
+
+function updateAIProvider(){state.aiProvider=document.getElementById('aiProvider').value;localStorage.setItem('aiProvider',state.aiProvider);const names={gemini:'Gemini (Free)',gpt:'GPT-4o (Paid)',claude:'Claude (Paid)'};document.getElementById('aiStatus').textContent=`Using: ${names[state.aiProvider]}`;checkApiKey()}
+function checkApiKey(){const btn=document.getElementById('needKeyBtn');btn.classList.toggle('hidden',!!state.apiKeys[state.aiProvider])}
+function toggleSettings(){const p=document.getElementById('settingsPanel');const b=document.getElementById('settingsBtn');p.classList.toggle('hidden');b.classList.toggle('hidden');if(!p.classList.contains('hidden'))loadGeminiPrefs();else saveGeminiPrefs()}
+function saveAllKeys(){let saved=0;['gemini','gpt','claude'].forEach(p=>{const key=document.getElementById(`${p}Key`).value.trim();if(key&&!key.startsWith('••••')){state.apiKeys[p]=key;localStorage.setItem(`${p}ApiKey_enc`,simpleEncrypt(key,state.deviceKey));saved++}});saveGeminiPrefs();alert(saved?`✅ Saved ${saved} key(s)!`:'No new keys.');checkApiKey()}
+
+// ===== iOS "ABORTED" FIX =====
+async function startListening(){
+  if(!state.apiKeys[state.aiProvider]){alert('Please add API key in settings!');toggleSettings();return;}
+  if(!('webkitSpeechRecognition'in window)){alert("Browser doesn't support voice input.");return;}
+  recognitionAttempts=0;
+  startSpeechRecognition();
+}
+
+function startSpeechRecognition(){
+  const recognition=new webkitSpeechRecognition();
+  recognition.continuous=true;
+  recognition.interimResults=true;
+  recognition.lang='fa-IR';
+  recognition.maxAlternatives=1;
+  
+  let gotResults=false;
+  let finalTranscript='';
+  let interimTranscript='';
+  
+  recognition.onstart=()=>{
+    state.isListening=true;
+    document.getElementById('micButton').classList.add('listening');
+    document.getElementById('micButton').textContent='🔴';
+    document.getElementById('statusText').textContent='🎤 Listening... Speak NOW!';
+    console.log('✅ Started');
+  };
+  
+  recognition.onresult=(event)=>{
+    gotResults=true;
+    interimTranscript='';
+    for(let i=event.resultIndex;i<event.results.length;i++){
+      const transcript=event.results[i][0].transcript;
+      if(event.results[i].isFinal){
+        finalTranscript+=transcript+' ';
+        console.log('Final:',transcript);
+      }else{
+        interimTranscript+=transcript;
+        console.log('Interim:',transcript);
+      }
+    }
+    if(interimTranscript){
+      document.getElementById('statusText').textContent='🎤 '+interimTranscript;
+    }
+    if(finalTranscript.trim()){
+      console.log('Got final, stopping');
+      setTimeout(()=>{recognition.stop()},500);
+    }
+  };
+  
+  recognition.onerror=(event)=>{
+    console.error('Error:',event.error,'Attempt:',recognitionAttempts+1);
+    if(event.error==='aborted'){
+      recognitionAttempts++;
+      if(recognitionAttempts<MAX_ATTEMPTS){
+        console.log(`Retry ${recognitionAttempts}/${MAX_ATTEMPTS}`);
+        document.getElementById('statusText').textContent=`⚠️ Retrying... (${recognitionAttempts}/${MAX_ATTEMPTS})`;
+        setTimeout(()=>{startSpeechRecognition()},300);
+        return;
+      }else{
+        resetMicButton();
+        alert('⚠️ iOS Speech Bug\n\nTry:\n1. Speak IMMEDIATELY after tap\n2. Speak louder\n3. Restart iPhone\n\nThis is a known iOS bug.');
+        return;
+      }
+    }
+    resetMicButton();
+    let msg='';
+    if(event.error==='not-allowed'||event.error==='service-not-allowed'){
+      msg='🎤 Blocked\nSettings → Safari → Microphone';
+    }else if(event.error==='no-speech'){
+      msg='No speech detected. Try again louder.';
+    }else if(event.error==='network'){
+      msg='Network error.';
+    }else{
+      msg='Error: '+event.error;
+    }
+    alert(msg);
+  };
+  
+  recognition.onend=()=>{
+    console.log('Ended. Got results:',gotResults);
+    if(gotResults&&finalTranscript.trim()){
+      state.transcript=finalTranscript.trim();
+      showTranscript();
+      getTranslation(state.transcript);
+    }else if(!gotResults&&recognitionAttempts===0){
+      console.log('No results, retry...');
+      recognitionAttempts++;
+      setTimeout(()=>{startSpeechRecognition()},300);
+      return;
+    }
+    resetMicButton();
+  };
+  
+  try{
+    recognition.start();
+    console.log('Starting...');
+  }catch(error){
+    console.error('Failed:',error);
+    resetMicButton();
+    alert('Failed to start: '+error.message);
+  }
+}
+
+function resetMicButton(){state.isListening=false;document.getElementById('micButton').classList.remove('listening');document.getElementById('micButton').textContent='🎤';document.getElementById('statusText').textContent='Tap to speak in Persian or English'}
+function showTranscript(){document.getElementById('resultsCard').classList.remove('hidden');document.getElementById('transcriptBox').classList.remove('hidden');document.getElementById('transcriptText').textContent=state.transcript;document.getElementById('errorBox').classList.add('hidden')}
+
+const GEMINI_BASE='https://generativelanguage.googleapis.com';
+async function geminiGenerate({model,key,prompt}){const url=`${GEMINI_BASE}/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});const data=await res.json();return{ok:res.ok,status:res.status,url,data};}
+function uniq(a){return[...new Set(a)]}
+function modelTryOrder(primary){return uniq([primary,'gemini-2.5-pro','gemini-2.5-flash'])}
+
+async function testApiKey(provider){
+  const input=document.getElementById(`${provider}Key`).value.trim();
+  const testKey=input.startsWith('••••')?state.apiKeys[provider]:input;
+  if(!testKey){alert('Enter key first!');return;}
+  alert('Testing...');
+  try{
+    if(provider==='gemini'){
+      saveGeminiPrefs();
+      const models=state.geminiTryAlternates?modelTryOrder(state.geminiModel):[state.geminiModel];
+      for(const m of models){const r=await geminiGenerate({model:m,key:testKey,prompt:"Say 'Hello'"});if(r.ok&&r.data&&r.data.candidates){alert(`✅ Works with "${m}"\n\n`+r.data.candidates[0].content.parts[0].text);return;}}
+      alert('❌ Error');
+    }else if(provider==='gpt'){
+      const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${testKey}`},body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'user',content:"Say 'Hello'"}],max_tokens:50})});const d=await r.json();alert(r.ok&&d.choices?('✅ Works\n\n'+d.choices[0].message.content):('❌ Error'));
+    }else if(provider==='claude'){
+      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':testKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:100,messages:[{role:'user',content:"Say 'Hello'"}]})});const d=await r.json();alert(r.ok&&d.content?('✅ Works\n\n'+d.content[0].text):('❌ Error'));
+    }
+  }catch(e){alert('❌ Error: '+e.message)}
+}
+
+async function getTranslation(text){
+  document.getElementById('loadingBox').classList.remove('hidden');document.getElementById('translationBox').classList.add('hidden');document.getElementById('errorBox').classList.add('hidden');
+  const prompt=`Translate this to natural, polished English. If it's already English, improve it:\n\n"${text}"`;
+  try{
+    if(state.aiProvider==='gemini'){
+      saveGeminiPrefs();
+      const models=state.geminiTryAlternates?modelTryOrder(state.geminiModel):[state.geminiModel];
+      for(const m of models){const r=await geminiGenerate({model:m,key:state.apiKeys.gemini,prompt});if(r.ok&&r.data&&r.data.candidates){state.translation=r.data.candidates[0].content.parts[0].text.trim();showTranslation();document.getElementById('loadingBox').classList.add('hidden');return;}}
+      showError('Gemini Error','Try different model');
+    }else if(state.aiProvider==='gpt'){
+      const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKeys.gpt}`},body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],max_tokens:200})});const d=await r.json();if(r.ok&&d.choices){state.translation=d.choices[0].message.content.trim();showTranslation()}else showError('OpenAI Error',JSON.stringify(d,null,2));
+    }else if(state.aiProvider==='claude'){
+      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':state.apiKeys.claude,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,messages:[{role:'user',content:prompt}]})});const d=await r.json();if(r.ok&&d.content){state.translation=d.content[0].text.trim();showTranslation()}else showError('Claude Error',JSON.stringify(d,null,2));
+    }
+  }catch(e){showError('Network Error',e.message)}
+  document.getElementById('loadingBox').classList.add('hidden');
+}
+
+function showError(message,details){document.getElementById('errorBox').classList.remove('hidden');document.getElementById('translationBox').classList.add('hidden');document.getElementById('errorMessage').textContent=message;document.getElementById('errorDetails').textContent=details}
+function showTranslation(){document.getElementById('translationBox').classList.remove('hidden');document.getElementById('errorBox').classList.add('hidden');document.getElementById('translationText').textContent=state.translation}
+
+async function saveFlashcard(){
+  if(!state.transcript||!state.translation){alert('Need both!');return;}
+  const newCard={id:Date.now(),question:state.transcript,answer:state.translation,created:new Date().toISOString(),aiProvider:state.aiProvider,reviewCount:0};
+  const user=auth.currentUser;
+  if(user){await db.collection('users').doc(user.uid).collection('flashcards').doc(String(newCard.id)).set(newCard);}
+  else{state.flashcards.unshift(newCard);localStorage.setItem('flashcards',JSON.stringify(state.flashcards));}
+  state.transcript='';state.translation='';
+  document.getElementById('resultsCard').classList.add('hidden');document.getElementById('transcriptBox').classList.add('hidden');document.getElementById('translationBox').classList.add('hidden');
+  updateCardCount();renderFlashcards();alert('Saved! 🎉');
+}
+
+async function deleteCard(id){
+  if(!confirm('Delete?'))return;
+  const user=auth.currentUser;
+  if(user){await db.collection('users').doc(user.uid).collection('flashcards').doc(String(id)).delete();}
+  else{state.flashcards=state.flashcards.filter(c=>c.id!==id);localStorage.setItem('flashcards',JSON.stringify(state.flashcards));}
+  updateCardCount();renderFlashcards();
+}
+
+function updateCardCount(){document.getElementById('cardCount').textContent=state.flashcards.length;document.getElementById('listCount').textContent=state.flashcards.length;if(state.flashcards.length>0)document.getElementById('flashcardsList').classList.remove('hidden')}
+function renderFlashcards(){const c=document.getElementById('cardsContainer');c.innerHTML='';const aiEmojis={gemini:'🌟',gpt:'⚡',claude:'🧠'};state.flashcards.forEach(card=>{const el=document.createElement('div');el.className='flashcard-item';el.innerHTML=`<div style="font-size:11px;color:#999;margin-bottom:4px;">${aiEmojis[card.aiProvider]||'🤖'} ${card.aiProvider}</div><div style="font-size:14px;color:#666;margin-bottom:8px;">Q: ${card.question}</div><div style="font-size:14px;color:#10b981;font-weight:bold;">A: ${card.answer}</div><button class="delete-btn" onclick="deleteCard(${card.id})">🗑️</button>`;c.appendChild(el)})}
+
+function setMode(mode){state.mode=mode;const btns=document.querySelectorAll('.mode-btn');btns[0].className=mode==='create'?'mode-btn active':'mode-btn inactive';btns[1].className=mode==='practice'?'mode-btn active':'mode-btn inactive';document.getElementById('createMode').classList.toggle('hidden',mode!=='create');document.getElementById('practiceMode').classList.toggle('hidden',mode!=='practice');if(mode==='practice'){if(state.flashcards.length===0){alert('Create cards first!');setMode('create');return;}startPractice();}}
+function startPractice(){state.currentCardIndex=0;state.showingAnswer=false;showPracticeCard()}
+function showPracticeCard(){const card=state.flashcards[state.currentCardIndex];document.getElementById('currentCard').textContent=state.currentCardIndex+1;document.getElementById('totalCards').textContent=state.flashcards.length;document.getElementById('practiceQuestion').innerHTML=`<div style="color:#667eea;font-size:14px;margin-bottom:10px;">QUESTION:</div>${card.question}`;document.getElementById('practiceAnswer').innerHTML=`<div style="color:#10b981;font-size:14px;margin-bottom:10px;">ANSWER:</div>${card.answer}`;document.getElementById('practiceQuestion').classList.remove('hidden');document.getElementById('practiceAnswer').classList.add('hidden');document.getElementById('showAnswerBtn').classList.remove('hidden');document.getElementById('nextCardBtn').classList.add('hidden')}
+function showAnswer(){document.getElementById('practiceAnswer').classList.remove('hidden');document.getElementById('showAnswerBtn').classList.add('hidden');document.getElementById('nextCardBtn').classList.remove('hidden')}
+function nextCard(){state.flashcards[state.currentCardIndex].reviewCount+=1;const user=auth.currentUser;if(user){db.collection('users').doc(user.uid).collection('flashcards').doc(String(state.flashcards[state.currentCardIndex].id)).update({reviewCount:firebase.firestore.FieldValue.increment(1)}).catch(()=>{})}else{localStorage.setItem('flashcards',JSON.stringify(state.flashcards))}if(state.currentCardIndex<state.flashcards.length-1){state.currentCardIndex++;showPracticeCard()}else{alert('🎉 Done!');setMode('create')}}
+
+window.onload=loadData;
+document.addEventListener('change',(e)=>{if(e.target&&(e.target.id==='geminiModel'||e.target.id==='geminiTryAlt'))saveGeminiPrefs()});
+</script>
+</body>
+</html>
