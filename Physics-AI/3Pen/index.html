@@ -185,16 +185,6 @@
         .save-menu button:hover { background: rgba(59, 130, 246, 0.3); }
         .save-menu button:first-child { border-radius: 8px 8px 0 0; }
         .save-menu button:last-child { border-radius: 0 0 8px 8px; }
-        .canvas-center-marker {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: rgba(255, 255, 0, 0.3);
-            border: 1px solid rgba(255, 255, 0, 0.6);
-            border-radius: 50%;
-            pointer-events: none;
-            transform: translate(-50%, -50%);
-        }
     </style>
 </head>
 <body>
@@ -260,11 +250,11 @@
             </div>
         </div>
 
-        <p class="info-text">💡 Pivot is at canvas center. Full workspace visible for inverted pendulums!</p>
+        <p class="info-text">💡 Changes apply when you click Start. Taller canvas shows inverted pendulums!</p>
     </div>
 
     <div class="canvas-container">
-        <canvas id="canvas" width="900" height="900"></canvas>
+        <canvas id="canvas" width="800" height="900"></canvas>
     </div>
 
     <script>
@@ -274,10 +264,6 @@
         // Colors for up to 5 pendulums
         const pendulumColors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
         
-        // FIXED: Origin at exact center
-        const ORIGIN_X = canvas.width / 2;
-        const ORIGIN_Y = canvas.height / 2;
-        
         // State
         let isRunning = false;
         let animationId = null;
@@ -285,7 +271,7 @@
         let simulationTime = 0;
         let numLinks = 3;
         
-        // Physics parameters
+        // Physics parameters - originY positioned to allow upward motion
         let params = {
             g: 9.81,
             damping: 0.999,
@@ -294,7 +280,9 @@
             masses: [1.0, 1.0, 1.0, 1.0, 1.0],
             lengths: [120, 120, 120, 120, 120],
             thetas: [Math.PI / 2, Math.PI / 2 + 0.087, Math.PI / 2 + 0.174, Math.PI / 2 + 0.26, Math.PI / 2 + 0.35],
-            omegas: [0, 0, 0, 0, 0]
+            omegas: [0, 0, 0, 0, 0],
+            originX: canvas.width / 2,
+            originY: 300  // Positioned lower to show upward motion
         };
         
         let initialParams = JSON.parse(JSON.stringify(params));
@@ -305,20 +293,6 @@
         
         const FADING_WINDOW = 2.0;
         const dt = 0.02;
-        
-        // Draw center marker (for debugging - can be removed)
-        function drawCenterMarker() {
-            ctx.save();
-            ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(ORIGIN_X - 10, ORIGIN_Y);
-            ctx.lineTo(ORIGIN_X + 10, ORIGIN_Y);
-            ctx.moveTo(ORIGIN_X, ORIGIN_Y - 10);
-            ctx.lineTo(ORIGIN_X, ORIGIN_Y + 10);
-            ctx.stroke();
-            ctx.restore();
-        }
         
         // Generate dynamic controls for pendulums
         function generateControls() {
@@ -516,13 +490,13 @@
             simulationTime += effectiveDt;
         }
         
-        // Get positions of all masses - FIXED to use correct origin
+        // Get positions of all masses
         function getPositions() {
             const positions = [];
-            let x = ORIGIN_X;
-            let y = ORIGIN_Y;
+            let x = params.originX;
+            let y = params.originY;
             
-            positions.push({x, y}); // Pivot at center
+            positions.push({x, y}); // Pivot
             
             for (let i = 0; i < numLinks; i++) {
                 x += params.lengths[i] * Math.sin(params.thetas[i]);
@@ -578,9 +552,6 @@
         function draw() {
             ctx.fillStyle = trajectoryMode === 'persistent' ? 'rgba(10, 14, 39, 0.05)' : 'rgba(10, 14, 39, 0.3)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw center marker
-            drawCenterMarker();
             
             const positions = getPositions();
             
@@ -731,8 +702,8 @@
         
         function drawInitialState(ctx, highlightLink) {
             const positions = [];
-            let x = ORIGIN_X;
-            let y = ORIGIN_Y;
+            let x = params.originX;
+            let y = params.originY;
             positions.push({x, y});
             
             for (let i = 0; i < numLinks; i++) {
