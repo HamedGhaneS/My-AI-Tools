@@ -55,7 +55,7 @@ h1{color:#667eea;margin-bottom:10px}.subtitle{color:#666;font-size:14px}
       <span class="ai-badge">🤖 Multi-AI</span>
     </div>
     <h1>🎤 Voice Flashcards</h1>
-    <p class="subtitle">iOS "Abort" Bug Fixed • Multi-AI Support</p>
+    <p class="subtitle">iOS Compatible • Multi-AI Support</p>
 
     <div class="ai-selector">
       <select id="aiProvider" onchange="updateAIProvider()">
@@ -73,7 +73,7 @@ h1{color:#667eea;margin-bottom:10px}.subtitle{color:#666;font-size:14px}
 
   <!-- iOS Tip -->
   <div class="card ios-tip">
-    <strong>💡 iOS Tip:</strong> Speak IMMEDIATELY after tapping the mic button. iOS has a short timeout!
+    <strong>💡 iOS Tip:</strong> Speak IMMEDIATELY when the button turns red!
   </div>
 
   <!-- Auth -->
@@ -208,6 +208,15 @@ function getDeviceFingerprint(){const c=document.createElement('canvas'),x=c.get
 function simpleEncrypt(t,k){let e='';for(let i=0;i<t.length;i++)e+=String.fromCharCode(t.charCodeAt(i)^k.charCodeAt(i%k.length));return btoa(e)}
 function simpleDecrypt(e,k){try{const d=atob(e);let r='';for(let i=0;i<d.length;i++)r+=String.fromCharCode(d.charCodeAt(i)^k.charCodeAt(i%k.length));return r}catch{return null}}
 
+// Detect browser
+function getBrowserName(){
+  const ua=navigator.userAgent;
+  if(/CriOS/.test(ua))return'Chrome';
+  if(/FxiOS/.test(ua))return'Firefox';
+  if(/Safari/.test(ua)&&!/Chrome/.test(ua))return'Safari';
+  return'your browser';
+}
+
 let state={mode:'create',flashcards:[],aiProvider:'gemini',apiKeys:{gemini:'',gpt:'',claude:''},transcript:'',translation:'',
 currentCardIndex:0,showingAnswer:false,isListening:false,deviceKey:getDeviceFingerprint(),geminiModel:'gemini-2.5-pro',geminiTryAlternates:true};
 
@@ -253,24 +262,25 @@ function checkApiKey(){const btn=document.getElementById('needKeyBtn');btn.class
 function toggleSettings(){const p=document.getElementById('settingsPanel');const b=document.getElementById('settingsBtn');p.classList.toggle('hidden');b.classList.toggle('hidden');if(!p.classList.contains('hidden'))loadGeminiPrefs();else saveGeminiPrefs()}
 function saveAllKeys(){let saved=0;['gemini','gpt','claude'].forEach(p=>{const key=document.getElementById(`${p}Key`).value.trim();if(key&&!key.startsWith('••••')){state.apiKeys[p]=key;localStorage.setItem(`${p}ApiKey_enc`,simpleEncrypt(key,state.deviceKey));saved++}});saveGeminiPrefs();alert(saved?`✅ Saved ${saved} key(s)!`:'No new keys.');checkApiKey()}
 
-// ===== iOS "ABORTED" FIX =====
+// ===== SIMPLIFIED iOS FIX - Using Diagnostic's Approach =====
 async function startListening(){
   if(!state.apiKeys[state.aiProvider]){alert('Please add API key in settings!');toggleSettings();return;}
   if(!('webkitSpeechRecognition'in window)){alert("Browser doesn't support voice input.");return;}
+  
   recognitionAttempts=0;
   startSpeechRecognition();
 }
 
 function startSpeechRecognition(){
   const recognition=new webkitSpeechRecognition();
-  recognition.continuous=true;
-  recognition.interimResults=true;
+  
+  // Use SAME settings that worked in diagnostic
+  recognition.continuous=false;
+  recognition.interimResults=false;
   recognition.lang='fa-IR';
-  recognition.maxAlternatives=1;
   
   let gotResults=false;
-  let finalTranscript='';
-  let interimTranscript='';
+  let transcript='';
   
   recognition.onstart=()=>{
     state.isListening=true;
@@ -282,77 +292,76 @@ function startSpeechRecognition(){
   
   recognition.onresult=(event)=>{
     gotResults=true;
-    interimTranscript='';
-    for(let i=event.resultIndex;i<event.results.length;i++){
-      const transcript=event.results[i][0].transcript;
-      if(event.results[i].isFinal){
-        finalTranscript+=transcript+' ';
-        console.log('Final:',transcript);
-      }else{
-        interimTranscript+=transcript;
-        console.log('Interim:',transcript);
-      }
-    }
-    if(interimTranscript){
-      document.getElementById('statusText').textContent='🎤 '+interimTranscript;
-    }
-    if(finalTranscript.trim()){
-      console.log('Got final, stopping');
-      setTimeout(()=>{recognition.stop()},500);
-    }
+    transcript=event.results[0][0].transcript;
+    console.log('Got result:',transcript);
   };
   
   recognition.onerror=(event)=>{
     console.error('Error:',event.error,'Attempt:',recognitionAttempts+1);
+    
+    // Handle "aborted" with retry (same as diagnostic)
     if(event.error==='aborted'){
       recognitionAttempts++;
       if(recognitionAttempts<MAX_ATTEMPTS){
         console.log(`Retry ${recognitionAttempts}/${MAX_ATTEMPTS}`);
-        document.getElementById('statusText').textContent=`⚠️ Retrying... (${recognitionAttempts}/${MAX_ATTEMPTS})`;
-        setTimeout(()=>{startSpeechRecognition()},300);
-        return;
-      }else{
-        resetMicButton();
-        alert('⚠️ iOS Speech Bug\n\nTry:\n1. Speak IMMEDIATELY after tap\n2. Speak louder\n3. Restart iPhone\n\nThis is a known iOS bug.');
+        document.getElementById('statusText').textContent=`⚠️ Retrying (${recognitionAttempts}/${MAX_ATTEMPTS})`;
+        setTimeout(()=>{startSpeechRecognition()},500);
         return;
       }
     }
+    
+    // For other errors, show helpful message
     resetMicButton();
+    
+    const browserName=getBrowserName();
     let msg='';
+    
     if(event.error==='not-allowed'||event.error==='service-not-allowed'){
-      msg='🎤 Blocked\nSettings → Safari → Microphone';
+      msg=`🔨 Blocked\n\nSettings → ${browserName} → Microphone\n\nThen:\n1. Close ${browserName} completely\n2. Reopen this page\n3. Try again\n\nError: ${event.error}`;
     }else if(event.error==='no-speech'){
-      msg='No speech detected. Try again louder.';
+      msg='No speech detected.\n\nTry:\n• Speak louder\n• Speak immediately after tapping';
+    }else if(event.error==='audio-capture'){
+      msg='Cannot capture audio.\n\nCheck:\n• No other app using mic\n• Microphone not muted';
     }else if(event.error==='network'){
-      msg='Network error.';
+      msg='Network error. Check internet connection.';
     }else{
-      msg='Error: '+event.error;
+      msg=`Error: ${event.error}\n\nTry:\n1. Restart iPhone\n2. Clear ${browserName} cache\n3. Try ${browserName==='Safari'?'Chrome':'Safari'} instead`;
     }
+    
     alert(msg);
   };
   
   recognition.onend=()=>{
     console.log('Ended. Got results:',gotResults);
-    if(gotResults&&finalTranscript.trim()){
-      state.transcript=finalTranscript.trim();
+    
+    if(gotResults&&transcript.trim()){
+      state.transcript=transcript.trim();
       showTranscript();
       getTranslation(state.transcript);
     }else if(!gotResults&&recognitionAttempts===0){
-      console.log('No results, retry...');
+      // No results on first try - retry once
+      console.log('No results, retrying once...');
       recognitionAttempts++;
-      setTimeout(()=>{startSpeechRecognition()},300);
+      setTimeout(()=>{startSpeechRecognition()},500);
       return;
+    }else{
+      // Give up
+      resetMicButton();
+      if(!gotResults){
+        alert('⚠️ No speech detected.\n\nTry:\n• Speak immediately after button turns red\n• Speak louder\n• Check microphone is not muted');
+      }
     }
+    
     resetMicButton();
   };
   
   try{
     recognition.start();
-    console.log('Starting...');
+    console.log('Starting recognition...');
   }catch(error){
-    console.error('Failed:',error);
+    console.error('Failed to start:',error);
     resetMicButton();
-    alert('Failed to start: '+error.message);
+    alert(`Cannot start voice recognition.\n\nError: ${error.message}\n\nTry restarting your iPhone.`);
   }
 }
 
