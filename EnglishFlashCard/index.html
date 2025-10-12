@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#667eea" />
-<title>🎤 Voice Flashcards - iOS Fixed</title>
+<title>🎤 Voice Flashcards</title>
 
 <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlZvaWNlIEZsYXNoY2FyZHMiLAogICJzaG9ydF9uYW1lIjogIkZsYXNoY2FyZHMiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzY2N2VlYSIsCiAgInRoZW1lX2NvbG9yIjogIiM2NjdlZWEiLAogICJpY29ucyI6IFt7InNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnJTNFJTNDdGV4dCB5PScuOWVtJyBmb250LXNpemU9JzkwJyUzRSVGMCU5RiU4RSVBNCUzQy90ZXh0JTNFJTNDL3N2ZyUzRSIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCJ9XQp9" />
 
@@ -20,12 +20,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 h1{color:#667eea;margin-bottom:10px}.subtitle{color:#666;font-size:14px}
 .ai-selector{margin:16px 0;padding:12px;background:#f3f4f6;border-radius:12px}
 .ai-selector select{width:100%;padding:12px;border:2px solid #667eea;border-radius:10px;font-size:16px;font-weight:600;color:#667eea;background:#fff;cursor:pointer}
+.input-mode-tabs{display:flex;gap:10px;margin:16px 0}
+.input-tab{flex:1;padding:12px;border:2px solid #e0e0e0;border-radius:10px;background:#fff;cursor:pointer;text-align:center;font-weight:600;font-size:14px;transition:all 0.3s}
+.input-tab.active{background:#667eea;color:#fff;border-color:#667eea}
 .mode-selector{display:flex;gap:10px;margin-top:15px}
 .mode-btn{flex:1;padding:12px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px}
 .mode-btn.active{background:#667eea;color:#fff}.mode-btn.inactive{background:#e0e0e0;color:#666}
 .mic-button{width:120px;height:120px;border-radius:50%;border:none;background:#667eea;color:#fff;font-size:48px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 auto;transition:.3s;box-shadow:0 8px 20px rgba(102,126,234,.4)}
 .mic-button:disabled{opacity:.6;cursor:not-allowed}.mic-button.listening{background:#ef4444;animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.text-input-container{display:none}
+.text-input-container.active{display:block}
+.text-input-container textarea{width:100%;min-height:100px;padding:15px;border:2px solid #667eea;border-radius:10px;font-size:16px;font-family:inherit;resize:vertical}
 .result-box{padding:12px;border-radius:10px;margin-bottom:15px}
 .result-box.question{background:#f3f4f6}.result-box.answer{background:#d1fae5}.result-box.error{background:#fee2e2;border:2px solid #ef4444}
 .label{font-size:12px;font-weight:700;margin-bottom:5px}
@@ -43,8 +49,8 @@ h1{color:#667eea;margin-bottom:10px}.subtitle{color:#666;font-size:14px}
 .hidden{display:none}@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}.loading{animation:spin 1s linear infinite}
 .row{display:flex;gap:10px;align-items:center}.grow{flex:1}.small{font-size:12px;color:#666}label{font-size:12px;color:#555;font-weight:600}
 .auth-row{display:flex;gap:10px;align-items:center;justify-content:space-between}
-.user-pill{background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700}
-.ios-tip{background:#d1fae5;border-left:4px solid #10b981;padding:12px;margin:16px 0;border-radius:8px;font-size:13px;color:#065f46;line-height:1.5}
+.user-pill{background:#eef2ff;color:#4f46e5;border:1px solid:#c7d2fe;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700}
+.ios-warning{background:#fef3c7;border-left:4px solid #f59e0b;padding:12px;margin:16px 0;border-radius:8px;font-size:13px;color:#78350f;line-height:1.5}
 </style>
 </head>
 <body>
@@ -55,7 +61,7 @@ h1{color:#667eea;margin-bottom:10px}.subtitle{color:#666;font-size:14px}
       <span class="ai-badge">🤖 Multi-AI</span>
     </div>
     <h1>🎤 Voice Flashcards</h1>
-    <p class="subtitle">iOS Compatible • Multi-AI Support</p>
+    <p class="subtitle">Works on iOS • Multi-AI Support</p>
 
     <div class="ai-selector">
       <select id="aiProvider" onchange="updateAIProvider()">
@@ -71,9 +77,13 @@ h1{color:#667eea;margin-bottom:10px}.subtitle{color:#666;font-size:14px}
     </div>
   </div>
 
-  <!-- iOS Tip -->
-  <div class="card ios-tip">
-    <strong>💡 iOS Tip:</strong> Speak IMMEDIATELY when the button turns red!
+  <!-- iOS Warning -->
+  <div id="iosWarning" class="card ios-warning hidden">
+    <strong>⚠️ iOS Voice Input Blocked</strong><br><br>
+    iOS is blocking voice input. Please check:<br>
+    • Settings → Screen Time → Content Restrictions<br>
+    • Try Text Input mode instead (below)<br><br>
+    This is an iOS system restriction, not an app bug.
   </div>
 
   <!-- Auth -->
@@ -141,16 +151,32 @@ h1{color:#667eea;margin-bottom:10px}.subtitle{color:#666;font-size:14px}
 
   <!-- Create Mode -->
   <div id="createMode">
-    <div class="card" style="text-align:center;">
-      <button id="micButton" class="mic-button" onclick="startListening()">🎤</button>
-      <p id="statusText" style="margin-top:20px;color:#666;font-size:14px;">Tap to speak in Persian or English</p>
-      <p id="aiStatus" style="margin-top:10px;color:#667eea;font-size:13px;font-weight:600;">Using: Gemini (Free)</p>
+    <div class="card">
+      <!-- Input Mode Tabs -->
+      <div class="input-mode-tabs">
+        <div class="input-tab active" onclick="setInputMode('voice')">🎤 Voice</div>
+        <div class="input-tab" onclick="setInputMode('text')">⌨️ Text</div>
+      </div>
+
+      <!-- Voice Input -->
+      <div id="voiceInput" style="text-align:center;">
+        <button id="micButton" class="mic-button" onclick="startListening()">🎤</button>
+        <p id="statusText" style="margin-top:15px;color:#666;font-size:14px;">Tap to speak</p>
+      </div>
+
+      <!-- Text Input -->
+      <div id="textInput" class="text-input-container">
+        <textarea id="textArea" placeholder="Type in Persian or English..."></textarea>
+        <button class="btn btn-primary" onclick="processText()" style="margin-top:10px;">Translate →</button>
+      </div>
+
+      <p id="aiStatus" style="margin-top:15px;color:#667eea;font-size:13px;font-weight:600;text-align:center;">Using: Gemini (Free)</p>
       <button id="needKeyBtn" class="btn btn-warning hidden" style="margin-top:10px;" onclick="toggleSettings()">⚠️ Add API Key First</button>
     </div>
 
     <div id="resultsCard" class="card hidden">
       <div id="transcriptBox" class="hidden">
-        <div class="label" style="color:#667eea;">YOUR SPEECH:</div>
+        <div class="label" style="color:#667eea;">INPUT:</div>
         <div class="result-box question" id="transcriptText"></div>
       </div>
 
@@ -167,7 +193,7 @@ h1{color:#667eea;margin-bottom:10px}.subtitle{color:#666;font-size:14px}
       </div>
 
       <div id="translationBox" class="hidden">
-        <div class="label" style="color:#10b981;">✨ POLISHED ENGLISH:</div>
+        <div class="label" style="color:#10b981;">ENGLISH:</div>
         <div class="result-box answer" id="translationText"></div>
         <button class="btn btn-success" onclick="saveFlashcard()">➕ Save as Flashcard</button>
       </div>
@@ -208,7 +234,6 @@ function getDeviceFingerprint(){const c=document.createElement('canvas'),x=c.get
 function simpleEncrypt(t,k){let e='';for(let i=0;i<t.length;i++)e+=String.fromCharCode(t.charCodeAt(i)^k.charCodeAt(i%k.length));return btoa(e)}
 function simpleDecrypt(e,k){try{const d=atob(e);let r='';for(let i=0;i<d.length;i++)r+=String.fromCharCode(d.charCodeAt(i)^k.charCodeAt(i%k.length));return r}catch{return null}}
 
-// Detect browser
 function getBrowserName(){
   const ua=navigator.userAgent;
   if(/CriOS/.test(ua))return'Chrome';
@@ -217,11 +242,11 @@ function getBrowserName(){
   return'your browser';
 }
 
-let state={mode:'create',flashcards:[],aiProvider:'gemini',apiKeys:{gemini:'',gpt:'',claude:''},transcript:'',translation:'',
+let state={mode:'create',inputMode:'voice',flashcards:[],aiProvider:'gemini',apiKeys:{gemini:'',gpt:'',claude:''},transcript:'',translation:'',
 currentCardIndex:0,showingAnswer:false,isListening:false,deviceKey:getDeviceFingerprint(),geminiModel:'gemini-2.5-pro',geminiTryAlternates:true};
 
 let recognitionAttempts=0;
-const MAX_ATTEMPTS=3;
+const MAX_ATTEMPTS=2;
 
 function loadGeminiPrefs(){const m=localStorage.getItem('geminiModel');const t=localStorage.getItem('geminiTryAlternates');if(m)state.geminiModel=m;if(t!==null)state.geminiTryAlternates=(t==='true');document.getElementById('geminiModel').value=state.geminiModel;document.getElementById('geminiTryAlt').checked=state.geminiTryAlternates}
 function saveGeminiPrefs(){state.geminiModel=document.getElementById('geminiModel').value;state.geminiTryAlternates=document.getElementById('geminiTryAlt').checked;localStorage.setItem('geminiModel',state.geminiModel);localStorage.setItem('geminiTryAlternates',state.geminiTryAlternates)}
@@ -262,10 +287,30 @@ function checkApiKey(){const btn=document.getElementById('needKeyBtn');btn.class
 function toggleSettings(){const p=document.getElementById('settingsPanel');const b=document.getElementById('settingsBtn');p.classList.toggle('hidden');b.classList.toggle('hidden');if(!p.classList.contains('hidden'))loadGeminiPrefs();else saveGeminiPrefs()}
 function saveAllKeys(){let saved=0;['gemini','gpt','claude'].forEach(p=>{const key=document.getElementById(`${p}Key`).value.trim();if(key&&!key.startsWith('••••')){state.apiKeys[p]=key;localStorage.setItem(`${p}ApiKey_enc`,simpleEncrypt(key,state.deviceKey));saved++}});saveGeminiPrefs();alert(saved?`✅ Saved ${saved} key(s)!`:'No new keys.');checkApiKey()}
 
-// ===== SIMPLIFIED iOS FIX - Using Diagnostic's Approach =====
+// Input Mode Switching
+function setInputMode(mode){
+  state.inputMode=mode;
+  const tabs=document.querySelectorAll('.input-tab');
+  tabs[0].classList.toggle('active',mode==='voice');
+  tabs[1].classList.toggle('active',mode==='text');
+  document.getElementById('voiceInput').style.display=mode==='voice'?'block':'none';
+  document.getElementById('textInput').classList.toggle('active',mode==='text');
+}
+
+// Text Input Processing
+function processText(){
+  const text=document.getElementById('textArea').value.trim();
+  if(!text){alert('Please enter some text!');return;}
+  if(!state.apiKeys[state.aiProvider]){alert('Please add API key!');toggleSettings();return;}
+  state.transcript=text;
+  showTranscript();
+  getTranslation(text);
+}
+
+// Voice Input
 async function startListening(){
-  if(!state.apiKeys[state.aiProvider]){alert('Please add API key in settings!');toggleSettings();return;}
-  if(!('webkitSpeechRecognition'in window)){alert("Browser doesn't support voice input.");return;}
+  if(!state.apiKeys[state.aiProvider]){alert('Please add API key!');toggleSettings();return;}
+  if(!('webkitSpeechRecognition'in window)){alert("Voice not supported. Try Text mode.");setInputMode('text');return;}
   
   recognitionAttempts=0;
   startSpeechRecognition();
@@ -273,8 +318,6 @@ async function startListening(){
 
 function startSpeechRecognition(){
   const recognition=new webkitSpeechRecognition();
-  
-  // Use SAME settings that worked in diagnostic
   recognition.continuous=false;
   recognition.interimResults=false;
   recognition.lang='fa-IR';
@@ -286,86 +329,55 @@ function startSpeechRecognition(){
     state.isListening=true;
     document.getElementById('micButton').classList.add('listening');
     document.getElementById('micButton').textContent='🔴';
-    document.getElementById('statusText').textContent='🎤 Listening... Speak NOW!';
-    console.log('✅ Started');
+    document.getElementById('statusText').textContent='🎤 Listening...';
   };
   
   recognition.onresult=(event)=>{
     gotResults=true;
     transcript=event.results[0][0].transcript;
-    console.log('Got result:',transcript);
   };
   
   recognition.onerror=(event)=>{
-    console.error('Error:',event.error,'Attempt:',recognitionAttempts+1);
-    
-    // Handle "aborted" with retry (same as diagnostic)
-    if(event.error==='aborted'){
+    if(event.error==='aborted'&&recognitionAttempts<MAX_ATTEMPTS){
       recognitionAttempts++;
-      if(recognitionAttempts<MAX_ATTEMPTS){
-        console.log(`Retry ${recognitionAttempts}/${MAX_ATTEMPTS}`);
-        document.getElementById('statusText').textContent=`⚠️ Retrying (${recognitionAttempts}/${MAX_ATTEMPTS})`;
-        setTimeout(()=>{startSpeechRecognition()},500);
-        return;
-      }
+      setTimeout(()=>{startSpeechRecognition()},500);
+      return;
     }
     
-    // For other errors, show helpful message
     resetMicButton();
     
-    const browserName=getBrowserName();
-    let msg='';
-    
+    // Show iOS warning and suggest text mode
     if(event.error==='not-allowed'||event.error==='service-not-allowed'){
-      msg=`🔨 Blocked\n\nSettings → ${browserName} → Microphone\n\nThen:\n1. Close ${browserName} completely\n2. Reopen this page\n3. Try again\n\nError: ${event.error}`;
-    }else if(event.error==='no-speech'){
-      msg='No speech detected.\n\nTry:\n• Speak louder\n• Speak immediately after tapping';
-    }else if(event.error==='audio-capture'){
-      msg='Cannot capture audio.\n\nCheck:\n• No other app using mic\n• Microphone not muted';
-    }else if(event.error==='network'){
-      msg='Network error. Check internet connection.';
+      document.getElementById('iosWarning').classList.remove('hidden');
+      setTimeout(()=>{setInputMode('text')},2000);
     }else{
-      msg=`Error: ${event.error}\n\nTry:\n1. Restart iPhone\n2. Clear ${browserName} cache\n3. Try ${browserName==='Safari'?'Chrome':'Safari'} instead`;
+      alert('Voice error. Try Text mode instead.');
+      setInputMode('text');
     }
-    
-    alert(msg);
   };
   
   recognition.onend=()=>{
-    console.log('Ended. Got results:',gotResults);
-    
     if(gotResults&&transcript.trim()){
       state.transcript=transcript.trim();
       showTranscript();
       getTranslation(state.transcript);
     }else if(!gotResults&&recognitionAttempts===0){
-      // No results on first try - retry once
-      console.log('No results, retrying once...');
       recognitionAttempts++;
       setTimeout(()=>{startSpeechRecognition()},500);
       return;
-    }else{
-      // Give up
-      resetMicButton();
-      if(!gotResults){
-        alert('⚠️ No speech detected.\n\nTry:\n• Speak immediately after button turns red\n• Speak louder\n• Check microphone is not muted');
-      }
     }
-    
     resetMicButton();
   };
   
   try{
     recognition.start();
-    console.log('Starting recognition...');
   }catch(error){
-    console.error('Failed to start:',error);
     resetMicButton();
-    alert(`Cannot start voice recognition.\n\nError: ${error.message}\n\nTry restarting your iPhone.`);
+    setInputMode('text');
   }
 }
 
-function resetMicButton(){state.isListening=false;document.getElementById('micButton').classList.remove('listening');document.getElementById('micButton').textContent='🎤';document.getElementById('statusText').textContent='Tap to speak in Persian or English'}
+function resetMicButton(){state.isListening=false;document.getElementById('micButton').classList.remove('listening');document.getElementById('micButton').textContent='🎤';document.getElementById('statusText').textContent='Tap to speak'}
 function showTranscript(){document.getElementById('resultsCard').classList.remove('hidden');document.getElementById('transcriptBox').classList.remove('hidden');document.getElementById('transcriptText').textContent=state.transcript;document.getElementById('errorBox').classList.add('hidden')}
 
 const GEMINI_BASE='https://generativelanguage.googleapis.com';
@@ -392,9 +404,35 @@ async function testApiKey(provider){
   }catch(e){alert('❌ Error: '+e.message)}
 }
 
+// FIXED TRANSLATION PROMPT - No explanations, clean format
 async function getTranslation(text){
   document.getElementById('loadingBox').classList.remove('hidden');document.getElementById('translationBox').classList.add('hidden');document.getElementById('errorBox').classList.add('hidden');
-  const prompt=`Translate this to natural, polished English. If it's already English, improve it:\n\n"${text}"`;
+  
+  // NEW PROMPT: Extract expression only, give clean English options with examples
+  const prompt=`You are a language tutor creating flashcards. 
+
+INPUT: "${text}"
+
+TASK:
+1. Extract the core expression, phrase, or sentence structure from the input (ignore any extra context)
+2. Provide natural English translation options with usage examples
+3. NO explanations, NO grammar notes, NO definitions
+
+OUTPUT FORMAT:
+Option 1: [translation]
+Example: [short example sentence]
+
+Option 2: [translation]  
+Example: [short example sentence]
+
+(Continue for 2-4 options if applicable)
+
+RULES:
+- Only output the translation options and examples
+- No explanations whatsoever
+- Keep examples short and practical
+- If input is already English, still provide variations and examples`;
+
   try{
     if(state.aiProvider==='gemini'){
       saveGeminiPrefs();
@@ -402,9 +440,9 @@ async function getTranslation(text){
       for(const m of models){const r=await geminiGenerate({model:m,key:state.apiKeys.gemini,prompt});if(r.ok&&r.data&&r.data.candidates){state.translation=r.data.candidates[0].content.parts[0].text.trim();showTranslation();document.getElementById('loadingBox').classList.add('hidden');return;}}
       showError('Gemini Error','Try different model');
     }else if(state.aiProvider==='gpt'){
-      const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKeys.gpt}`},body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],max_tokens:200})});const d=await r.json();if(r.ok&&d.choices){state.translation=d.choices[0].message.content.trim();showTranslation()}else showError('OpenAI Error',JSON.stringify(d,null,2));
+      const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKeys.gpt}`},body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],max_tokens:300})});const d=await r.json();if(r.ok&&d.choices){state.translation=d.choices[0].message.content.trim();showTranslation()}else showError('OpenAI Error',JSON.stringify(d,null,2));
     }else if(state.aiProvider==='claude'){
-      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':state.apiKeys.claude,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,messages:[{role:'user',content:prompt}]})});const d=await r.json();if(r.ok&&d.content){state.translation=d.content[0].text.trim();showTranslation()}else showError('Claude Error',JSON.stringify(d,null,2));
+      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':state.apiKeys.claude,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:prompt}]})});const d=await r.json();if(r.ok&&d.content){state.translation=d.content[0].text.trim();showTranslation()}else showError('Claude Error',JSON.stringify(d,null,2));
     }
   }catch(e){showError('Network Error',e.message)}
   document.getElementById('loadingBox').classList.add('hidden');
@@ -420,6 +458,7 @@ async function saveFlashcard(){
   if(user){await db.collection('users').doc(user.uid).collection('flashcards').doc(String(newCard.id)).set(newCard);}
   else{state.flashcards.unshift(newCard);localStorage.setItem('flashcards',JSON.stringify(state.flashcards));}
   state.transcript='';state.translation='';
+  document.getElementById('textArea').value='';
   document.getElementById('resultsCard').classList.add('hidden');document.getElementById('transcriptBox').classList.add('hidden');document.getElementById('translationBox').classList.add('hidden');
   updateCardCount();renderFlashcards();alert('Saved! 🎉');
 }
