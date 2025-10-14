@@ -32,6 +32,20 @@ body.rtl .roham-character{right:auto;left:20px}
 .hero-title{font-size:32px;font-weight:900;margin-bottom:10px;text-shadow:2px 2px 4px rgba(0,0,0,0.2)}
 .hero-subtitle{font-size:16px;opacity:0.95;font-weight:600}
 
+/* API Tutorial - NEW COLLAPSIBLE SECTION */
+.api-tutorial{background:linear-gradient(135deg,#fef3c7,#fde68a);border:4px solid #f59e0b;border-radius:20px;padding:20px;margin:20px 0;cursor:pointer;transition:all 0.3s;box-shadow:0 8px 20px rgba(245,158,11,0.3)}
+.api-tutorial:hover{transform:translateY(-2px);box-shadow:0 12px 25px rgba(245,158,11,0.4)}
+.api-tutorial-header{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.api-tutorial-title{color:#78350f;font-size:20px;font-weight:800;display:flex;align-items:center;gap:10px}
+.api-tutorial-toggle{background:#fff;color:#f59e0b;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:bold;transition:transform 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.api-tutorial.expanded .api-tutorial-toggle{transform:rotate(180deg)}
+.api-tutorial-content{max-height:0;overflow:hidden;transition:max-height 0.5s ease-out;margin-top:0}
+.api-tutorial.expanded .api-tutorial-content{max-height:2000px;margin-top:20px}
+.api-step{background:#fff;border-radius:12px;padding:18px;margin-bottom:15px;box-shadow:0 2px 8px rgba(0,0,0,0.1);display:flex;gap:15px;align-items:flex-start}
+.api-step-number{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex-shrink:0}
+.api-step-text{flex:1;color:#451a03;line-height:1.7}
+.api-step-text strong{color:#1e40af;display:block;margin-bottom:8px;font-size:16px}
+
 /* Instruction box */
 .instruction-box{background:linear-gradient(135deg,#dbeafe,#bfdbfe);border:3px solid #3b82f6;border-radius:15px;padding:20px;margin:20px 0;line-height:1.9}
 .instruction-box h3{color:#1e40af;margin-bottom:15px;font-size:18px;display:flex;align-items:center;gap:10px}
@@ -73,8 +87,8 @@ h1{color:#667eea;margin-bottom:10px}.subtitle{color:#666;font-size:14px}
 .speak-btn{background:#667eea;color:#fff;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:16px;transition:all 0.3s;box-shadow:0 2px 8px rgba(102,126,234,0.3)}
 .speak-btn:hover{background:#5568d3;transform:scale(1.05)}
 .speak-btn:active{transform:scale(0.95)}
-.speak-btn.speaking{animation:speaking-pulse 0.8s infinite}
-@keyframes speaking-pulse{0%,100%{background:#667eea;transform:scale(1)}50%{background:#5568d3;transform:scale(1.1)}}
+.speak-btn.playing{background:#ef4444}
+.speak-btn.playing:hover{background:#dc2626}
 .btn{width:100%;padding:15px;border:none;border-radius:10px;font-weight:700;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn-primary{background:#667eea;color:#fff}.btn-success{background:#10b981;color:#fff}.btn-warning{background:#fbbf24;color:#92400e}
 .api-section{margin:20px 0;padding:16px;background:#f9fafb;border-radius:12px;border-left:4px solid #667eea}
@@ -123,7 +137,7 @@ body.rtl .ios-warning{border-left:none;border-right:4px solid #f59e0b}
       <img src="https://i.postimg.cc/qR5g8Nhh/animated-boy.jpg" alt="Roham">
     </div>
     
-    <!-- Video Section (NEW) -->
+    <!-- Video Section -->
     <div class="hero-video-container">
       <video class="hero-video" autoplay loop muted playsinline>
         <source src="roham-video.mp4" type="video/mp4">
@@ -135,6 +149,86 @@ body.rtl .ios-warning{border-left:none;border-right:4px solid #f59e0b}
     
     <h1 class="hero-title" data-i18n="main-title">🎤 Roham's English Learning</h1>
     <p class="hero-subtitle" data-i18n="main-subtitle">Learn English with AI • Create Flashcards • Practice Anytime!</p>
+  </div>
+
+  <!-- NEW: Collapsible API Tutorial (Persian Only) -->
+  <div class="api-tutorial" id="apiTutorial" onclick="toggleTutorial()">
+    <div class="api-tutorial-header">
+      <div class="api-tutorial-title">
+        <span>🔑</span>
+        <span>چطور کلید API رایگان بگیرم؟ (کلیک کنید)</span>
+      </div>
+      <div class="api-tutorial-toggle">▼</div>
+    </div>
+    
+    <div class="api-tutorial-content">
+      <div style="background:#fef3c7;padding:12px;border-radius:8px;margin-bottom:15px;border:2px solid #f59e0b;">
+        <strong>⚠️ مهم:</strong> برای استفاده از این برنامه، فقط یک بار نیاز دارید یک کلید رایگان دریافت کنید. کاملاً رایگان است و فقط ۵ دقیقه وقت می‌برد!
+      </div>
+
+      <div class="api-step">
+        <div class="api-step-number">۱</div>
+        <div class="api-step-text">
+          <strong>به سایت گوگل بروید:</strong>
+          روی این لینک کلیک کنید: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#667eea;font-weight:bold;">Google AI Studio</a><br>
+          <small style="color:#666;">یا این آدرس را در مرورگر باز کنید: aistudio.google.com/app/apikey</small>
+        </div>
+      </div>
+
+      <div class="api-step">
+        <div class="api-step-number">۲</div>
+        <div class="api-step-text">
+          <strong>وارد حساب گوگل خود شوید:</strong>
+          اگر از قبل وارد Gmail نشده‌اید، از شما می‌خواهد که با حساب گوگلتان وارد شوید.<br>
+          <small style="color:#10b981;">✓ همان حساب Gmail معمولی‌تان را استفاده کنید</small>
+        </div>
+      </div>
+
+      <div class="api-step">
+        <div class="api-step-number">۳</div>
+        <div class="api-step-text">
+          <strong>دکمه "Create API Key" را بزنید:</strong>
+          در صفحه، یک دکمه آبی رنگ با عنوان "Create API key" یا "Get API key" خواهید دید. روی آن کلیک کنید.
+        </div>
+      </div>
+
+      <div class="api-step">
+        <div class="api-step-number">۴</div>
+        <div class="api-step-text">
+          <strong>یک پروژه انتخاب کنید:</strong>
+          اگر اولین بار است، گزینه "Create new project" را انتخاب کنید. یک اسم دلخواه بهش بدید (مثلاً "English Learning")
+        </div>
+      </div>
+
+      <div class="api-step">
+        <div class="api-step-number">۵</div>
+        <div class="api-step-text">
+          <strong>کلید را کپی کنید:</strong>
+          یک متن بلند که با "AIza" شروع می‌شود نمایش داده می‌شود. روی دکمه کپی (📋) کنارش کلیک کنید تا کپی شود.<br>
+          <small style="color:#ef4444;">⚠️ این کلید را با کسی به اشتراک نگذارید!</small>
+        </div>
+      </div>
+
+      <div class="api-step">
+        <div class="api-step-number">۶</div>
+        <div class="api-step-text">
+          <strong>کلید را در برنامه وارد کنید:</strong>
+          • روی دکمه تنظیمات (⚙️) پایین صفحه کلیک کنید<br>
+          • در قسمت "Gemini API"، کلید را در کادر Paste کنید<br>
+          • روی دکمه "🧪 Test" بزنید تا مطمئن شوید کار می‌کند<br>
+          • بعد روی "💾 Save" کلیک کنید
+        </div>
+      </div>
+
+      <div style="background:#d1fae5;padding:15px;border-radius:10px;margin-top:20px;border:2px solid #10b981;">
+        <strong style="color:#065f46;">🎉 تمام! حالا می‌تونید استفاده کنید</strong><br>
+        <small>این کلید تا ابد رایگان است و روزی ۱۵۰۰ بار می‌تونید ازش استفاده کنید!</small>
+      </div>
+
+      <button class="btn btn-primary" onclick="event.stopPropagation(); toggleSettings();" style="margin-top:15px;">
+        ✅ متوجه شدم، بریم تنظیمات!
+      </button>
+    </div>
   </div>
 
   <!-- Instructions (Persian) -->
@@ -322,7 +416,7 @@ body.rtl .ios-warning{border-left:none;border-right:4px solid #f59e0b}
       <div id="translationBox" class="hidden">
         <div class="label" style="color:#10b981;">
           <span data-i18n="english-label">ENGLISH:</span>
-          <button class="speak-btn" id="speakTranslationBtn" onclick="speakText(state.translation)" title="Listen to pronunciation">🔊</button>
+          <button class="speak-btn" id="speakTranslationBtn" onclick="toggleSpeech(state.translation, 'speakTranslationBtn')" title="Play/Stop pronunciation">🔊</button>
         </div>
         <div class="result-box answer" id="translationText"></div>
         <div class="speech-badge hidden" id="speechSupport">
@@ -360,6 +454,12 @@ body.rtl .ios-warning{border-left:none;border-right:4px solid #f59e0b}
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 
 <script>
+// NEW: Tutorial toggle function
+function toggleTutorial() {
+  const tutorial = document.getElementById('apiTutorial');
+  tutorial.classList.toggle('expanded');
+}
+
 // Translations
 const translations = {
   en: {
@@ -502,11 +602,35 @@ const translations = {
 
 let currentLang = 'fa';
 let currentSpeech = null;
+let currentSpeechBtn = null;
+
+function toggleSpeech(text, btnId) {
+  const btn = document.getElementById(btnId);
+  if (currentSpeech && currentSpeechBtn === btnId) {
+    window.speechSynthesis.cancel();
+    currentSpeech = null;
+    currentSpeechBtn = null;
+    if (btn) {
+      btn.classList.remove('playing');
+      btn.textContent = '🔊';
+    }
+    return;
+  }
+  speakText(text, btnId);
+}
 
 function speakText(text, btnId = null) {
   if (currentSpeech) {
     window.speechSynthesis.cancel();
+    if (currentSpeechBtn) {
+      const oldBtn = document.getElementById(currentSpeechBtn);
+      if (oldBtn) {
+        oldBtn.classList.remove('playing');
+        oldBtn.textContent = '🔊';
+      }
+    }
     currentSpeech = null;
+    currentSpeechBtn = null;
   }
 
   if (!('speechSynthesis' in window)) {
@@ -517,40 +641,48 @@ function speakText(text, btnId = null) {
   }
 
   const cleanText = text
-    .replace(/\*\*.*?:\*\*/g, '')
-    .replace(/^• /gm, '')
+    .replace(/\*\*/g, '')
     .replace(/<[^>]*>/g, '')
+    .replace(/^• /gm, 'Example: ')
+    .replace(/Option (\d+):/g, 'Option $1.')
     .trim();
 
   const utterance = new SpeechSynthesisUtterance(cleanText);
   utterance.lang = 'en-US';
-  utterance.rate = 0.9;
+  utterance.rate = 0.85;
   utterance.pitch = 1.0;
   
   let btn = null;
   if (btnId) {
     btn = document.getElementById(btnId);
+    currentSpeechBtn = btnId;
   } else {
     btn = document.getElementById('speakTranslationBtn');
+    currentSpeechBtn = 'speakTranslationBtn';
   }
   
   if (btn) {
-    btn.classList.add('speaking');
+    btn.classList.add('playing');
+    btn.textContent = '⏹️';
   }
   
   utterance.onend = () => {
     if (btn) {
-      btn.classList.remove('speaking');
+      btn.classList.remove('playing');
+      btn.textContent = '🔊';
     }
     currentSpeech = null;
+    currentSpeechBtn = null;
   };
   
   utterance.onerror = (event) => {
     console.error('Speech error:', event);
     if (btn) {
-      btn.classList.remove('speaking');
+      btn.classList.remove('playing');
+      btn.textContent = '🔊';
     }
     currentSpeech = null;
+    currentSpeechBtn = null;
   };
   
   currentSpeech = utterance;
@@ -561,9 +693,13 @@ function stopSpeaking() {
   if (currentSpeech) {
     window.speechSynthesis.cancel();
     currentSpeech = null;
-    const btn = document.getElementById('speakTranslationBtn');
-    if (btn) {
-      btn.classList.remove('speaking');
+    if (currentSpeechBtn) {
+      const btn = document.getElementById(currentSpeechBtn);
+      if (btn) {
+        btn.classList.remove('playing');
+        btn.textContent = '🔊';
+      }
+      currentSpeechBtn = null;
     }
   }
 }
@@ -577,6 +713,12 @@ function switchLanguage(lang) {
   const buttons = document.querySelectorAll('.lang-btn');
   buttons.forEach(btn => btn.classList.remove('active'));
   event.target.classList.add('active');
+  
+  // Hide tutorial in English mode
+  const tutorial = document.getElementById('apiTutorial');
+  if (tutorial) {
+    tutorial.style.display = lang === 'en' ? 'none' : 'block';
+  }
   
   if (lang === 'en') {
     document.getElementById('instructionBox').style.display = 'none';
@@ -656,6 +798,12 @@ function loadData(){
   if(savedProvider){state.aiProvider=savedProvider;document.getElementById('aiProvider').value=savedProvider}
   ['gemini','gpt','claude'].forEach(p=>{const enc=localStorage.getItem(`${p}ApiKey_enc`);if(enc){const dec=simpleDecrypt(enc,state.deviceKey);if(dec){state.apiKeys[p]=dec;const el=document.getElementById(`${p}Key`);if(el)el.value='••••••••'+dec.slice(-8)}}});
   loadGeminiPrefs();updateAIProvider();applyTranslations();
+  
+  // Hide tutorial in English mode
+  const tutorial = document.getElementById('apiTutorial');
+  if (tutorial && currentLang === 'en') {
+    tutorial.style.display = 'none';
+  }
   
   if (currentLang === 'en') {
     document.getElementById('instructionBox').style.display = 'none';
@@ -906,13 +1054,14 @@ function renderFlashcards(){
   state.flashcards.forEach(card=>{
     const el=document.createElement('div');
     el.className='flashcard-item';
+    const cardId = 'card_' + card.id;
     el.innerHTML=`
       <div style="font-size:11px;color:#999;margin-bottom:4px;">${aiEmojis[card.aiProvider]||'🤖'} ${card.aiProvider}</div>
       <div style="font-size:14px;color:#666;margin-bottom:8px;"><strong>${qLabel}</strong> ${card.question}</div>
       <div style="font-size:14px;color:#10b981;line-height:1.7;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
           <strong>${aLabel}</strong>
-          <button class="speak-btn" onclick="speakText(\`${card.answer.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="${listenText}" style="width:24px;height:24px;font-size:12px;">🔊</button>
+          <button class="speak-btn" id="${cardId}" onclick="toggleSpeech(\`${card.answer.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, '${cardId}')" title="${listenText}" style="width:24px;height:24px;font-size:12px;">🔊</button>
         </div>
         ${formatTranslation(card.answer)}
       </div>
@@ -949,7 +1098,7 @@ function showPracticeCard(){
   document.getElementById('practiceAnswer').innerHTML=`
     <div style="color:#10b981;font-size:14px;margin-bottom:10px;font-weight:bold;display:flex;align-items:center;gap:8px;">
       <span>${aLabel}</span>
-      <button class="speak-btn" onclick="speakText(\`${card.answer.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, 'practiceAnswerSpeakBtn')" id="practiceAnswerSpeakBtn" title="${listenText}">🔊</button>
+      <button class="speak-btn" onclick="toggleSpeech(\`${card.answer.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, 'practiceAnswerSpeakBtn')" id="practiceAnswerSpeakBtn" title="${listenText}">🔊</button>
     </div>
     <div style="font-size:15px;line-height:1.8;">${formatTranslation(card.answer)}</div>
   `;
