@@ -22,8 +22,13 @@ body.rtl{direction:rtl}
 body.rtl .roham-character{right:auto;left:20px}
 .roham-character img{width:100%;height:100%;object-fit:cover}
 
+/* Hero Video Container */
+.hero-video-container{position:relative;width:100%;max-width:350px;margin:0 auto 20px;border-radius:15px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,0.3);background:#000}
+.hero-video{width:100%;height:auto;display:block}
+.hero-video-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to bottom,transparent 60%,rgba(0,0,0,0.2) 100%);pointer-events:none}
+
 /* Kid-friendly header */
-.hero-card{background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#fff;padding:80px 20px 30px;text-align:center;border-radius:25px;box-shadow:0 15px 40px rgba(0,0,0,0.3);margin-bottom:25px}
+.hero-card{background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#fff;padding:80px 20px 30px;text-align:center;border-radius:25px;box-shadow:0 15px 40px rgba(0,0,0,0.3);margin-bottom:25px;overflow:hidden}
 .hero-title{font-size:32px;font-weight:900;margin-bottom:10px;text-shadow:2px 2px 4px rgba(0,0,0,0.2)}
 .hero-subtitle{font-size:16px;opacity:0.95;font-weight:600}
 
@@ -94,6 +99,13 @@ body.rtl .error-details{border-left:none;border-right:4px solid #ef4444}
 .ios-warning{background:#fef3c7;border-left:4px solid #f59e0b;padding:12px;margin:16px 0;border-radius:8px;font-size:13px;color:#78350f;line-height:1.5}
 body.rtl .ios-warning{border-left:none;border-right:4px solid #f59e0b}
 .speech-badge{background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:8px 12px;font-size:12px;color:#4f46e5;margin-top:10px;display:inline-flex;align-items:center;gap:6px}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .hero-video-container{max-width:280px}
+  .hero-title{font-size:26px}
+  .hero-subtitle{font-size:14px}
+}
 </style>
 </head>
 <body>
@@ -105,11 +117,22 @@ body.rtl .ios-warning{border-left:none;border-right:4px solid #f59e0b}
 </div>
 
 <div class="container">
-  <!-- Hero Card with Roham's Character -->
+  <!-- Hero Card with Video and Roham's Character -->
   <div class="hero-card">
     <div class="roham-character">
       <img src="https://i.postimg.cc/qR5g8Nhh/animated-boy.jpg" alt="Roham">
     </div>
+    
+    <!-- Video Section (NEW) -->
+    <div class="hero-video-container">
+      <video class="hero-video" autoplay loop muted playsinline>
+        <source src="roham-video.mp4" type="video/mp4">
+        <source src="roham-video.webm" type="video/webm">
+        Your browser doesn't support video playback.
+      </video>
+      <div class="hero-video-overlay"></div>
+    </div>
+    
     <h1 class="hero-title" data-i18n="main-title">🎤 Roham's English Learning</h1>
     <p class="hero-subtitle" data-i18n="main-subtitle">Learn English with AI • Create Flashcards • Practice Anytime!</p>
   </div>
@@ -477,10 +500,9 @@ const translations = {
   }
 };
 
-let currentLang = 'fa'; // Default to Persian for Roham
+let currentLang = 'fa';
 let currentSpeech = null;
 
-// Text-to-Speech Functions
 function speakText(text, btnId = null) {
   if (currentSpeech) {
     window.speechSynthesis.cancel();
@@ -556,7 +578,6 @@ function switchLanguage(lang) {
   buttons.forEach(btn => btn.classList.remove('active'));
   event.target.classList.add('active');
   
-  // Show/hide instruction boxes based on language
   if (lang === 'en') {
     document.getElementById('instructionBox').style.display = 'none';
     document.getElementById('examplesBox').style.display = 'none';
@@ -636,7 +657,6 @@ function loadData(){
   ['gemini','gpt','claude'].forEach(p=>{const enc=localStorage.getItem(`${p}ApiKey_enc`);if(enc){const dec=simpleDecrypt(enc,state.deviceKey);if(dec){state.apiKeys[p]=dec;const el=document.getElementById(`${p}Key`);if(el)el.value='••••••••'+dec.slice(-8)}}});
   loadGeminiPrefs();updateAIProvider();applyTranslations();
   
-  // Show/hide instruction boxes based on language
   if (currentLang === 'en') {
     document.getElementById('instructionBox').style.display = 'none';
     document.getElementById('examplesBox').style.display = 'none';
