@@ -73,8 +73,8 @@ h1{color:#667eea;margin-bottom:10px}.subtitle{color:#666;font-size:14px}
 .speak-btn{background:#667eea;color:#fff;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:16px;transition:all 0.3s;box-shadow:0 2px 8px rgba(102,126,234,0.3)}
 .speak-btn:hover{background:#5568d3;transform:scale(1.05)}
 .speak-btn:active{transform:scale(0.95)}
-.speak-btn.speaking{animation:speaking-pulse 0.8s infinite}
-@keyframes speaking-pulse{0%,100%{background:#667eea;transform:scale(1)}50%{background:#5568d3;transform:scale(1.1)}}
+.speak-btn.playing{background:#ef4444}
+.speak-btn.playing:hover{background:#dc2626}
 .btn{width:100%;padding:15px;border:none;border-radius:10px;font-weight:700;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn-primary{background:#667eea;color:#fff}.btn-success{background:#10b981;color:#fff}.btn-warning{background:#fbbf24;color:#92400e}
 .api-section{margin:20px 0;padding:16px;background:#f9fafb;border-radius:12px;border-left:4px solid #667eea}
@@ -123,7 +123,7 @@ body.rtl .ios-warning{border-left:none;border-right:4px solid #f59e0b}
       <img src="https://i.postimg.cc/qR5g8Nhh/animated-boy.jpg" alt="Roham">
     </div>
     
-    <!-- Video Section (NEW) -->
+    <!-- Video Section -->
     <div class="hero-video-container">
       <video class="hero-video" autoplay loop muted playsinline>
         <source src="roham-video.mp4" type="video/mp4">
@@ -322,7 +322,7 @@ body.rtl .ios-warning{border-left:none;border-right:4px solid #f59e0b}
       <div id="translationBox" class="hidden">
         <div class="label" style="color:#10b981;">
           <span data-i18n="english-label">ENGLISH:</span>
-          <button class="speak-btn" id="speakTranslationBtn" onclick="speakText(state.translation)" title="Listen to pronunciation">🔊</button>
+          <button class="speak-btn" id="speakTranslationBtn" onclick="toggleSpeech(state.translation, 'speakTranslationBtn')" title="Play/Stop pronunciation">🔊</button>
         </div>
         <div class="result-box answer" id="translationText"></div>
         <div class="speech-badge hidden" id="speechSupport">
@@ -502,11 +502,42 @@ const translations = {
 
 let currentLang = 'fa';
 let currentSpeech = null;
+let currentSpeechBtn = null;
 
-function speakText(text, btnId = null) {
-  if (currentSpeech) {
+// NEW: Toggle speech on/off with play/stop button
+function toggleSpeech(text, btnId) {
+  const btn = document.getElementById(btnId);
+  
+  // If currently playing, stop it
+  if (currentSpeech && currentSpeechBtn === btnId) {
     window.speechSynthesis.cancel();
     currentSpeech = null;
+    currentSpeechBtn = null;
+    if (btn) {
+      btn.classList.remove('playing');
+      btn.textContent = '🔊';
+    }
+    return;
+  }
+  
+  // Otherwise, start speaking
+  speakText(text, btnId);
+}
+
+// MODIFIED: Enhanced speech function that reads "Option 1", "Example", etc.
+function speakText(text, btnId = null) {
+  // Stop any currently playing speech
+  if (currentSpeech) {
+    window.speechSynthesis.cancel();
+    if (currentSpeechBtn) {
+      const oldBtn = document.getElementById(currentSpeechBtn);
+      if (oldBtn) {
+        oldBtn.classList.remove('playing');
+        oldBtn.textContent = '🔊';
+      }
+    }
+    currentSpeech = null;
+    currentSpeechBtn = null;
   }
 
   if (!('speechSynthesis' in window)) {
@@ -516,41 +547,50 @@ function speakText(text, btnId = null) {
     return;
   }
 
+  // MODIFIED: Clean text but keep "Option X" and "Example"
   const cleanText = text
-    .replace(/\*\*.*?:\*\*/g, '')
-    .replace(/^• /gm, '')
-    .replace(/<[^>]*>/g, '')
+    .replace(/\*\*/g, '')  // Remove bold markers
+    .replace(/<[^>]*>/g, '')  // Remove HTML tags
+    .replace(/^• /gm, 'Example: ')  // Convert bullets to "Example:"
+    .replace(/Option (\d+):/g, 'Option $1.')  // Make "Option 1:" more natural
     .trim();
 
   const utterance = new SpeechSynthesisUtterance(cleanText);
   utterance.lang = 'en-US';
-  utterance.rate = 0.9;
+  utterance.rate = 0.85;  // Slightly slower for better clarity
   utterance.pitch = 1.0;
   
   let btn = null;
   if (btnId) {
     btn = document.getElementById(btnId);
+    currentSpeechBtn = btnId;
   } else {
     btn = document.getElementById('speakTranslationBtn');
+    currentSpeechBtn = 'speakTranslationBtn';
   }
   
   if (btn) {
-    btn.classList.add('speaking');
+    btn.classList.add('playing');
+    btn.textContent = '⏹️';  // Stop icon
   }
   
   utterance.onend = () => {
     if (btn) {
-      btn.classList.remove('speaking');
+      btn.classList.remove('playing');
+      btn.textContent = '🔊';
     }
     currentSpeech = null;
+    currentSpeechBtn = null;
   };
   
   utterance.onerror = (event) => {
     console.error('Speech error:', event);
     if (btn) {
-      btn.classList.remove('speaking');
+      btn.classList.remove('playing');
+      btn.textContent = '🔊';
     }
     currentSpeech = null;
+    currentSpeechBtn = null;
   };
   
   currentSpeech = utterance;
@@ -561,9 +601,13 @@ function stopSpeaking() {
   if (currentSpeech) {
     window.speechSynthesis.cancel();
     currentSpeech = null;
-    const btn = document.getElementById('speakTranslationBtn');
-    if (btn) {
-      btn.classList.remove('speaking');
+    if (currentSpeechBtn) {
+      const btn = document.getElementById(currentSpeechBtn);
+      if (btn) {
+        btn.classList.remove('playing');
+        btn.textContent = '🔊';
+      }
+      currentSpeechBtn = null;
     }
   }
 }
@@ -906,13 +950,14 @@ function renderFlashcards(){
   state.flashcards.forEach(card=>{
     const el=document.createElement('div');
     el.className='flashcard-item';
+    const cardId = 'card_' + card.id;
     el.innerHTML=`
       <div style="font-size:11px;color:#999;margin-bottom:4px;">${aiEmojis[card.aiProvider]||'🤖'} ${card.aiProvider}</div>
       <div style="font-size:14px;color:#666;margin-bottom:8px;"><strong>${qLabel}</strong> ${card.question}</div>
       <div style="font-size:14px;color:#10b981;line-height:1.7;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
           <strong>${aLabel}</strong>
-          <button class="speak-btn" onclick="speakText(\`${card.answer.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="${listenText}" style="width:24px;height:24px;font-size:12px;">🔊</button>
+          <button class="speak-btn" id="${cardId}" onclick="toggleSpeech(\`${card.answer.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, '${cardId}')" title="${listenText}" style="width:24px;height:24px;font-size:12px;">🔊</button>
         </div>
         ${formatTranslation(card.answer)}
       </div>
@@ -949,7 +994,7 @@ function showPracticeCard(){
   document.getElementById('practiceAnswer').innerHTML=`
     <div style="color:#10b981;font-size:14px;margin-bottom:10px;font-weight:bold;display:flex;align-items:center;gap:8px;">
       <span>${aLabel}</span>
-      <button class="speak-btn" onclick="speakText(\`${card.answer.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, 'practiceAnswerSpeakBtn')" id="practiceAnswerSpeakBtn" title="${listenText}">🔊</button>
+      <button class="speak-btn" onclick="toggleSpeech(\`${card.answer.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, 'practiceAnswerSpeakBtn')" id="practiceAnswerSpeakBtn" title="${listenText}">🔊</button>
     </div>
     <div style="font-size:15px;line-height:1.8;">${formatTranslation(card.answer)}</div>
   `;
