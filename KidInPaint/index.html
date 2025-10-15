@@ -19,15 +19,18 @@
         }
         .container { max-width: 900px; margin: 0 auto; }
 
-        /* ⬇️ Added: hero with image + looping video side-by-side */
+        /* ⬇️ Hero: 1×4 (responsive fallbacks on small screens) */
         .hero {
             display: grid;
             grid-template-columns: 1fr;
             gap: 16px;
             margin-bottom: 20px;
         }
-        @media (min-width: 768px) {
-            .hero { grid-template-columns: 1fr 1fr; }
+        @media (min-width: 640px) {
+            .hero { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (min-width: 1024px) {
+            .hero { grid-template-columns: repeat(4, 1fr); }
         }
         .hero-media {
             position: relative;
@@ -54,7 +57,7 @@
             padding: 4px 8px;
             border-radius: 999px;
         }
-        /* ⬆️ Added */
+        /* ⬆️ Hero */
 
         .card { 
             background: white; 
@@ -282,16 +285,18 @@
 </head>
 <body>
     <div class="container">
-        <!-- ⬇️ New hero section: top image + looping video -->
+        <!-- ⬇️ Hero: 1×4 showcase in the exact order requested -->
         <div class="hero" aria-label="Website showcase media">
-            <!-- Left: top image -->
-            <div class="hero-media" aria-label="Showcase image">
-                <!-- Replace with your actual header image filename -->
-                <img src="./top-banner.jpg" alt="Kid Inside Their Painting - Header">
+            <!-- 1) RealImage.jpg -->
+            <div class="hero-media" aria-label="Real image">
+                <img src="./RealImage.jpg" alt="Real Image">
             </div>
-            <!-- Right: short looping Sora video (GIF-like) -->
+            <!-- 2) top-banner.jpg -->
+            <div class="hero-media" aria-label="Top banner image">
+                <img src="./top-banner.jpg" alt="Top Banner">
+            </div>
+            <!-- 3) Vid_1.mp4 -->
             <div class="hero-media" aria-label="Looping showcase video">
-                <!-- Important for autoplay on mobile: muted + playsinline -->
                 <video
                     autoplay
                     muted
@@ -301,15 +306,16 @@
                     poster="./top-banner.jpg"
                     aria-label="Showcase video playing in a loop">
                     <source src="./Vid_1.mp4" type="video/mp4">
-                    <!-- Optional: add a WebM for wider compatibility
-                    <source src="./Vid_1.webm" type="video/webm">
-                    -->
                     Your browser does not support the video tag.
                 </video>
                 <div class="hero-hint">Auto-loops</div>
             </div>
+            <!-- 4) Anime.jpg -->
+            <div class="hero-media" aria-label="Anime image">
+                <img src="./Anime.jpg" alt="Anime Version">
+            </div>
         </div>
-        <!-- ⬆️ New hero section -->
+        <!-- ⬆️ Hero -->
 
         <!-- Header Card -->
         <div class="card">
@@ -335,8 +341,8 @@
                     🎬<br>
                     <span style="font-size: 20px; margin-top: 10px;">Example Video Coming Soon</span>
                 </div>
-                <!-- When you have a video, replace above with: -->
-                <!-- <video controls poster="thumbnail.jpg">
+                <!-- When you have a video, replace above with:
+                <video controls poster="thumbnail.jpg">
                     <source src="your-video.mp4" type="video/mp4">
                     Your browser does not support video.
                 </video> -->
@@ -358,7 +364,7 @@
                     </div>
                 </div>
                 <input type="file" id="kidPhotoInput" class="upload-input" accept="image/*" onchange="handleKidPhotoUpload(event)">
-                <img id="kidPhotoPreview" class="image-preview hidden">
+                <img id="kidPhotoPreview" class="image-preview hidden" alt="Child photo preview">
             </div>
 
             <!-- Painting Photo Upload -->
@@ -372,7 +378,7 @@
                     </div>
                 </div>
                 <input type="file" id="paintingPhotoInput" class="upload-input" accept="image/*" onchange="handlePaintingPhotoUpload(event)">
-                <img id="paintingPhotoPreview" class="image-preview hidden">
+                <img id="paintingPhotoPreview" class="image-preview hidden" alt="Painting photo preview">
             </div>
         </div>
 
