@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,6 +18,18 @@
             padding-bottom: 100px; 
         }
         .container { max-width: 900px; margin: 0 auto; }
+
+        /* ⬇️ Added: simple top banner styles */
+        .top-banner { margin-bottom: 20px; }
+        .top-banner img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        /* ⬆️ Added */
+
         .card { 
             background: white; 
             border-radius: 20px; 
@@ -245,6 +256,12 @@
 </head>
 <body>
     <div class="container">
+        <!-- ⬇️ Added top image -->
+        <div class="top-banner">
+            <img src="./top-banner.jpg" alt="Kid Inside Their Painting - Header">
+        </div>
+        <!-- ⬆️ Added top image -->
+
         <!-- Header Card -->
         <div class="card">
             <div class="badge-container">
