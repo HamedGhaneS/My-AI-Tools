@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,554 +8,982 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#667eea">
     <title>🎨 Kid Inside Their Painting</title>
+
+```
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+        min-height: 100vh; 
+        padding: 20px; 
+        padding-bottom: 100px; 
+    }
+    .container { max-width: 900px; margin: 0 auto; }
     
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            min-height: 100vh; 
-            padding: 20px; 
-            padding-bottom: 100px; 
-        }
-        .container { max-width: 900px; margin: 0 auto; }
+    /* Hero Section - 1x4 Grid */
+    .hero {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+    @media (min-width: 640px) {
+        .hero { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 1024px) {
+        .hero { grid-template-columns: repeat(4, 1fr); }
+    }
+    .hero-media {
+        position: relative;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        background: #000;
+        min-height: 220px;
+    }
+    .hero-media img,
+    .hero-media video {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+    }
+    .hero-hint {
+        position: absolute;
+        bottom: 8px;
+        right: 10px;
+        background: rgba(0,0,0,0.55);
+        color: #fff;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 999px;
+    }
+    
+    .card { 
+        background: white; 
+        border-radius: 20px; 
+        padding: 20px; 
+        margin-bottom: 20px; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+    }
+    
+    /* Header Badges */
+    .badge-container { margin-bottom: 16px; }
+    .badge { 
+        display: inline-flex; 
+        align-items: center; 
+        gap: 6px; 
+        color: white; 
+        padding: 8px 16px; 
+        border-radius: 20px; 
+        font-size: 13px; 
+        font-weight: 600; 
+        margin-right: 8px;
+    }
+    .badge-gift { background: linear-gradient(135deg, #ec4899, #be185d); }
+    .badge-ai { background: linear-gradient(135deg, #8b5cf6, #6366f1); }
+    .badge-safe { background: linear-gradient(135deg, #10b981, #059669); }
+    
+    h1 { color: #667eea; margin-bottom: 10px; font-size: 32px; }
+    .subtitle { color: #666; font-size: 14px; margin-bottom: 20px; }
+    
+    /* Upload Section */
+    .upload-section { margin: 20px 0; }
+    .upload-box { 
+        border: 3px dashed #e0e0e0; 
+        border-radius: 15px; 
+        padding: 30px; 
+        text-align: center; 
+        cursor: pointer;
+        transition: all 0.3s;
+        background: #f9fafb;
+    }
+    .upload-box:hover { 
+        border-color: #667eea; 
+        background: #f3f4f6;
+    }
+    .upload-box.has-image { 
+        border-color: #10b981; 
+        background: #d1fae5;
+    }
+    .upload-icon { font-size: 48px; margin-bottom: 10px; }
+    .upload-text { color: #666; font-size: 14px; }
+    .upload-input { display: none; }
+    
+    .image-preview { 
+        max-width: 100%; 
+        max-height: 300px; 
+        margin: 15px auto; 
+        display: block;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    /* Style Options */
+    .style-options { margin: 20px 0; }
+    .style-option { 
+        padding: 15px; 
+        border: 2px solid #e0e0e0; 
+        border-radius: 12px; 
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: #f9fafb;
+    }
+    .style-option:hover { border-color: #667eea; }
+    .style-option.selected { 
+        border-color: #667eea; 
+        background: #ede9fe;
+    }
+    .style-option input[type="radio"] { 
+        margin-right: 10px; 
+    }
+    .style-title { font-weight: 600; color: #333; }
+    .style-desc { font-size: 13px; color: #666; margin-top: 5px; }
+    
+    /* Buttons */
+    .btn { 
+        width: 100%; 
+        padding: 16px; 
+        border: none; 
+        border-radius: 12px; 
+        font-weight: bold; 
+        font-size: 16px; 
+        cursor: pointer; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 8px;
+        transition: all 0.3s;
+    }
+    .btn-primary { 
+        background: linear-gradient(135deg, #667eea, #764ba2); 
+        color: white; 
+    }
+    .btn-primary:hover { 
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+    .btn-primary:disabled { 
+        opacity: 0.5; 
+        cursor: not-allowed;
+        transform: none;
+    }
+    .btn-secondary { 
+        background: #e0e0e0; 
+        color: #666; 
+    }
+    .btn-warning {
+        background: #fbbf24;
+        color: #92400e;
+    }
+    
+    /* Info Sections */
+    .info-box { 
+        background: #f0f9ff; 
+        border-left: 4px solid #3b82f6; 
+        padding: 15px; 
+        margin: 16px 0; 
+        border-radius: 8px; 
+        font-size: 14px; 
+        color: #1e40af; 
+    }
+    .info-box.warning { 
+        background: #fef3c7; 
+        border-left-color: #f59e0b; 
+        color: #78350f; 
+    }
+    .info-box.success { 
+        background: #d1fae5; 
+        border-left-color: #10b981; 
+        color: #065f46; 
+    }
+    
+    /* Steps Section */
+    .steps-list { 
+        list-style: none; 
+        padding: 0; 
+    }
+    .steps-list li { 
+        padding: 12px 0; 
+        border-bottom: 1px solid #e0e0e0; 
+        font-size: 14px;
+        color: #333;
+    }
+    .steps-list li:last-child { border-bottom: none; }
+    .step-number { 
+        display: inline-block; 
+        background: #667eea; 
+        color: white; 
+        width: 24px; 
+        height: 24px; 
+        border-radius: 50%; 
+        text-align: center; 
+        line-height: 24px; 
+        font-size: 12px; 
+        font-weight: bold; 
+        margin-right: 10px;
+    }
+    
+    /* Processing */
+    .processing { 
+        text-align: center; 
+        padding: 40px; 
+    }
+    .processing .spinner { 
+        font-size: 48px; 
+        animation: spin 2s linear infinite; 
+    }
+    @keyframes spin { 
+        from { transform: rotate(0deg); } 
+        to { transform: rotate(360deg); } 
+    }
+    .processing-text { 
+        color: #667eea; 
+        font-size: 16px; 
+        margin-top: 15px;
+        font-weight: 600;
+    }
+    
+    /* Result Section */
+    .result-container { margin-top: 20px; }
+    .result-image { 
+        width: 100%; 
+        border-radius: 15px; 
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    .download-options { 
+        display: flex; 
+        gap: 10px; 
+        margin-top: 15px; 
+    }
+    .download-options .btn { width: auto; flex: 1; }
+    
+    /* API Section */
+    .api-section { 
+        margin: 20px 0; 
+        padding: 16px; 
+        background: #f9fafb; 
+        border-radius: 12px; 
+        border-left: 4px solid #667eea; 
+    }
+    .api-section h4 { 
+        color: #667eea; 
+        margin-bottom: 8px; 
+    }
+    .input-field { 
+        width: 100%; 
+        padding: 12px; 
+        border: 2px solid #e0e0e0; 
+        border-radius: 10px; 
+        font-size: 14px; 
+        margin: 10px 0; 
+    }
+    
+    /* Settings Button */
+    .settings-btn { 
+        position: fixed; 
+        bottom: 20px; 
+        right: 20px; 
+        width: 60px; 
+        height: 60px; 
+        border-radius: 50%; 
+        background: white; 
+        border: none; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
+        cursor: pointer; 
+        font-size: 24px; 
+    }
+    
+    .hidden { display: none; }
+    
+    /* Gallery */
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .gallery-item {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+    .gallery-item:hover {
+        transform: scale(1.05);
+    }
+    .gallery-item img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    .gallery-delete {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+</style>
+```
 
-        /* ⬇️ Hero: 1×4 (responsive fallbacks on small screens) */
-        .hero {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        @media (min-width: 640px) {
-            .hero { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (min-width: 1024px) {
-            .hero { grid-template-columns: repeat(4, 1fr); }
-        }
-        .hero-media {
-            position: relative;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            background: #000;
-            min-height: 220px;
-        }
-        .hero-media img,
-        .hero-media video {
-            width: 100%;
-            height: 100%;
-            display: block;
-            object-fit: cover;
-        }
-        .hero-hint {
-            position: absolute;
-            bottom: 8px;
-            right: 10px;
-            background: rgba(0,0,0,0.55);
-            color: #fff;
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 999px;
-        }
-        /* ⬆️ Hero */
-
-        .card { 
-            background: white; 
-            border-radius: 20px; 
-            padding: 20px; 
-            margin-bottom: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
-        }
-        
-        /* Header Badges */
-        .badge-container { margin-bottom: 16px; }
-        .badge { 
-            display: inline-flex; 
-            align-items: center; 
-            gap: 6px; 
-            color: white; 
-            padding: 8px 16px; 
-            border-radius: 20px; 
-            font-size: 13px; 
-            font-weight: 600; 
-            margin-right: 8px;
-        }
-        .badge-gift { background: linear-gradient(135deg, #ec4899, #be185d); }
-        .badge-ai { background: linear-gradient(135deg, #8b5cf6, #6366f1); }
-        .badge-safe { background: linear-gradient(135deg, #10b981, #059669); }
-        
-        h1 { color: #667eea; margin-bottom: 10px; font-size: 32px; }
-        .subtitle { color: #666; font-size: 14px; margin-bottom: 20px; }
-        
-        /* Video Container */
-        .video-container { 
-            width: 100%; 
-            border-radius: 15px; 
-            overflow: hidden; 
-            margin-bottom: 20px;
-            background: #000;
-            position: relative;
-        }
-        .video-container video { 
-            width: 100%; 
-            height: auto; 
-            display: block;
-        }
-        .video-placeholder {
-            width: 100%;
-            height: 400px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 48px;
-        }
-        
-        /* Upload Section */
-        .upload-section { margin: 20px 0; }
-        .upload-box { 
-            border: 3px dashed #e0e0e0; 
-            border-radius: 15px; 
-            padding: 30px; 
-            text-align: center; 
-            cursor: pointer;
-            transition: all 0.3s;
-            background: #f9fafb;
-        }
-        .upload-box:hover { 
-            border-color: #667eea; 
-            background: #f3f4f6;
-        }
-        .upload-box.has-image { 
-            border-color: #10b981; 
-            background: #d1fae5;
-        }
-        .upload-icon { font-size: 48px; margin-bottom: 10px; }
-        .upload-text { color: #666; font-size: 14px; }
-        .upload-input { display: none; }
-        
-        .image-preview { 
-            max-width: 100%; 
-            max-height: 300px; 
-            margin: 15px auto; 
-            display: block;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        
-        /* Style Options */
-        .style-options { margin: 20px 0; }
-        .style-option { 
-            padding: 15px; 
-            border: 2px solid #e0e0e0; 
-            border-radius: 12px; 
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: #f9fafb;
-        }
-        .style-option:hover { border-color: #667eea; }
-        .style-option.selected { 
-            border-color: #667eea; 
-            background: #ede9fe;
-        }
-        .style-option input[type="radio"] { 
-            margin-right: 10px; 
-        }
-        .style-title { font-weight: 600; color: #333; }
-        .style-desc { font-size: 13px; color: #666; margin-top: 5px; }
-        
-        /* Buttons */
-        .btn { 
-            width: 100%; 
-            padding: 16px; 
-            border: none; 
-            border-radius: 12px; 
-            font-weight: bold; 
-            font-size: 16px; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 8px;
-            transition: all 0.3s;
-        }
-        .btn-primary { 
-            background: linear-gradient(135deg, #667eea, #764ba2); 
-            color: white; 
-        }
-        .btn-primary:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-        .btn-primary:disabled { 
-            opacity: 0.5; 
-            cursor: not-allowed;
-            transform: none;
-        }
-        .btn-secondary { 
-            background: #e0e0e0; 
-            color: #666; 
-        }
-        
-        /* Info Sections */
-        .info-box { 
-            background: #f0f9ff; 
-            border-left: 4px solid #3b82f6; 
-            padding: 15px; 
-            margin: 16px 0; 
-            border-radius: 8px; 
-            font-size: 14px; 
-            color: #1e40af; 
-        }
-        .info-box.warning { 
-            background: #fef3c7; 
-            border-left-color: #f59e0b; 
-            color: #78350f; 
-        }
-        .info-box.success { 
-            background: #d1fae5; 
-            border-left-color: #10b981; 
-            color: #065f46; 
-        }
-        
-        /* Steps Section */
-        .steps-list { 
-            list-style: none; 
-            padding: 0; 
-        }
-        .steps-list li { 
-            padding: 12px 0; 
-            border-bottom: 1px solid #e0e0e0; 
-            font-size: 14px;
-            color: #333;
-        }
-        .steps-list li:last-child { border-bottom: none; }
-        .step-number { 
-            display: inline-block; 
-            background: #667eea; 
-            color: white; 
-            width: 24px; 
-            height: 24px; 
-            border-radius: 50%; 
-            text-align: center; 
-            line-height: 24px; 
-            font-size: 12px; 
-            font-weight: bold; 
-            margin-right: 10px;
-        }
-        
-        /* Loading/Processing */
-        .processing { 
-            text-align: center; 
-            padding: 40px; 
-        }
-        .processing .spinner { 
-            font-size: 48px; 
-            animation: spin 2s linear infinite; 
-        }
-        @keyframes spin { 
-            from { transform: rotate(0deg); } 
-            to { transform: rotate(360deg); } 
-        }
-        .processing-text { 
-            color: #667eea; 
-            font-size: 16px; 
-            margin-top: 15px;
-            font-weight: 600;
-        }
-        
-        /* Result Section */
-        .result-container { margin-top: 20px; }
-        .result-image { 
-            width: 100%; 
-            border-radius: 15px; 
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-        }
-        .download-options { 
-            display: flex; 
-            gap: 10px; 
-            margin-top: 15px; 
-        }
-        .download-options .btn { width: auto; flex: 1; }
-        
-        .hidden { display: none; }
-    </style>
 </head>
 <body>
     <div class="container">
-        <!-- ⬇️ Hero: 1×4 showcase in the exact order requested -->
-        <div class="hero" aria-label="Website showcase media">
-            <!-- 1) RealImage.jpg -->
-            <div class="hero-media" aria-label="Real image">
+        <!-- Hero: 1x4 showcase -->
+        <div class="hero">
+            <div class="hero-media">
                 <img src="./RealImage.jpg" alt="Real Image">
             </div>
-            <!-- 2) top-banner.jpg -->
-            <div class="hero-media" aria-label="Top banner image">
+            <div class="hero-media">
                 <img src="./top-banner.jpg" alt="Top Banner">
             </div>
-            <!-- 3) Vid_1.mp4 -->
-            <div class="hero-media" aria-label="Looping showcase video">
-                <video
-                    autoplay
-                    muted
-                    loop
-                    playsinline
-                    preload="auto"
-                    poster="./top-banner.jpg"
-                    aria-label="Showcase video playing in a loop">
+            <div class="hero-media">
+                <video autoplay muted loop playsinline preload="auto">
                     <source src="./Vid_1.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
                 </video>
                 <div class="hero-hint">Auto-loops</div>
             </div>
-            <!-- 4) Anime.jpg -->
-            <div class="hero-media" aria-label="Anime image">
+            <div class="hero-media">
                 <img src="./Anime.jpg" alt="Anime Version">
             </div>
         </div>
-        <!-- ⬆️ Hero -->
 
-        <!-- Header Card -->
-        <div class="card">
-            <div class="badge-container">
-                <span class="badge badge-gift">🎁 Gift Creator</span>
-                <span class="badge badge-ai">🤖 AI Powered</span>
-                <span class="badge badge-safe">🔒 Private & Safe</span>
+```
+    <!-- Header Card -->
+    <div class="card">
+        <div class="badge-container">
+            <span class="badge badge-gift">🎁 Gift Creator</span>
+            <span class="badge badge-ai">🤖 AI Powered</span>
+            <span class="badge badge-safe">🔒 Private & Safe</span>
+        </div>
+        <h1>🎨 Kid Inside Their Painting</h1>
+        <p class="subtitle">Create magical keepsakes where your child steps into their own artwork!</p>
+        
+        <div class="info-box">
+            <strong>✨ How it works:</strong> Upload a photo of your child and their painting. Our AI will place them inside their artwork, creating a beautiful gift-worthy image or video!
+        </div>
+    </div>
+
+    <!-- Auth Card -->
+    <div class="card">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <div id="authStatus" style="color: #666; font-size: 13px;">Not signed in</div>
             </div>
-            <h1>🎨 Kid Inside Their Painting</h1>
-            <p class="subtitle">Create magical keepsakes where your child steps into their own artwork!</p>
+            <div>
+                <button id="loginBtn" class="btn btn-primary" style="width: auto; padding: 10px 20px;">
+                    🔑 Sign In
+                </button>
+                <button id="logoutBtn" class="btn btn-secondary" style="display: none; width: auto; padding: 10px 20px;">
+                    Sign Out
+                </button>
+            </div>
+        </div>
+        <div style="font-size: 12px; color: #999; margin-top: 10px;">
+            Sign in to save your creations and sync across devices
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settingsPanel" class="card hidden">
+        <h3>⚙️ AI Provider Settings</h3>
+        <div class="info-box">🔒 <strong>Your API keys are encrypted</strong> before storage.</div>
+        
+        <!-- Replicate Section -->
+        <div class="api-section">
+            <h4>🚀 Replicate API (Recommended)</h4>
+            <p style="font-size: 13px; color: #666; margin-bottom: 8px;">
+                <strong>Pay-as-you-go:</strong> ~$0.01-0.05 per image
+                <br>Get key: <a href="https://replicate.com/account/api-tokens" target="_blank" style="color: #667eea;">Replicate API Tokens</a>
+            </p>
+            <input type="password" id="replicateKey" class="input-field" placeholder="Paste Replicate API token (starts with r8_)">
+            <button class="btn btn-warning" onclick="testApiKey('replicate')" style="margin-bottom: 10px;">🧪 Test Key</button>
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-primary" onclick="saveAllKeys()">💾 Save All Keys</button>
+            <button class="btn btn-secondary" onclick="toggleSettings()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Upload Section -->
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: #667eea;">📤 Step 1: Upload Photos</h3>
+        
+        <!-- Kid Photo Upload -->
+        <div class="upload-section">
+            <h4 style="margin-bottom: 10px; color: #333;">👶 Child's Photo</h4>
+            <div class="upload-box" id="kidUploadBox" onclick="document.getElementById('kidPhotoInput').click()">
+                <div class="upload-icon">📸</div>
+                <div class="upload-text">
+                    <strong>Click to upload</strong> or drag and drop<br>
+                    <span style="font-size: 12px; color: #999;">Clear front or 3/4 face photo • PNG, JPG (Max 10MB)</span>
+                </div>
+            </div>
+            <input type="file" id="kidPhotoInput" class="upload-input" accept="image/*" onchange="handleKidPhotoUpload(event)">
+            <img id="kidPhotoPreview" class="image-preview hidden" alt="Child photo preview">
+        </div>
+
+        <!-- Painting Photo Upload -->
+        <div class="upload-section">
+            <h4 style="margin-bottom: 10px; color: #333;">🖼️ Child's Painting/Drawing</h4>
+            <div class="upload-box" id="paintingUploadBox" onclick="document.getElementById('paintingPhotoInput').click()">
+                <div class="upload-icon">🎨</div>
+                <div class="upload-text">
+                    <strong>Click to upload</strong> or drag and drop<br>
+                    <span style="font-size: 12px; color: #999;">Flat, well-lit photo of the artwork • PNG, JPG (Max 10MB)</span>
+                </div>
+            </div>
+            <input type="file" id="paintingPhotoInput" class="upload-input" accept="image/*" onchange="handlePaintingPhotoUpload(event)">
+            <img id="paintingPhotoPreview" class="image-preview hidden" alt="Painting photo preview">
+        </div>
+    </div>
+
+    <!-- Style Options -->
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: #667eea;">🎭 Step 2: Choose Style</h3>
+        <div class="style-options">
+            <label class="style-option selected">
+                <input type="radio" name="style" value="photorealistic" checked>
+                <div>
+                    <div class="style-title">📷 Photo-Real Kid + Painterly Background</div>
+                    <div class="style-desc">Keep the child realistic with a subtle blend into the painted background (Recommended)</div>
+                </div>
+            </label>
             
-            <div class="info-box">
-                <strong>✨ How it works:</strong> Upload a photo of your child and their painting. Our AI will place them inside their artwork, creating a beautiful gift-worthy image or video!
-            </div>
-        </div>
-
-        <!-- Video Preview Card -->
-        <div class="card">
-            <h3 style="margin-bottom: 15px; color: #667eea;">📹 See It In Action</h3>
-            <div class="video-container">
-                <!-- Placeholder until you provide actual video -->
-                <div class="video-placeholder">
-                    🎬<br>
-                    <span style="font-size: 20px; margin-top: 10px;">Example Video Coming Soon</span>
+            <label class="style-option">
+                <input type="radio" name="style" value="harmonized">
+                <div>
+                    <div class="style-title">🖌️ Light Painterly Harmonization</div>
+                    <div class="style-desc">Add gentle brush texture to the child (10-15%) for a cohesive painted look while keeping them recognizable</div>
                 </div>
-                <!-- When you have a video, replace above with:
-                <video controls poster="thumbnail.jpg">
-                    <source src="your-video.mp4" type="video/mp4">
-                    Your browser does not support video.
-                </video> -->
-            </div>
+            </label>
         </div>
+    </div>
 
-        <!-- Upload Section -->
-        <div class="card">
-            <h3 style="margin-bottom: 20px; color: #667eea;">📤 Step 1: Upload Photos</h3>
-            
-            <!-- Kid Photo Upload -->
-            <div class="upload-section">
-                <h4 style="margin-bottom: 10px; color: #333;">👶 Child's Photo</h4>
-                <div class="upload-box" id="kidUploadBox" onclick="document.getElementById('kidPhotoInput').click()">
-                    <div class="upload-icon">📸</div>
-                    <div class="upload-text">
-                        <strong>Click to upload</strong> or drag and drop<br>
-                        <span style="font-size: 12px; color: #999;">Clear front or 3/4 face photo • PNG, JPG (Max 10MB)</span>
-                    </div>
-                </div>
-                <input type="file" id="kidPhotoInput" class="upload-input" accept="image/*" onchange="handleKidPhotoUpload(event)">
-                <img id="kidPhotoPreview" class="image-preview hidden" alt="Child photo preview">
-            </div>
-
-            <!-- Painting Photo Upload -->
-            <div class="upload-section">
-                <h4 style="margin-bottom: 10px; color: #333;">🖼️ Child's Painting/Drawing</h4>
-                <div class="upload-box" id="paintingUploadBox" onclick="document.getElementById('paintingPhotoInput').click()">
-                    <div class="upload-icon">🎨</div>
-                    <div class="upload-text">
-                        <strong>Click to upload</strong> or drag and drop<br>
-                        <span style="font-size: 12px; color: #999;">Flat, well-lit photo of the artwork • PNG, JPG (Max 10MB)</span>
-                    </div>
-                </div>
-                <input type="file" id="paintingPhotoInput" class="upload-input" accept="image/*" onchange="handlePaintingPhotoUpload(event)">
-                <img id="paintingPhotoPreview" class="image-preview hidden" alt="Painting photo preview">
-            </div>
+    <!-- Process Button -->
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: #667eea;">🚀 Step 3: Create Magic</h3>
+        <button class="btn btn-primary" id="processBtn" onclick="processImage()" disabled>
+            <span>✨ Create Gift Image</span>
+        </button>
+        <div class="info-box warning" style="margin-top: 15px;">
+            <strong>⏱️ Processing time:</strong> 30-60 seconds for images
         </div>
+    </div>
 
-        <!-- Style Options -->
-        <div class="card">
-            <h3 style="margin-bottom: 20px; color: #667eea;">🎭 Step 2: Choose Style</h3>
-            <div class="style-options">
-                <label class="style-option selected">
-                    <input type="radio" name="style" value="photorealistic" checked>
-                    <div>
-                        <div class="style-title">📷 Photo-Real Kid + Painterly Background</div>
-                        <div class="style-desc">Keep the child realistic with a subtle blend into the painted background (Recommended)</div>
-                    </div>
-                </label>
-                
-                <label class="style-option">
-                    <input type="radio" name="style" value="harmonized">
-                    <div>
-                        <div class="style-title">🖌️ Light Painterly Harmonization</div>
-                        <div class="style-desc">Add gentle brush texture to the child (10-15%) for a cohesive painted look while keeping them recognizable</div>
-                    </div>
-                </label>
-            </div>
-        </div>
-
-        <!-- Process Button -->
-        <div class="card">
-            <h3 style="margin-bottom: 20px; color: #667eea;">🚀 Step 3: Create Magic</h3>
-            <button class="btn btn-primary" id="processBtn" onclick="processImage()" disabled>
-                <span>✨ Create Gift Image</span>
-            </button>
-            <div class="info-box warning" style="margin-top: 15px;">
-                <strong>⏱️ Processing time:</strong> 30-60 seconds for images, 2-3 minutes for optional video
-            </div>
-        </div>
-
-        <!-- Processing State (hidden by default) -->
-        <div class="card hidden" id="processingCard">
-            <div class="processing">
-                <div class="spinner">🎨</div>
-                <div class="processing-text">Creating your magical keepsake...</div>
-                <div style="color: #666; font-size: 14px; margin-top: 10px;">
-                    This may take up to a minute. Please don't close this window.
-                </div>
-            </div>
-        </div>
-
-        <!-- Result Section (hidden by default) -->
-        <div class="card hidden" id="resultCard">
-            <h3 style="margin-bottom: 20px; color: #10b981;">🎉 Your Magical Creation!</h3>
-            <div class="result-container">
-                <img id="resultImage" class="result-image" alt="Kid inside painting">
-                <div class="download-options">
-                    <button class="btn btn-primary" onclick="downloadImage()">
-                        📥 Download Image (4K PNG)
-                    </button>
-                    <button class="btn btn-secondary" onclick="downloadVideo()">
-                        🎬 Download Video (Optional)
-                    </button>
-                </div>
-            </div>
-            <div class="info-box success" style="margin-top: 15px;">
-                <strong>🎁 Perfect for:</strong> Framing, printing on canvas, creating photo books, or sharing with family!
-            </div>
-        </div>
-
-        <!-- How It Works -->
-        <div class="card">
-            <h3 style="margin-bottom: 20px; color: #667eea;">🔧 Behind The Scenes</h3>
-            <ul class="steps-list">
-                <li><span class="step-number">1</span> AI segments the child from the photo (preserving hair, ears, face details)</li>
-                <li><span class="step-number">2</span> Analyzes the painting's light direction and adds matching shadows</li>
-                <li><span class="step-number">3</span> Color-matches the child to the painting's palette</li>
-                <li><span class="step-number">4</span> Places child naturally on the ground plane with proper scale</li>
-                <li><span class="step-number">5</span> Optionally adds painterly texture for harmonization</li>
-                <li><span class="step-number">6</span> Exports high-quality image (and optional parallax video)</li>
-            </ul>
-        </div>
-
-        <!-- Privacy Notice -->
-        <div class="card">
-            <div class="info-box">
-                <strong>🔒 Privacy & Safety:</strong> This is a private family gift tool. Your photos are processed securely and never stored, shared, or used for AI training. Only wholesome, safe results are generated.
+    <!-- Processing State -->
+    <div class="card hidden" id="processingCard">
+        <div class="processing">
+            <div class="spinner">🎨</div>
+            <div class="processing-text">Creating your magical keepsake...</div>
+            <div style="color: #666; font-size: 14px; margin-top: 10px;">
+                This may take up to a minute. Please don't close this window.
             </div>
         </div>
     </div>
 
-    <script>
-        // Global state
-        let state = {
-            kidPhoto: null,
-            paintingPhoto: null,
-            style: 'photorealistic',
-            isProcessing: false
-        };
+    <!-- Result Section -->
+    <div class="card hidden" id="resultCard">
+        <h3 style="margin-bottom: 20px; color: #10b981;">🎉 Your Magical Creation!</h3>
+        <div class="result-container">
+            <img id="resultImage" class="result-image" alt="Kid inside painting">
+            <div class="download-options">
+                <button class="btn btn-primary" onclick="downloadImage()">
+                    📥 Download Image (PNG)
+                </button>
+                <button class="btn btn-secondary" onclick="shareImage()">
+                    📤 Share
+                </button>
+            </div>
+        </div>
+        <div class="info-box success" style="margin-top: 15px;">
+            <strong>🎁 Perfect for:</strong> Framing, printing on canvas, creating photo books, or sharing with family!
+        </div>
+    </div>
 
-        // Handle kid photo upload
-        function handleKidPhotoUpload(event) {
-            const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    state.kidPhoto = e.target.result;
-                    document.getElementById('kidPhotoPreview').src = e.target.result;
-                    document.getElementById('kidPhotoPreview').classList.remove('hidden');
-                    document.getElementById('kidUploadBox').classList.add('has-image');
-                    checkReadyToProcess();
-                };
-                reader.readAsDataURL(file);
+    <!-- Gallery -->
+    <div class="card hidden" id="galleryCard">
+        <h3 style="margin-bottom: 20px; color: #667eea;">🖼️ Your Gallery (<span id="galleryCount">0</span>)</h3>
+        <div class="gallery-grid" id="galleryGrid"></div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: #667eea;">🔧 Behind The Scenes</h3>
+        <ul class="steps-list">
+            <li><span class="step-number">1</span> AI segments the child from the photo (preserving hair, ears, face details)</li>
+            <li><span class="step-number">2</span> Analyzes the painting's light direction and adds matching shadows</li>
+            <li><span class="step-number">3</span> Color-matches the child to the painting's palette</li>
+            <li><span class="step-number">4</span> Places child naturally on the ground plane with proper scale</li>
+            <li><span class="step-number">5</span> Optionally adds painterly texture for harmonization</li>
+            <li><span class="step-number">6</span> Exports high-quality image</li>
+        </ul>
+    </div>
+
+    <!-- Privacy Notice -->
+    <div class="card">
+        <div class="info-box">
+            <strong>🔒 Privacy & Safety:</strong> This is a private family gift tool. Your photos are processed securely and never stored, shared, or used for AI training. Only wholesome, safe results are generated.
+        </div>
+    </div>
+</div>
+
+<button id="settingsBtn" class="settings-btn" onclick="toggleSettings()">⚙️</button>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
+
+<script>
+    // Firebase Config (REPLACE WITH YOUR OWN!)
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY_HERE",
+        authDomain: "your-project.firebaseapp.com",
+        projectId: "your-project-id",
+        storageBucket: "your-project.appspot.com",
+        messagingSenderId: "123456789",
+        appId: "your-app-id"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    // Encryption
+    function getDeviceFingerprint() {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.textBaseline = 'top';
+        ctx.font = '14px Arial';
+        ctx.fillText('fingerprint', 2, 2);
+        return canvas.toDataURL().slice(-50);
+    }
+    
+    function simpleEncrypt(text, key) {
+        let encrypted = '';
+        for (let i = 0; i < text.length; i++) {
+            encrypted += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+        }
+        return btoa(encrypted);
+    }
+    
+    function simpleDecrypt(encrypted, key) {
+        try {
+            const decoded = atob(encrypted);
+            let decrypted = '';
+            for (let i = 0; i < decoded.length; i++) {
+                decrypted += String.fromCharCode(decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+            }
+            return decrypted;
+        } catch {
+            return null;
+        }
+    }
+
+    // State
+    let state = {
+        kidPhoto: null,
+        paintingPhoto: null,
+        style: 'photorealistic',
+        isProcessing: false,
+        deviceKey: getDeviceFingerprint(),
+        apiKeys: { replicate: '' },
+        creations: []
+    };
+
+    // Load Data
+    function loadData() {
+        const encrypted = localStorage.getItem('replicateApiKey_enc');
+        if (encrypted) {
+            const decrypted = simpleDecrypt(encrypted, state.deviceKey);
+            if (decrypted) {
+                state.apiKeys.replicate = decrypted;
+                document.getElementById('replicateKey').value = '••••••••' + decrypted.slice(-8);
             }
         }
+        
+        const savedCreations = localStorage.getItem('creations');
+        if (savedCreations) {
+            state.creations = JSON.parse(savedCreations);
+            renderGallery();
+        }
+    }
 
-        // Handle painting photo upload
-        function handlePaintingPhotoUpload(event) {
-            const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    state.paintingPhoto = e.target.result;
-                    document.getElementById('paintingPhotoPreview').src = e.target.result;
-                    document.getElementById('paintingPhotoPreview').classList.remove('hidden');
-                    document.getElementById('paintingUploadBox').classList.add('has-image');
-                    checkReadyToProcess();
-                };
-                reader.readAsDataURL(file);
+    // Auth
+    const provider = new firebase.auth.GoogleAuthProvider();
+    document.getElementById('loginBtn').onclick = () => auth.signInWithPopup(provider);
+    document.getElementById('logoutBtn').onclick = () => auth.signOut();
+
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+            document.getElementById('authStatus').innerHTML = `Signed in as <strong>${user.email}</strong>`;
+            
+            const local = JSON.parse(localStorage.getItem('creations') || '[]');
+            if (local.length) {
+                const batch = db.batch();
+                local.forEach(c => {
+                    batch.set(db.collection('users').doc(user.uid).collection('creations').doc(String(c.id)), c);
+                });
+                await batch.commit();
+                localStorage.removeItem('creations');
             }
+            
+            db.collection('users').doc(user.uid).collection('creations')
+                .orderBy('created', 'desc')
+                .onSnapshot(snap => {
+                    state.creations = snap.docs.map(d => d.data());
+                    renderGallery();
+                });
+        } else {
+            document.getElementById('loginBtn').style.display = 'inline-block';
+            document.getElementById('logoutBtn').style.display = 'none';
+            document.getElementById('authStatus').textContent = 'Not signed in';
+            
+            const local = JSON.parse(localStorage.getItem('creations') || '[]');
+            state.creations = local;
+            renderGallery();
         }
+    });
 
-        // Check if ready to process
-        function checkReadyToProcess() {
-            const btn = document.getElementById('processBtn');
-            btn.disabled = !(state.kidPhoto && state.paintingPhoto);
+    // Settings
+    function toggleSettings() {
+        document.getElementById('settingsPanel').classList.toggle('hidden');
+    }
+
+    function saveAllKeys() {
+        const key = document.getElementById('replicateKey').value.trim();
+        if (key && !key.startsWith('••••')) {
+            state.apiKeys.replicate = key;
+            localStorage.setItem('replicateApiKey_enc', simpleEncrypt(key, state.deviceKey));
+            alert('✅ API key saved!');
+            checkApiKey();
+        } else {
+            alert('No new key to save.');
         }
+    }
 
-        // Handle style selection
-        document.querySelectorAll('.style-option').forEach(option => {
-            option.addEventListener('click', function() {
-                document.querySelectorAll('.style-option').forEach(o => o.classList.remove('selected'));
-                this.classList.add('selected');
-                state.style = this.querySelector('input').value;
+    async function testApiKey(provider) {
+        const keyInput = document.getElementById('replicateKey').value.trim();
+        const testKey = keyInput.startsWith('••••') ? state.apiKeys.replicate : keyInput;
+        
+        if (!testKey) {
+            alert('Please enter an API key first!');
+            return;
+        }
+        
+        alert('Testing... Please wait.');
+        
+        try {
+            const response = await fetch('https://api.replicate.com/v1/predictions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Token ${testKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    version: 'fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003',
+                    input: {
+                        image: 'https://replicate.delivery/pbxt/JvQ9kPEZoGvWh3N0WCUPcCe6hV0RZrZP5czGqBZFQh0eWFSKA/rocket.png'
+                    }
+                })
             });
+            
+            if (response.ok) {
+                alert('✅ Replicate API key works!\n\nYou can now process images.');
+            } else {
+                const data = await response.json();
+                alert('❌ Error: ' + JSON.stringify(data, null, 2));
+            }
+        } catch (error) {
+            alert('❌ Network Error: ' + error.message);
+        }
+    }
+
+    function checkApiKey() {
+        if (!state.apiKeys.replicate) {
+            document.getElementById('processBtn').disabled = true;
+        } else {
+            checkReadyToProcess();
+        }
+    }
+
+    // Uploads
+    function handleKidPhotoUpload(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                state.kidPhoto = e.target.result;
+                document.getElementById('kidPhotoPreview').src = e.target.result;
+                document.getElementById('kidPhotoPreview').classList.remove('hidden');
+                document.getElementById('kidUploadBox').classList.add('has-image');
+                checkReadyToProcess();
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function handlePaintingPhotoUpload(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                state.paintingPhoto = e.target.result;
+                document.getElementById('paintingPhotoPreview').src = e.target.result;
+                document.getElementById('paintingPhotoPreview').classList.remove('hidden');
+                document.getElementById('paintingUploadBox').classList.add('has-image');
+                checkReadyToProcess();
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function checkReadyToProcess() {
+        const btn = document.getElementById('processBtn');
+        btn.disabled = !(state.kidPhoto && state.paintingPhoto && state.apiKeys.replicate);
+    }
+
+    // Style selection
+    document.querySelectorAll('.style-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.style-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+            state.style = this.querySelector('input').value;
         });
+    });
 
-        // Process image (placeholder - you'll connect to your AI backend)
-        async function processImage() {
-            if (state.isProcessing) return;
+    // PROCESS IMAGE
+    async function processImage() {
+        if (state.isProcessing) return;
+        
+        if (!state.apiKeys.replicate) {
+            alert('⚠️ Please add Replicate API key in settings!');
+            toggleSettings();
+            return;
+        }
+        
+        state.isProcessing = true;
+        document.getElementById('processingCard').classList.remove('hidden');
+        document.getElementById('resultCard').classList.add('hidden');
+        
+        try {
+            // Step 1: Remove background
+            const removeResponse = await fetch('https://api.replicate.com/v1/predictions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Token ${state.apiKeys.replicate}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    version: 'fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003',
+                    input: { image: state.kidPhoto }
+                })
+            });
             
-            state.isProcessing = true;
-            document.getElementById('processingCard').classList.remove('hidden');
-            document.getElementById('resultCard').classList.add('hidden');
+            if (!removeResponse.ok) throw new Error('Failed to start processing');
             
-            // Simulate processing (replace with actual API call)
-            setTimeout(() => {
-                // For now, show the painting as result (you'll replace this with actual AI output)
-                document.getElementById('resultImage').src = state.paintingPhoto;
-                document.getElementById('processingCard').classList.add('hidden');
-                document.getElementById('resultCard').classList.remove('hidden');
-                state.isProcessing = false;
+            const removeData = await removeResponse.json();
+            const kidNoBg = await waitForPrediction(removeData.id);
+            
+            // Step 2: Composite
+            const result = await compositeImages(kidNoBg, state.paintingPhoto, state.style);
+            
+            // Step 3: Save
+            await saveCreation(result);
+            
+            // Show result
+            document.getElementById('resultImage').src = result;
+            document.getElementById('processingCard').classList.add('hidden');
+            document.getElementById('resultCard').classList.remove('hidden');
+            document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+        } catch (error) {
+            console.error('Error:', error);
+            alert('❌ Processing failed: ' + error.message);
+            document.getElementById('processingCard').classList.add('hidden');
+        }
+        
+        state.isProcessing = false;
+    }
+
+    async function waitForPrediction(predictionId) {
+        let attempts = 0;
+        const maxAttempts = 60;
+        
+        while (attempts < maxAttempts) {
+            const response = await fetch(`https://api.replicate.com/v1/predictions/${predictionId}`, {
+                headers: { 'Authorization': `Token ${state.apiKeys.replicate}` }
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'succeeded') return data.output;
+            if (data.status === 'failed') throw new Error('Processing failed');
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            attempts++;
+        }
+        
+        throw new Error('Timeout');
+    }
+
+    async function compositeImages(kidImageUrl, paintingUrl, style) {
+        return new Promise((resolve, reject) => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const paintingImg = new Image();
+            paintingImg.crossOrigin = 'anonymous';
+            
+            paintingImg.onload = () => {
+                canvas.width = paintingImg.width;
+                canvas.height = paintingImg.height;
+                ctx.drawImage(paintingImg, 0, 0);
                 
-                // Scroll to result
-                document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 3000);
-        }
+                const kidImg = new Image();
+                kidImg.crossOrigin = 'anonymous';
+                
+                kidImg.onload = () => {
+                    const scale = 0.6;
+                    const kidHeight = canvas.height * scale;
+                    const kidWidth = (kidImg.width / kidImg.height) * kidHeight;
+                    const x = (canvas.width - kidWidth) / 2;
+                    const y = canvas.height - kidHeight;
+                    
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+                    ctx.shadowBlur = 20;
+                    ctx.shadowOffsetX = 5;
+                    ctx.shadowOffsetY = 10;
+                    
+                    ctx.drawImage(kidImg, x, y, kidWidth, kidHeight);
+                    
+                    if (style === 'harmonized') {
+                        ctx.globalAlpha = 0.15;
+                        ctx.filter = 'blur(1px)';
+                        ctx.drawImage(paintingImg, 0, 0);
+                        ctx.filter = 'none';
+                        ctx.globalAlpha = 1.0;
+                    }
+                    
+                    resolve(canvas.toDataURL('image/png'));
+                };
+                
+                kidImg.onerror = () => reject(new Error('Failed to load kid image'));
+                kidImg.src = kidImageUrl;
+            };
+            
+            paintingImg.onerror = () => reject(new Error('Failed to load painting'));
+            paintingImg.src = paintingUrl;
+        });
+    }
 
-        // Download image
-        function downloadImage() {
-            const link = document.createElement('a');
-            link.href = document.getElementById('resultImage').src;
-            link.download = 'kid-in-painting.png';
-            link.click();
+    async function saveCreation(imageUrl) {
+        const creation = {
+            id: Date.now(),
+            imageUrl: imageUrl,
+            style: state.style,
+            created: new Date().toISOString()
+        };
+        
+        const user = auth.currentUser;
+        if (user) {
+            await db.collection('users').doc(user.uid).collection('creations').doc(String(creation.id)).set(creation);
+        } else {
+            state.creations.unshift(creation);
+            localStorage.setItem('creations', JSON.stringify(state.creations));
+            renderGallery();
         }
+    }
 
-        // Download video (placeholder)
-        function downloadVideo() {
-            alert('Video generation feature coming soon! 🎬');
+    function renderGallery() {
+        const grid = document.getElementById('galleryGrid');
+        const card = document.getElementById('galleryCard');
+        const count = document.getElementById('galleryCount');
+        
+        if (state.creations.length === 0) {
+            card.classList.add('hidden');
+            return;
         }
-    </script>
+        
+        card.classList.remove('hidden');
+        count.textContent = state.creations.length;
+        grid.innerHTML = '';
+        
+        state.creations.forEach(creation => {
+            const item = document.createElement('div');
+            item.className = 'gallery-item';
+            item.innerHTML = `
+                <img src="${creation.imageUrl}" alt="Creation">
+                <button class="gallery-delete" onclick="deleteCreation(${creation.id})">🗑️</button>
+            `;
+            item.onclick = (e) => {
+                if (!e.target.classList.contains('gallery-delete')) {
+                    document.getElementById('resultImage').src = creation.imageUrl;
+                    document.getElementById('resultCard').classList.remove('hidden');
+                    document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
+                }
+            };
+            grid.appendChild(item);
+        });
+    }
+
+    async function deleteCreation(id) {
+        if (!confirm('Delete this creation?')) return;
+        
+        const user = auth.currentUser;
+        if (user) {
+            await db.collection('users').doc(user.uid).collection('creations').doc(String(id)).delete();
+        } else {
+            state.creations = state.creations.filter(c => c.id !== id);
+            localStorage.setItem('creations', JSON.stringify(state.creations));
+            renderGallery();
+        }
+    }
+
+    function downloadImage() {
+        const link = document.createElement('a');
+        link.href = document.getElementById('resultImage').src;
+        link.download = `kid-in-painting-${Date.now()}.png`;
+        link.click();
+    }
+
+    function shareImage() {
+        if (navigator.share) {
+            fetch(document.getElementById('resultImage').src)
+                .then(res => res.blob())
+                .then(blob => {
+                    const file = new File([blob], 'kid-in-painting.png', { type: 'image/png' });
+                    navigator.share({
+                        title: 'Kid Inside Their Painting',
+                        text: 'Check out this magical creation!',
+                        files: [file]
+                    });
+                });
+        } else {
+            alert('📤 Sharing not supported. Use Download instead!');
+        }
+    }
+
+    window.onload = loadData;
+</script>
+```
+
 </body>
 </html>
