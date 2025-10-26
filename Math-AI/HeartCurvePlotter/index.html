@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>💗 Heart Curve Plotter - Interactive Mathematics</title>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #ffffff;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .heart-icon {
+            font-size: 32px;
+            color: #ff6b9d;
+        }
+        
+        h1 {
+            font-size: 32px;
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+        }
+        
+        .equation-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 107, 157, 0.3);
+            margin-top: 15px;
+        }
+        
+        .equation {
+            font-size: 18px;
+            font-family: monospace;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+        
+        .k-value {
+            font-size: 20px;
+            font-family: monospace;
+            color: #ff6b9d;
+            font-weight: bold;
+        }
+        
+        .canvas-container {
+            background: #000000;
+            border-radius: 15px;
+            padding: 10px;
+            border: 2px solid #ff6b9d;
+            box-shadow: 0 0 30px rgba(255, 107, 157, 0.3);
+            margin-bottom: 30px;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 107, 157, 0.3);
+        }
+        
+        h3 {
+            margin: 0 0 20px 0;
+            color: #ff6b9d;
+            font-size: 20px;
+        }
+        
+        .slider-container {
+            margin-bottom: 25px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #c44569, #ff6b9d);
+            outline: none;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 107, 157, 0.5);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(255, 107, 157, 0.5);
+        }
+        
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #888888;
+        }
+        
+        .presets {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+        }
+        
+        .preset-btn {
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 107, 157, 0.3);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .preset-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .preset-btn.active {
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+        }
+        
+        .preset-label {
+            display: block;
+        }
+        
+        .preset-value {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+        
+        .preset-desc {
+            font-size: 10px;
+            opacity: 0.6;
+            margin-top: 2px;
+        }
+        
+        .info-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #3b82f6;
+            border-radius: 5px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #a0aec0;
+        }
+        
+        .info-title {
+            color: #3b82f6;
+            font-weight: bold;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #888888;
+            font-size: 14px;
+        }
+        
+        .footer a {
+            color: #ff6b9d;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 600px) {
+            h1 { font-size: 24px; }
+            .equation { font-size: 16px; }
+            .presets { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <span class="heart-icon">💗</span>
+                <h1>Heart Envelope Curve</h1>
+            </div>
+            
+            <div class="equation-box">
+                <div class="equation">
+                    y = x<sup>2/3</sup> + 0.9 sin(kx) √(3 - x²)
+                </div>
+                <div class="k-value">
+                    k = <span id="kValue">85.87</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Canvas -->
+        <div class="canvas-container">
+            <canvas id="heartCanvas" width="800" height="600"></canvas>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h3>Adjust k Parameter</h3>
+            
+            <div class="slider-container">
+                <input type="range" id="kSlider" min="1" max="250" step="0.1" value="85.87">
+                <div class="slider-labels">
+                    <span>1</span>
+                    <span>250</span>
+                </div>
+            </div>
+
+            <div class="presets" id="presetsContainer"></div>
+
+            <div class="info-box">
+                <span class="info-title">💡 How it works:</span><br>
+                This creates a heart through an "envelope" effect! Vertical lines are drawn from the x-axis 
+                up to y(x). As k increases, sin(kx) oscillates faster. The √(3 - x²) term acts as an envelope 
+                that dampens oscillations at the edges, while x<sup>2/3</sup> creates the characteristic 
+                cusp at the bottom. The full domain is x ∈ [-√3, √3], and together they form a perfect 
+                heart shape at k ≈ 85.87!
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            Created by <a href="https://github.com/HamedGhaneS" target="_blank">Hamed Ghane</a>
+            | Part of <a href="https://github.com/HamedGhaneS/My-AI-Tools" target="_blank">My AI Tools</a>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('heartCanvas');
+        const ctx = canvas.getContext('2d');
+        const kSlider = document.getElementById('kSlider');
+        const kValueDisplay = document.getElementById('kValue');
+        
+        let currentK = 85.87;
+
+        const presets = [
+            { label: 'Very Low', value: 5, desc: 'Few oscillations' },
+            { label: 'Low', value: 20, desc: 'Wave pattern' },
+            { label: 'Medium', value: 50, desc: 'Filling in' },
+            { label: 'Original', value: 85.87, desc: 'Perfect heart!' },
+            { label: 'High', value: 120, desc: 'Very smooth' },
+            { label: 'Very High', value: 200, desc: 'Ultra smooth' }
+        ];
+
+        // Heart equation
+        function heartEquation(x, k) {
+            if (x * x > 3) return null;
+            
+            const term1 = Math.pow(Math.abs(x), 2/3);
+            const term2 = 0.9 * Math.sin(k * x) * Math.sqrt(3 - x * x);
+            
+            return term1 + term2;
+        }
+
+        // Draw the heart
+        function drawHeart() {
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Clear canvas
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Setup coordinate system
+            const scale = 120;
+            const originX = width / 2;
+            const originY = height / 2 - 50;
+            
+            // Draw grid
+            ctx.strokeStyle = '#222222';
+            ctx.lineWidth = 1;
+            
+            // Vertical grid lines
+            for (let x = -2; x <= 2; x += 0.5) {
+                const canvasX = originX + x * scale;
+                ctx.beginPath();
+                ctx.moveTo(canvasX, 0);
+                ctx.lineTo(canvasX, height);
+                ctx.stroke();
+            }
+            
+            // Horizontal grid lines
+            for (let y = -2; y <= 3; y += 0.5) {
+                const canvasY = originY - y * scale;
+                ctx.beginPath();
+                ctx.moveTo(0, canvasY);
+                ctx.lineTo(width, canvasY);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#444444';
+            ctx.lineWidth = 2;
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(0, originY);
+            ctx.lineTo(width, originY);
+            ctx.stroke();
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(originX, 0);
+            ctx.lineTo(originX, height);
+            ctx.stroke();
+            
+            // Draw vertical lines (envelope)
+            ctx.strokeStyle = '#ff6b9d';
+            ctx.lineWidth = 2;
+            
+            const lineSpacing = 4;
+            
+            for (let canvasX = 0; canvasX <= width; canvasX += lineSpacing) {
+                const x = (canvasX - originX) / scale;
+                const y = heartEquation(x, currentK);
+                
+                if (y !== null && !isNaN(y)) {
+                    const canvasY = originY - y * scale;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(canvasX, originY);
+                    ctx.lineTo(canvasX, canvasY);
+                    ctx.stroke();
+                }
+            }
+            
+            // Draw outline with glow
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#ff6b9d';
+            ctx.strokeStyle = '#ffaac8';
+            ctx.lineWidth = 1;
+            
+            ctx.beginPath();
+            let firstPoint = true;
+            const step = 0.005;
+            
+            for (let x = -1.73; x <= 1.73; x += step) {
+                const y = heartEquation(x, currentK);
+                
+                if (y !== null && !isNaN(y)) {
+                    const canvasX = originX + x * scale;
+                    const canvasY = originY - y * scale;
+                    
+                    if (firstPoint) {
+                        ctx.moveTo(canvasX, canvasY);
+                        firstPoint = false;
+                    } else {
+                        ctx.lineTo(canvasX, canvasY);
+                    }
+                }
+            }
+            
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            
+            // Draw origin point
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(originX, originY, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Update k value
+        function updateK(newK) {
+            currentK = newK;
+            kValueDisplay.textContent = newK.toFixed(2);
+            kSlider.value = newK;
+            drawHeart();
+            updateActivePreset();
+        }
+
+        // Update active preset button
+        function updateActivePreset() {
+            document.querySelectorAll('.preset-btn').forEach((btn, index) => {
+                if (Math.abs(currentK - presets[index].value) < 0.1) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // Create preset buttons
+        function createPresets() {
+            const container = document.getElementById('presetsContainer');
+            
+            presets.forEach(preset => {
+                const btn = document.createElement('button');
+                btn.className = 'preset-btn';
+                btn.innerHTML = `
+                    <span class="preset-label">${preset.label}</span>
+                    <div class="preset-value">k = ${preset.value}</div>
+                    <div class="preset-desc">${preset.desc}</div>
+                `;
+                btn.onclick = () => updateK(preset.value);
+                container.appendChild(btn);
+            });
+        }
+
+        // Event listeners
+        kSlider.addEventListener('input', (e) => {
+            updateK(parseFloat(e.target.value));
+        });
+
+        // Initialize
+        createPresets();
+        drawHeart();
+        updateActivePreset();
+    </script>
+</body>
+</html>
