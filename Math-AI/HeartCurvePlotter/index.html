@@ -70,6 +70,13 @@
             font-family: monospace;
             color: #ff6b9d;
             font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        
+        .k-value.updating {
+            color: #ffaac8;
+            text-shadow: 0 0 20px rgba(255, 107, 157, 0.8);
+            transform: scale(1.1);
         }
         
         .canvas-container {
@@ -124,6 +131,17 @@
             background: #ffffff;
             cursor: pointer;
             box-shadow: 0 0 10px rgba(255, 107, 157, 0.5);
+            transition: all 0.2s ease;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px rgba(255, 107, 157, 0.8);
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:active {
+            transform: scale(1.3);
+            box-shadow: 0 0 25px rgba(255, 107, 157, 1);
         }
         
         input[type="range"]::-moz-range-thumb {
@@ -134,6 +152,17 @@
             cursor: pointer;
             border: none;
             box-shadow: 0 0 10px rgba(255, 107, 157, 0.5);
+            transition: all 0.2s ease;
+        }
+        
+        input[type="range"]::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px rgba(255, 107, 157, 0.8);
+        }
+        
+        input[type="range"]::-moz-range-thumb:active {
+            transform: scale(1.3);
+            box-shadow: 0 0 25px rgba(255, 107, 157, 1);
         }
         
         .slider-labels {
@@ -248,7 +277,7 @@
 
         <!-- Canvas -->
         <div class="canvas-container">
-            <canvas id="heartCanvas" width="800" height="600"></canvas>
+            <canvas id="heartCanvas" width="800" height="800"></canvas>
         </div>
 
         <!-- Controls -->
@@ -321,7 +350,7 @@
             // Setup coordinate system
             const scale = 120;
             const originX = width / 2;
-            const originY = height / 2 - 50;
+            const originY = height / 2 + 80; // Adjusted for 800px canvas to show full heart
             
             // Draw grid
             ctx.strokeStyle = '#222222';
@@ -337,7 +366,7 @@
             }
             
             // Horizontal grid lines
-            for (let y = -2; y <= 3; y += 0.5) {
+            for (let y = -2; y <= 4; y += 0.5) {
                 const canvasY = originY - y * scale;
                 ctx.beginPath();
                 ctx.moveTo(0, canvasY);
@@ -455,7 +484,46 @@
         }
 
         // Event listeners
+        let rafId = null;
+        let isSliding = false;
+        
+        kSlider.addEventListener('mousedown', () => {
+            isSliding = true;
+            kValueDisplay.classList.add('updating');
+        });
+        
+        kSlider.addEventListener('mouseup', () => {
+            isSliding = false;
+            kValueDisplay.classList.remove('updating');
+        });
+        
+        kSlider.addEventListener('touchstart', () => {
+            isSliding = true;
+            kValueDisplay.classList.add('updating');
+        });
+        
+        kSlider.addEventListener('touchend', () => {
+            isSliding = false;
+            kValueDisplay.classList.remove('updating');
+        });
+        
         kSlider.addEventListener('input', (e) => {
+            const newK = parseFloat(e.target.value);
+            currentK = newK;
+            kValueDisplay.textContent = newK.toFixed(2);
+            
+            // Use requestAnimationFrame for smooth updates
+            if (rafId) {
+                cancelAnimationFrame(rafId);
+            }
+            rafId = requestAnimationFrame(() => {
+                drawHeart();
+                updateActivePreset();
+            });
+        });
+        
+        // Also update on change (when slider is released)
+        kSlider.addEventListener('change', (e) => {
             updateK(parseFloat(e.target.value));
         });
 
