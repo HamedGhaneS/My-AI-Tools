@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌀 Strange Attractors - Infinite Trajectory</title>
+    <title>🎬 Cinematic Strange Attractors</title>
     <style>
         * {
             margin: 0;
@@ -105,6 +105,10 @@
             cursor: pointer;
         }
 
+        input[type="number"] {
+            width: 100%;
+        }
+
         input[type="checkbox"] {
             width: 20px;
             height: 20px;
@@ -161,16 +165,8 @@
             background: linear-gradient(135deg, #10b981, #059669);
         }
 
-        .btn-export:hover {
-            background: linear-gradient(135deg, #059669, #047857);
-        }
-
         .btn-record {
             background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
-
-        .btn-record:hover {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
         }
 
         .btn-record.recording {
@@ -237,16 +233,16 @@
 
         .recording-overlay {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.95);
-            padding: 30px 40px;
-            border-radius: 12px;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px 20px;
+            border-radius: 10px;
             border: 2px solid #ef4444;
             text-align: center;
             display: none;
             z-index: 1000;
+            min-width: 280px;
         }
 
         .recording-overlay.active {
@@ -254,21 +250,21 @@
         }
 
         .recording-dot {
-            width: 20px;
-            height: 20px;
+            width: 12px;
+            height: 12px;
             background: #ef4444;
             border-radius: 50%;
             display: inline-block;
-            margin-right: 10px;
+            margin-right: 8px;
             animation: pulse 1s infinite;
         }
 
         .progress-bar {
-            width: 300px;
-            height: 8px;
+            width: 240px;
+            height: 6px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            margin: 15px auto;
+            border-radius: 3px;
+            margin: 10px auto;
             overflow: hidden;
         }
 
@@ -314,27 +310,19 @@
             border-radius: 4px;
         }
 
-        .info-text.warning {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            color: #f59e0b;
-        }
-
         .info-text.success {
             background: rgba(16, 185, 129, 0.1);
             border: 1px solid rgba(16, 185, 129, 0.3);
             color: #10b981;
         }
 
-        .infinity-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            background: rgba(139, 92, 246, 0.2);
-            border: 1px solid #8b5cf6;
-            border-radius: 4px;
+        .camera-preview {
             font-size: 10px;
-            color: #8b5cf6;
-            margin-left: 8px;
+            color: #888;
+            margin-top: 5px;
+            padding: 5px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -343,58 +331,39 @@
         <div id="canvas-container">
             <canvas id="renderCanvas"></canvas>
             <div id="info-overlay">
-                <h2>🌀 Strange Attractors</h2>
+                <h2>🎬 Cinematic Attractors</h2>
                 <p><strong>Current:</strong> <span id="current-attractor">Lorenz</span></p>
                 <p style="margin-top: 4px; font-size: 10px; color: #888;">
-                    <span id="mode-display">Infinite Mode</span>
+                    <span id="camera-mode">Manual Control</span>
                 </p>
             </div>
             <div class="stats">
                 <strong>FPS:</strong> <span id="fps">60</span> | 
                 <strong>Points:</strong> <span id="point-count">0</span>
-                <span id="max-display"></span>
             </div>
             <div class="recording-overlay" id="recordingOverlay">
                 <div>
                     <span class="recording-dot"></span>
-                    <span style="font-size: 18px; font-weight: bold; color: #ef4444;">RECORDING</span>
+                    <span style="font-size: 14px; font-weight: bold; color: #ef4444;">REC</span>
                 </div>
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
-                <p style="color: #aaa; margin-top: 10px; font-size: 14px;">
+                <p style="color: #aaa; margin-top: 8px; font-size: 12px;">
                     <span id="recordingTime">0.0s</span> / <span id="totalTime">10s</span>
                 </p>
-                <p style="color: #888; font-size: 11px; margin-top: 5px;">
-                    <span id="recordingStatus">Capturing frames...</span>
+                <p style="color: #888; font-size: 10px; margin-top: 3px;">
+                    <span id="recordingStatus">Recording...</span>
+                </p>
+                <p style="color: #10b981; font-size: 9px; margin-top: 5px;">
+                    📹 <span id="cameraAction">Cinematic mode active</span>
                 </p>
             </div>
         </div>
 
         <div id="controls">
-            <h1>🌀 Infinite Trajectory</h1>
-            <p class="subtitle">Draw forever + Fast WebM export</p>
-
-            <div class="control-group">
-                <h3>∞ Trajectory Mode</h3>
-                
-                <div class="checkbox-row">
-                    <input type="checkbox" id="infiniteMode" checked onchange="toggleInfiniteMode()">
-                    <label for="infiniteMode">
-                        <strong>Infinite Drawing Mode</strong>
-                        <span class="infinity-badge">∞</span>
-                    </label>
-                </div>
-
-                <div id="limitControls" style="display: none;">
-                    <label>Max Points <span class="value-display" id="maxPointsValue">10000</span></label>
-                    <input type="range" id="maxPoints" min="1000" max="50000" value="10000" step="1000" oninput="updateMaxPoints()">
-                </div>
-
-                <p class="info-text success" id="infiniteInfo">
-                    ✨ Trajectory will continue drawing indefinitely until you clear it!
-                </p>
-            </div>
+            <h1>🎬 Cinematic Mode</h1>
+            <p class="subtitle">Professional camera movements + smooth rendering</p>
 
             <div class="control-group">
                 <h3>🎯 Attractor System</h3>
@@ -425,16 +394,20 @@
             </div>
 
             <div class="control-group">
-                <h3>🎨 Visual Style</h3>
+                <h3>🎨 Visual Quality</h3>
                 
+                <label>Render Quality</label>
+                <select id="renderQuality" onchange="updateRenderQuality()">
+                    <option value="1">Standard (Fast)</option>
+                    <option value="2" selected>High (Smooth)</option>
+                    <option value="3">Ultra (Best for recording)</option>
+                </select>
+
                 <label>Line Width <span class="value-display" id="widthValue">2</span></label>
                 <input type="range" id="lineWidth" min="1" max="6" value="2" step="0.5" oninput="updateLineWidth()">
 
                 <label>Speed <span class="value-display" id="speedValue">1.0x</span></label>
-                <input type="range" id="speed" min="0.2" max="5" value="1" step="0.2" oninput="updateSpeed()">
-
-                <label>Rotation Speed <span class="value-display" id="rotSpeedValue">0.5</span></label>
-                <input type="range" id="rotSpeed" min="0" max="2" value="0.5" step="0.1" oninput="updateRotSpeed()">
+                <input type="range" id="speed" min="0.5" max="3" value="1" step="0.1" oninput="updateSpeed()">
             </div>
 
             <div class="control-group">
@@ -454,50 +427,66 @@
                 <label>Color 2</label>
                 <input type="color" id="color2" value="#ff00ff" oninput="updateColors()">
 
-                <label>Brightness <span class="value-display" id="brightnessValue">1.0</span></label>
-                <input type="range" id="brightness" min="0.3" max="2" value="1" step="0.1" oninput="updateBrightness()">
+                <label>Brightness <span class="value-display" id="brightnessValue">1.2</span></label>
+                <input type="range" id="brightness" min="0.5" max="2" value="1.2" step="0.1" oninput="updateBrightness()">
             </div>
 
             <div class="control-group">
-                <h3>🎬 Animation Controls</h3>
-                <button onclick="toggleAutoRotate()">🔄 Toggle Auto-Rotate</button>
+                <h3>🎬 Manual Camera</h3>
+                <button id="autoRotateBtn" onclick="toggleAutoRotate()">
+                    🔄 Auto-Rotate: <span id="rotateStatus">OFF</span>
+                </button>
                 <button class="btn-clear" onclick="resetView()">📷 Reset Camera</button>
                 <button class="btn-clear" onclick="clearTrajectory()">🗑️ Clear Trajectory</button>
             </div>
 
             <div class="control-group">
-                <h3>🎥 Record Video (WebM)</h3>
+                <h3>🎥 Record Cinematic Video</h3>
+                
+                <label>Camera Movement</label>
+                <select id="cameraMovement">
+                    <option value="orbit">🔄 Orbit Around (Classic)</option>
+                    <option value="zoomInOut" selected>🔍 Zoom In & Out (Dramatic)</option>
+                    <option value="spiral">🌀 Spiral Motion (Dynamic)</option>
+                    <option value="flyby">✈️ Fly-By (Action)</option>
+                    <option value="reveal">🎭 Slow Reveal (Cinematic)</option>
+                    <option value="dance">💃 Camera Dance (Creative)</option>
+                </select>
+                <p class="camera-preview" id="cameraPreview">
+                    Starts close, zooms out to show full attractor, then zooms back in
+                </p>
                 
                 <label>Duration (seconds)</label>
-                <input type="number" id="recordDuration" value="10" min="1" max="120" step="1">
+                <input type="number" id="recordDuration" value="15" min="5" max="120" step="5">
                 
-                <label>Frame Rate</label>
-                <select id="recordFPS">
-                    <option value="30" selected>30 FPS (Recommended)</option>
-                    <option value="60">60 FPS (Smooth)</option>
+                <label>Video Quality</label>
+                <select id="videoQuality">
+                    <option value="high">High Quality (30 FPS, 8 Mbps)</option>
+                    <option value="ultra" selected>Ultra Quality (60 FPS, 12 Mbps)</option>
                 </select>
 
                 <label>Resolution</label>
                 <select id="recordResolution">
-                    <option value="720">720p (Fast)</option>
-                    <option value="1080" selected>1080p (HD)</option>
+                    <option value="720">720p (1280x720)</option>
+                    <option value="1080" selected>1080p (1920x1080)</option>
+                    <option value="1440">1440p (2560x1440)</option>
                 </select>
 
                 <button class="btn-record" id="recordBtn" onclick="toggleRecording()">
-                    🎥 START RECORDING
+                    🎥 START CINEMATIC RECORDING
                 </button>
 
-                <p class="info-text">
-                    🚀 WebM format = 10x faster than GIF!
-                    <br>Records evolution from initial conditions.
+                <p class="info-text success">
+                    ✨ Auto-framed with professional camera movements!
+                    <br>🎬 Shows full evolution from start to filled attractor
                 </p>
             </div>
 
             <div class="control-group">
                 <h3>📤 Export Image</h3>
-                <button class="btn-export" onclick="exportImage(1080, 1080)">📷 Square (1080x1080)</button>
-                <button class="btn-export" onclick="exportImage(1920, 1080)">🎬 Wide (1920x1080)</button>
-                <button class="btn-export" onclick="exportImage(3840, 2160)">🖼️ 4K (3840x2160)</button>
+                <button class="btn-export" onclick="exportImage(1080, 1080)">📷 Square</button>
+                <button class="btn-export" onclick="exportImage(1920, 1080)">🎬 Wide</button>
+                <button class="btn-export" onclick="exportImage(3840, 2160)">🖼️ 4K</button>
             </div>
         </div>
     </div>
@@ -510,37 +499,38 @@
         let rotationSpeed = 0.005;
         let currentAttractor = 'lorenz';
         let simulationSpeed = 1.0;
-        let infiniteMode = true;
-        let maxPoints = 10000;
+        let renderQuality = 2;
         let points = [];
         let lineWidth = 2;
-
-        // Current position
         let x = 0.1, y = 0, z = 0;
 
         // Color settings
         let colorMode = 'gradient';
         let color1 = new THREE.Color(0x00d4ff);
         let color2 = new THREE.Color(0xff00ff);
-        let brightness = 1.0;
+        let brightness = 1.2;
 
         // Recording state
         let isRecording = false;
         let mediaRecorder = null;
         let recordedChunks = [];
         let recordingStartTime = 0;
-        let recordingDuration = 10;
+        let recordingDuration = 15;
         let stream = null;
+        let cameraMovement = 'zoomInOut';
+        let cinematicMode = false;
+        let targetPoints = 0;
+
+        // Camera animation
+        let cameraPath = [];
+        let cameraAnimationProgress = 0;
 
         // Attractor parameters
         const attractors = {
             lorenz: {
                 step: (x, y, z, dt) => {
                     const sigma = 10, rho = 28, beta = 8/3;
-                    const dx = sigma * (y - x) * dt;
-                    const dy = (x * (rho - z) - y) * dt;
-                    const dz = (x * y - beta * z) * dt;
-                    return [x + dx, y + dy, z + dz];
+                    return [x + sigma * (y - x) * dt, y + (x * (rho - z) - y) * dt, z + (x * y - beta * z) * dt];
                 },
                 scale: 0.03,
                 init: [0.1, 0, 0]
@@ -548,10 +538,7 @@
             rossler: {
                 step: (x, y, z, dt) => {
                     const a = 0.2, b = 0.2, c = 5.7;
-                    const dx = (-y - z) * dt;
-                    const dy = (x + a * y) * dt;
-                    const dz = (b + z * (x - c)) * dt;
-                    return [x + dx, y + dy, z + dz];
+                    return [x + (-y - z) * dt, y + (x + a * y) * dt, z + (b + z * (x - c)) * dt];
                 },
                 scale: 0.05,
                 init: [0.1, 0, 0]
@@ -559,10 +546,11 @@
             aizawa: {
                 step: (x, y, z, dt) => {
                     const a = 0.95, b = 0.7, c = 0.6, d = 3.5, e = 0.25, f = 0.1;
-                    const dx = ((z - b) * x - d * y) * dt;
-                    const dy = (d * x + (z - b) * y) * dt;
-                    const dz = (c + a * z - z*z*z/3 - (x*x + y*y) * (1 + e * z) + f * z * x*x*x) * dt;
-                    return [x + dx, y + dy, z + dz];
+                    return [
+                        x + ((z - b) * x - d * y) * dt,
+                        y + (d * x + (z - b) * y) * dt,
+                        z + (c + a * z - z*z*z/3 - (x*x + y*y) * (1 + e * z) + f * z * x*x*x) * dt
+                    ];
                 },
                 scale: 0.2,
                 init: [0.1, 0, 0.1]
@@ -570,10 +558,7 @@
             thomas: {
                 step: (x, y, z, dt) => {
                     const b = 0.208186;
-                    const dx = (Math.sin(y) - b * x) * dt;
-                    const dy = (Math.sin(z) - b * y) * dt;
-                    const dz = (Math.sin(x) - b * z) * dt;
-                    return [x + dx, y + dy, z + dz];
+                    return [x + (Math.sin(y) - b * x) * dt, y + (Math.sin(z) - b * y) * dt, z + (Math.sin(x) - b * z) * dt];
                 },
                 scale: 0.15,
                 init: [1, 1, 1]
@@ -581,10 +566,11 @@
             halvorsen: {
                 step: (x, y, z, dt) => {
                     const a = 1.89;
-                    const dx = (-a * x - 4 * y - 4 * z - y * y) * dt;
-                    const dy = (-a * y - 4 * z - 4 * x - z * z) * dt;
-                    const dz = (-a * z - 4 * x - 4 * y - x * x) * dt;
-                    return [x + dx, y + dy, z + dz];
+                    return [
+                        x + (-a * x - 4 * y - 4 * z - y * y) * dt,
+                        y + (-a * y - 4 * z - 4 * x - z * z) * dt,
+                        z + (-a * z - 4 * x - 4 * y - x * x) * dt
+                    ];
                 },
                 scale: 0.08,
                 init: [1, 0, 0]
@@ -592,10 +578,7 @@
             dadras: {
                 step: (x, y, z, dt) => {
                     const a = 3, b = 2.7, c = 1.7, d = 2, e = 9;
-                    const dx = (y - a * x + b * y * z) * dt;
-                    const dy = (c * y - x * z + z) * dt;
-                    const dz = (d * x * y - e * z) * dt;
-                    return [x + dx, y + dy, z + dz];
+                    return [x + (y - a * x + b * y * z) * dt, y + (c * y - x * z + z) * dt, z + (d * x * y - e * z) * dt];
                 },
                 scale: 0.15,
                 init: [1, 1, 1]
@@ -603,10 +586,7 @@
             chen: {
                 step: (x, y, z, dt) => {
                     const a = 5, b = -10, c = -0.38;
-                    const dx = (a * x - y * z) * dt;
-                    const dy = (b * y + x * z) * dt;
-                    const dz = (c * z + x * y / 3) * dt;
-                    return [x + dx, y + dy, z + dz];
+                    return [x + (a * x - y * z) * dt, y + (b * y + x * z) * dt, z + (c * z + x * y / 3) * dt];
                 },
                 scale: 0.05,
                 init: [1, 1, 1]
@@ -614,17 +594,29 @@
             arneodo: {
                 step: (x, y, z, dt) => {
                     const a = -5.5, b = 3.5, c = -1;
-                    const dx = y * dt;
-                    const dy = z * dt;
-                    const dz = (-a * x - b * y - z + c * x*x*x) * dt;
-                    return [x + dx, y + dy, z + dz];
+                    return [x + y * dt, y + z * dt, z + (-a * x - b * y - z + c * x*x*x) * dt];
                 },
                 scale: 0.08,
                 init: [0.1, 0, 0]
             }
         };
 
-        // Initialize
+        // Camera movement descriptions
+        const cameraDescriptions = {
+            orbit: "Smooth 360° orbit around the attractor at constant distance",
+            zoomInOut: "Starts close, zooms out to show full attractor, then zooms back in",
+            spiral: "Spirals around while gradually changing height and distance",
+            flyby: "Fast dynamic fly-by from multiple angles like action cinematography",
+            reveal: "Slow dramatic reveal from darkness, pulling back to show full beauty",
+            dance: "Fluid S-curve movements with varying speeds for artistic effect"
+        };
+
+        // Update camera preview
+        document.getElementById('cameraMovement').addEventListener('change', function() {
+            const movement = this.value;
+            document.getElementById('cameraPreview').textContent = cameraDescriptions[movement];
+        });
+
         function init() {
             const canvas = document.getElementById('renderCanvas');
             const container = document.getElementById('canvas-container');
@@ -632,12 +624,7 @@
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x000000);
 
-            camera = new THREE.PerspectiveCamera(
-                60,
-                container.clientWidth / container.clientHeight,
-                0.1,
-                100
-            );
+            camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 100);
             camera.position.set(0, 0, 5);
 
             renderer = new THREE.WebGLRenderer({ 
@@ -661,8 +648,7 @@
         }
 
         function createLine() {
-            // Start with a reasonable buffer size that grows as needed
-            const initialSize = infiniteMode ? 50000 : maxPoints;
+            const initialSize = 100000;
             
             const geometry = new THREE.BufferGeometry();
             const positions = new Float32Array(initialSize * 3);
@@ -688,72 +674,52 @@
             scene.add(line);
         }
 
-        function expandBuffers() {
-            // Double the buffer size when needed
-            const currentSize = line.geometry.attributes.position.count;
-            const newSize = currentSize * 2;
-            
-            const oldPositions = line.geometry.attributes.position.array;
-            const oldColors = line.geometry.attributes.color.array;
-            
-            const newPositions = new Float32Array(newSize * 3);
-            const newColors = new Float32Array(newSize * 3);
-            
-            // Copy old data
-            newPositions.set(oldPositions);
-            newColors.set(oldColors);
-            
-            line.geometry.setAttribute('position', new THREE.BufferAttribute(newPositions, 3));
-            line.geometry.setAttribute('color', new THREE.BufferAttribute(newColors, 3));
-        }
-
         function updateAttractor() {
-            // Check if we need to stop (limited mode only)
-            if (!infiniteMode && points.length >= maxPoints) return;
-
-            // Expand buffers if needed (infinite mode)
-            if (infiniteMode && points.length >= line.geometry.attributes.position.count - 100) {
-                expandBuffers();
+            // Stop if reached target during recording
+            if (isRecording && points.length >= targetPoints) {
+                return;
             }
 
             const attractor = attractors[currentAttractor];
             const dt = 0.005 * simulationSpeed;
             
-            const [newX, newY, newZ] = attractor.step(x, y, z, dt);
-            
-            if (!isFinite(newX) || !isFinite(newY) || !isFinite(newZ)) {
-                return;
-            }
-            
-            x = newX;
-            y = newY;
-            z = newZ;
+            // Multiple steps per frame for smoothness
+            for (let i = 0; i < renderQuality; i++) {
+                const [newX, newY, newZ] = attractor.step(x, y, z, dt);
+                
+                if (!isFinite(newX) || !isFinite(newY) || !isFinite(newZ)) continue;
+                
+                x = newX;
+                y = newY;
+                z = newZ;
 
-            const scaledPoint = new THREE.Vector3(
-                x * attractor.scale,
-                y * attractor.scale,
-                z * attractor.scale
-            );
-            
-            points.push(scaledPoint);
+                const scaledPoint = new THREE.Vector3(
+                    x * attractor.scale,
+                    y * attractor.scale,
+                    z * attractor.scale
+                );
+                
+                points.push(scaledPoint);
+            }
+
             document.getElementById('point-count').textContent = points.length.toLocaleString();
 
             // Update geometry
             const positions = line.geometry.attributes.position.array;
             const colorArray = line.geometry.attributes.color.array;
             
-            const idx = points.length - 1;
-            const point = points[idx];
-            
-            positions[idx * 3] = point.x;
-            positions[idx * 3 + 1] = point.y;
-            positions[idx * 3 + 2] = point.z;
+            for (let i = Math.max(0, points.length - renderQuality * 10); i < points.length; i++) {
+                const point = points[i];
+                positions[i * 3] = point.x;
+                positions[i * 3 + 1] = point.y;
+                positions[i * 3 + 2] = point.z;
 
-            const t = idx / Math.max(points.length - 1, 1);
-            const color = getColor(point, t);
-            colorArray[idx * 3] = color.r;
-            colorArray[idx * 3 + 1] = color.g;
-            colorArray[idx * 3 + 2] = color.b;
+                const t = i / Math.max(points.length - 1, 1);
+                const color = getColor(point, t);
+                colorArray[i * 3] = color.r;
+                colorArray[i * 3 + 1] = color.g;
+                colorArray[i * 3 + 2] = color.b;
+            }
 
             line.geometry.setDrawRange(0, points.length);
             line.geometry.attributes.position.needsUpdate = true;
@@ -769,16 +735,12 @@
                     const normalized = Math.min(mag * 2, 1);
                     color.lerpColors(color1, color2, normalized);
                     break;
-
                 case 'rainbow':
-                    const hue = t;
-                    color.setHSL(hue, 1, 0.5);
+                    color.setHSL(t, 1, 0.5);
                     break;
-
                 case 'single':
                     color.copy(color1);
                     break;
-
                 case 'dual':
                     color.lerpColors(color1, color2, t);
                     break;
@@ -788,18 +750,172 @@
             return color;
         }
 
+        // Generate camera path based on movement type
+        function generateCameraPath(movement, duration) {
+            const steps = Math.floor(duration * 60); // 60 fps
+            const path = [];
+            
+            switch(movement) {
+                case 'orbit':
+                    for (let i = 0; i < steps; i++) {
+                        const t = i / steps;
+                        const angle = t * Math.PI * 2;
+                        const radius = 5;
+                        path.push({
+                            position: new THREE.Vector3(
+                                Math.cos(angle) * radius,
+                                Math.sin(angle * 0.5) * 2,
+                                Math.sin(angle) * radius
+                            ),
+                            lookAt: new THREE.Vector3(0, 0, 0)
+                        });
+                    }
+                    break;
+
+                case 'zoomInOut':
+                    for (let i = 0; i < steps; i++) {
+                        const t = i / steps;
+                        let distance;
+                        if (t < 0.3) {
+                            distance = 2 + t * 10; // Zoom out
+                        } else if (t < 0.7) {
+                            distance = 5 + Math.sin((t - 0.3) * Math.PI * 2) * 3; // Orbit
+                        } else {
+                            distance = 8 - (t - 0.7) * 15; // Zoom in
+                        }
+                        const angle = t * Math.PI * 1.5;
+                        path.push({
+                            position: new THREE.Vector3(
+                                Math.cos(angle) * distance,
+                                Math.sin(t * Math.PI) * 2,
+                                Math.sin(angle) * distance
+                            ),
+                            lookAt: new THREE.Vector3(0, 0, 0)
+                        });
+                    }
+                    break;
+
+                case 'spiral':
+                    for (let i = 0; i < steps; i++) {
+                        const t = i / steps;
+                        const angle = t * Math.PI * 4;
+                        const radius = 3 + Math.sin(t * Math.PI * 2) * 2;
+                        const height = Math.cos(t * Math.PI * 2) * 3;
+                        path.push({
+                            position: new THREE.Vector3(
+                                Math.cos(angle) * radius,
+                                height,
+                                Math.sin(angle) * radius
+                            ),
+                            lookAt: new THREE.Vector3(0, 0, 0)
+                        });
+                    }
+                    break;
+
+                case 'flyby':
+                    for (let i = 0; i < steps; i++) {
+                        const t = i / steps;
+                        const angle = t * Math.PI * 3;
+                        const radius = 3 + Math.abs(Math.sin(t * Math.PI * 4)) * 4;
+                        const height = Math.sin(t * Math.PI * 6) * 3;
+                        path.push({
+                            position: new THREE.Vector3(
+                                Math.cos(angle) * radius,
+                                height,
+                                Math.sin(angle) * radius
+                            ),
+                            lookAt: new THREE.Vector3(0, 0, 0)
+                        });
+                    }
+                    break;
+
+                case 'reveal':
+                    for (let i = 0; i < steps; i++) {
+                        const t = i / steps;
+                        const easeT = t * t * (3 - 2 * t); // Smooth ease
+                        const distance = 1 + easeT * 7;
+                        const angle = easeT * Math.PI * 0.5;
+                        path.push({
+                            position: new THREE.Vector3(
+                                Math.cos(angle) * distance,
+                                easeT * 2,
+                                Math.sin(angle) * distance
+                            ),
+                            lookAt: new THREE.Vector3(0, 0, 0)
+                        });
+                    }
+                    break;
+
+                case 'dance':
+                    for (let i = 0; i < steps; i++) {
+                        const t = i / steps;
+                        const angle1 = Math.sin(t * Math.PI * 3) * Math.PI;
+                        const angle2 = Math.cos(t * Math.PI * 2) * Math.PI;
+                        const radius = 4 + Math.sin(t * Math.PI * 4) * 2;
+                        path.push({
+                            position: new THREE.Vector3(
+                                Math.cos(angle1) * radius,
+                                Math.sin(angle2) * 2,
+                                Math.sin(angle1) * radius
+                            ),
+                            lookAt: new THREE.Vector3(0, 0, 0)
+                        });
+                    }
+                    break;
+            }
+            
+            return path;
+        }
+
+        function updateCinematicCamera() {
+            if (!cinematicMode || cameraPath.length === 0) return;
+
+            const index = Math.floor(cameraAnimationProgress);
+            const nextIndex = Math.min(index + 1, cameraPath.length - 1);
+            const t = cameraAnimationProgress - index;
+
+            // Smooth interpolation
+            const current = cameraPath[index];
+            const next = cameraPath[nextIndex];
+
+            camera.position.lerpVectors(current.position, next.position, t);
+            
+            const lookAtCurrent = current.lookAt;
+            const lookAtNext = next.lookAt;
+            const lookAtInterpolated = new THREE.Vector3().lerpVectors(lookAtCurrent, lookAtNext, t);
+            camera.lookAt(lookAtInterpolated);
+
+            // Advance animation
+            const recordedTime = (performance.now() - recordingStartTime) / 1000;
+            const progressFraction = recordedTime / recordingDuration;
+            cameraAnimationProgress = progressFraction * (cameraPath.length - 1);
+
+            // Update status
+            const movements = {
+                orbit: 'Orbiting',
+                zoomInOut: progressFraction < 0.3 ? 'Zooming out' : progressFraction < 0.7 ? 'Orbiting' : 'Zooming in',
+                spiral: 'Spiraling',
+                flyby: 'Flying by',
+                reveal: 'Revealing',
+                dance: 'Dancing'
+            };
+            document.getElementById('cameraAction').textContent = movements[cameraMovement] || 'Moving';
+        }
+
         function setupControls() {
             const canvas = renderer.domElement;
             let isDragging = false;
             let previousMouse = { x: 0, y: 0 };
 
             canvas.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                previousMouse = { x: e.clientX, y: e.clientY };
+                if (!cinematicMode) {
+                    isDragging = true;
+                    previousMouse = { x: e.clientX, y: e.clientY };
+                }
             });
 
             canvas.addEventListener('mousemove', (e) => {
-                if (isDragging) {
+                if (isDragging && !cinematicMode) {
                     const deltaX = e.clientX - previousMouse.x;
                     const deltaY = e.clientY - previousMouse.y;
 
@@ -823,34 +939,16 @@
             canvas.addEventListener('mouseleave', () => isDragging = false);
 
             canvas.addEventListener('wheel', (e) => {
-                e.preventDefault();
-                const delta = e.deltaY * 0.001;
-                const direction = camera.position.clone().normalize();
-                camera.position.addScaledVector(direction, delta);
-                camera.position.clampLength(2, 20);
-            });
-
-            // Touch support
-            let touchStart = null;
-            canvas.addEventListener('touchstart', (e) => {
-                touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-            });
-
-            canvas.addEventListener('touchmove', (e) => {
-                if (touchStart) {
-                    const deltaX = e.touches[0].clientX - touchStart.x;
-                    const rotMatrix = new THREE.Matrix4();
-                    rotMatrix.makeRotationY(deltaX * 0.005);
-                    camera.position.applyMatrix4(rotMatrix);
-                    camera.lookAt(0, 0, 0);
-                    touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                if (!cinematicMode) {
+                    e.preventDefault();
+                    const delta = e.deltaY * 0.001;
+                    const direction = camera.position.clone().normalize();
+                    camera.position.addScaledVector(direction, delta);
+                    camera.position.clampLength(1.5, 20);
                 }
             });
-
-            canvas.addEventListener('touchend', () => touchStart = null);
         }
 
-        // Animation loop
         let lastTime = performance.now();
         let frameCount = 0;
         let fps = 60;
@@ -858,12 +956,12 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            const stepsPerFrame = Math.max(1, Math.floor(simulationSpeed * 3));
-            for (let i = 0; i < stepsPerFrame; i++) {
-                updateAttractor();
-            }
+            updateAttractor();
 
-            if (autoRotate) {
+            // Camera control
+            if (cinematicMode) {
+                updateCinematicCamera();
+            } else if (autoRotate) {
                 const rotMatrix = new THREE.Matrix4();
                 rotMatrix.makeRotationY(rotationSpeed);
                 camera.position.applyMatrix4(rotMatrix);
@@ -872,7 +970,7 @@
 
             renderer.render(scene, camera);
 
-            // Update recording time
+            // Update recording progress
             if (isRecording) {
                 const elapsed = (performance.now() - recordingStartTime) / 1000;
                 document.getElementById('recordingTime').textContent = elapsed.toFixed(1) + 's';
@@ -890,7 +988,6 @@
             }
         }
 
-        // Recording functions using MediaRecorder (WebM)
         function toggleRecording() {
             if (isRecording) {
                 stopRecording();
@@ -903,30 +1000,52 @@
             clearTrajectory();
             
             recordingDuration = parseInt(document.getElementById('recordDuration').value);
-            const fps = parseInt(document.getElementById('recordFPS').value);
+            cameraMovement = document.getElementById('cameraMovement').value;
+            const quality = document.getElementById('videoQuality').value;
             const resolution = parseInt(document.getElementById('recordResolution').value);
             
+            // Calculate target points
+            targetPoints = recordingDuration * 60 * renderQuality * 3;
+            
+            // Generate camera path
+            cameraPath = generateCameraPath(cameraMovement, recordingDuration);
+            cameraAnimationProgress = 0;
+            cinematicMode = true;
+
+            // Set quality
+            const fps = quality === 'ultra' ? 60 : 30;
+            const bitrate = quality === 'ultra' ? 12000000 : 8000000;
+            
             // Resize for recording
-            const width = resolution * 16/9;
-            const height = resolution;
+            let width, height;
+            if (resolution === 720) {
+                width = 1280;
+                height = 720;
+            } else if (resolution === 1080) {
+                width = 1920;
+                height = 1080;
+            } else {
+                width = 2560;
+                height = 1440;
+            }
+            
             renderer.setSize(width, height);
             camera.aspect = width / height;
             camera.updateProjectionMatrix();
 
-            // Create stream from canvas
+            // Create stream
             stream = renderer.domElement.captureStream(fps);
             
             // Setup MediaRecorder
             recordedChunks = [];
             const options = {
                 mimeType: 'video/webm;codecs=vp9',
-                videoBitsPerSecond: 5000000
+                videoBitsPerSecond: bitrate
             };
 
             try {
                 mediaRecorder = new MediaRecorder(stream, options);
             } catch(e) {
-                // Fallback to default codec
                 mediaRecorder = new MediaRecorder(stream);
             }
 
@@ -940,28 +1059,30 @@
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
-                link.download = `attractor-${currentAttractor}-${Date.now()}.webm`;
+                link.download = `cinematic-${currentAttractor}-${Date.now()}.webm`;
                 link.href = url;
                 link.click();
                 
                 document.getElementById('recordingOverlay').classList.remove('active');
+                cinematicMode = false;
                 restoreCanvasSize();
                 
-                alert('✅ Video exported successfully!');
+                alert('✅ Cinematic video exported successfully!');
             };
 
             mediaRecorder.start();
             isRecording = true;
             recordingStartTime = performance.now();
 
-            // Update UI
+            // UI updates
             document.getElementById('recordBtn').textContent = '⏹️ STOP RECORDING';
             document.getElementById('recordBtn').classList.add('recording');
             document.getElementById('recordingOverlay').classList.add('active');
             document.getElementById('totalTime').textContent = recordingDuration + 's';
             document.getElementById('recordingStatus').textContent = 'Recording...';
+            document.getElementById('camera-mode').textContent = '🎬 Cinematic Mode';
 
-            // Auto-stop after duration
+            // Auto-stop
             setTimeout(() => {
                 if (isRecording) {
                     stopRecording();
@@ -976,9 +1097,10 @@
                 mediaRecorder.stop();
             }
 
-            document.getElementById('recordBtn').textContent = '🎥 START RECORDING';
+            document.getElementById('recordBtn').textContent = '🎥 START CINEMATIC RECORDING';
             document.getElementById('recordBtn').classList.remove('recording');
             document.getElementById('recordingStatus').textContent = 'Processing...';
+            document.getElementById('camera-mode').textContent = 'Manual Control';
         }
 
         function restoreCanvasSize() {
@@ -989,29 +1111,8 @@
         }
 
         // UI Controls
-        function toggleInfiniteMode() {
-            infiniteMode = document.getElementById('infiniteMode').checked;
-            
-            if (infiniteMode) {
-                document.getElementById('limitControls').style.display = 'none';
-                document.getElementById('infiniteInfo').style.display = 'block';
-                document.getElementById('mode-display').textContent = 'Infinite Mode ∞';
-                document.getElementById('max-display').textContent = '';
-            } else {
-                document.getElementById('limitControls').style.display = 'block';
-                document.getElementById('infiniteInfo').style.display = 'none';
-                document.getElementById('mode-display').textContent = 'Limited Mode';
-                document.getElementById('max-display').textContent = ' / ' + maxPoints.toLocaleString();
-            }
-            
-            createLine();
-            clearTrajectory();
-        }
-
-        function updateMaxPoints() {
-            maxPoints = parseInt(document.getElementById('maxPoints').value);
-            document.getElementById('maxPointsValue').textContent = maxPoints.toLocaleString();
-            document.getElementById('max-display').textContent = ' / ' + maxPoints.toLocaleString();
+        function updateRenderQuality() {
+            renderQuality = parseInt(document.getElementById('renderQuality').value);
         }
 
         function changeAttractor() {
@@ -1029,20 +1130,12 @@
         function updateLineWidth() {
             lineWidth = parseFloat(document.getElementById('lineWidth').value);
             document.getElementById('widthValue').textContent = lineWidth;
-            if (line) {
-                line.material.linewidth = lineWidth;
-            }
+            if (line) line.material.linewidth = lineWidth;
         }
 
         function updateSpeed() {
             simulationSpeed = parseFloat(document.getElementById('speed').value);
             document.getElementById('speedValue').textContent = simulationSpeed.toFixed(1) + 'x';
-        }
-
-        function updateRotSpeed() {
-            const value = parseFloat(document.getElementById('rotSpeed').value);
-            rotationSpeed = value * 0.001;
-            document.getElementById('rotSpeedValue').textContent = value.toFixed(1);
         }
 
         function updateColorMode() {
@@ -1076,6 +1169,16 @@
 
         function toggleAutoRotate() {
             autoRotate = !autoRotate;
+            const btn = document.getElementById('autoRotateBtn');
+            const status = document.getElementById('rotateStatus');
+            
+            if (autoRotate) {
+                status.textContent = 'ON';
+                btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            } else {
+                status.textContent = 'OFF';
+                btn.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
+            }
         }
 
         function resetView() {
