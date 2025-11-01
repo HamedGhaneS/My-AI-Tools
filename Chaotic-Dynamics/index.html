@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌀 Strange Attractors - Full Trajectory + Recording</title>
+    <title>🌀 Strange Attractors - Infinite Trajectory</title>
     <style>
         * {
             margin: 0;
@@ -105,8 +105,22 @@
             cursor: pointer;
         }
 
-        input[type="number"] {
-            width: 100%;
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .checkbox-row label {
+            margin: 0;
+            flex: 1;
         }
 
         .value-display {
@@ -226,12 +240,13 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             padding: 30px 40px;
             border-radius: 12px;
             border: 2px solid #ef4444;
             text-align: center;
             display: none;
+            z-index: 1000;
         }
 
         .recording-overlay.active {
@@ -289,19 +304,6 @@
             border-radius: 3px;
         }
 
-        .social-format {
-            display: flex;
-            gap: 6px;
-            margin-top: 8px;
-        }
-
-        .format-btn {
-            flex: 1;
-            padding: 6px;
-            font-size: 9px;
-            margin: 0;
-        }
-
         .info-text {
             font-size: 10px;
             color: #888;
@@ -310,6 +312,29 @@
             padding: 8px;
             background: rgba(59, 130, 246, 0.1);
             border-radius: 4px;
+        }
+
+        .info-text.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+        }
+
+        .info-text.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+
+        .infinity-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid #8b5cf6;
+            border-radius: 4px;
+            font-size: 10px;
+            color: #8b5cf6;
+            margin-left: 8px;
         }
     </style>
 </head>
@@ -320,11 +345,14 @@
             <div id="info-overlay">
                 <h2>🌀 Strange Attractors</h2>
                 <p><strong>Current:</strong> <span id="current-attractor">Lorenz</span></p>
-                <p style="margin-top: 4px; font-size: 10px; color: #888;">Drag to rotate • Scroll to zoom</p>
+                <p style="margin-top: 4px; font-size: 10px; color: #888;">
+                    <span id="mode-display">Infinite Mode</span>
+                </p>
             </div>
             <div class="stats">
                 <strong>FPS:</strong> <span id="fps">60</span> | 
-                <strong>Points:</strong> <span id="point-count">0</span>/<span id="max-points">5000</span>
+                <strong>Points:</strong> <span id="point-count">0</span>
+                <span id="max-display"></span>
             </div>
             <div class="recording-overlay" id="recordingOverlay">
                 <div>
@@ -334,8 +362,8 @@
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
-                <p style="color: #aaa; margin-top: 10px;">
-                    Frame <span id="currentFrame">0</span> / <span id="totalFrames">0</span>
+                <p style="color: #aaa; margin-top: 10px; font-size: 14px;">
+                    <span id="recordingTime">0.0s</span> / <span id="totalTime">10s</span>
                 </p>
                 <p style="color: #888; font-size: 11px; margin-top: 5px;">
                     <span id="recordingStatus">Capturing frames...</span>
@@ -344,14 +372,28 @@
         </div>
 
         <div id="controls">
-            <h1>🌀 Full Trajectory</h1>
-            <p class="subtitle">Complete path visibility + GIF export</p>
+            <h1>🌀 Infinite Trajectory</h1>
+            <p class="subtitle">Draw forever + Fast WebM export</p>
 
             <div class="control-group">
-                <h3>⚡ Quality Settings</h3>
-                <label>Max Points <span class="value-display" id="maxPointsValue">5000</span></label>
-                <input type="range" id="maxPoints" min="500" max="20000" value="5000" step="500" oninput="updateMaxPoints()">
-                <p class="info-text">⚠️ Higher values = more detailed but slower</p>
+                <h3>∞ Trajectory Mode</h3>
+                
+                <div class="checkbox-row">
+                    <input type="checkbox" id="infiniteMode" checked onchange="toggleInfiniteMode()">
+                    <label for="infiniteMode">
+                        <strong>Infinite Drawing Mode</strong>
+                        <span class="infinity-badge">∞</span>
+                    </label>
+                </div>
+
+                <div id="limitControls" style="display: none;">
+                    <label>Max Points <span class="value-display" id="maxPointsValue">10000</span></label>
+                    <input type="range" id="maxPoints" min="1000" max="50000" value="10000" step="1000" oninput="updateMaxPoints()">
+                </div>
+
+                <p class="info-text success" id="infiniteInfo">
+                    ✨ Trajectory will continue drawing indefinitely until you clear it!
+                </p>
             </div>
 
             <div class="control-group">
@@ -404,7 +446,6 @@
                     <option value="rainbow">Rainbow</option>
                     <option value="single">Single Color</option>
                     <option value="dual">Dual Fade</option>
-                    <option value="velocity">Velocity Based</option>
                 </select>
 
                 <label>Color 1</label>
@@ -425,23 +466,20 @@
             </div>
 
             <div class="control-group">
-                <h3>🎥 Record Animation</h3>
+                <h3>🎥 Record Video (WebM)</h3>
                 
-                <label>Recording Duration (seconds)</label>
-                <input type="number" id="recordDuration" value="10" min="1" max="60" step="1">
+                <label>Duration (seconds)</label>
+                <input type="number" id="recordDuration" value="10" min="1" max="120" step="1">
                 
-                <label>Frame Rate (FPS)</label>
+                <label>Frame Rate</label>
                 <select id="recordFPS">
-                    <option value="15">15 FPS (Smaller file)</option>
-                    <option value="24">24 FPS (Film quality)</option>
-                    <option value="30" selected>30 FPS (Smooth)</option>
-                    <option value="60">60 FPS (Ultra smooth)</option>
+                    <option value="30" selected>30 FPS (Recommended)</option>
+                    <option value="60">60 FPS (Smooth)</option>
                 </select>
 
-                <label>Export Resolution</label>
+                <label>Resolution</label>
                 <select id="recordResolution">
-                    <option value="480">480p (Fast, small file)</option>
-                    <option value="720">720p (Good quality)</option>
+                    <option value="720">720p (Fast)</option>
                     <option value="1080" selected>1080p (HD)</option>
                 </select>
 
@@ -450,25 +488,21 @@
                 </button>
 
                 <p class="info-text">
-                    📹 Records the attractor evolution from initial conditions. 
-                    GIF will be automatically downloaded when complete.
+                    🚀 WebM format = 10x faster than GIF!
+                    <br>Records evolution from initial conditions.
                 </p>
             </div>
 
             <div class="control-group">
-                <h3>📤 Export Still Image</h3>
-                <div class="social-format">
-                    <button class="format-btn" onclick="exportImage(1080, 1080)">📷 Square</button>
-                    <button class="format-btn" onclick="exportImage(1920, 1080)">🎬 Wide</button>
-                    <button class="format-btn" onclick="exportImage(1080, 1920)">📱 Story</button>
-                </div>
-                <button class="btn-export" onclick="exportImage(3840, 2160)">🖼️ Export 4K</button>
+                <h3>📤 Export Image</h3>
+                <button class="btn-export" onclick="exportImage(1080, 1080)">📷 Square (1080x1080)</button>
+                <button class="btn-export" onclick="exportImage(1920, 1080)">🎬 Wide (1920x1080)</button>
+                <button class="btn-export" onclick="exportImage(3840, 2160)">🖼️ 4K (3840x2160)</button>
             </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <script>
         // Scene setup
         let scene, camera, renderer, line;
@@ -476,7 +510,8 @@
         let rotationSpeed = 0.005;
         let currentAttractor = 'lorenz';
         let simulationSpeed = 1.0;
-        let maxPoints = 5000;
+        let infiniteMode = true;
+        let maxPoints = 10000;
         let points = [];
         let lineWidth = 2;
 
@@ -491,11 +526,11 @@
 
         // Recording state
         let isRecording = false;
-        let recordedFrames = [];
+        let mediaRecorder = null;
+        let recordedChunks = [];
         let recordingStartTime = 0;
         let recordingDuration = 10;
-        let recordingFPS = 30;
-        let recordingResolution = 1080;
+        let stream = null;
 
         // Attractor parameters
         const attractors = {
@@ -616,7 +651,6 @@
             createLine();
             setupControls();
             
-            // Set initial conditions
             const init = attractors[currentAttractor].init;
             x = parseFloat(document.getElementById('initX').value) || init[0];
             y = parseFloat(document.getElementById('initY').value) || init[1];
@@ -627,9 +661,12 @@
         }
 
         function createLine() {
+            // Start with a reasonable buffer size that grows as needed
+            const initialSize = infiniteMode ? 50000 : maxPoints;
+            
             const geometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(maxPoints * 3);
-            const colors = new Float32Array(maxPoints * 3);
+            const positions = new Float32Array(initialSize * 3);
+            const colors = new Float32Array(initialSize * 3);
             
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
@@ -651,8 +688,33 @@
             scene.add(line);
         }
 
+        function expandBuffers() {
+            // Double the buffer size when needed
+            const currentSize = line.geometry.attributes.position.count;
+            const newSize = currentSize * 2;
+            
+            const oldPositions = line.geometry.attributes.position.array;
+            const oldColors = line.geometry.attributes.color.array;
+            
+            const newPositions = new Float32Array(newSize * 3);
+            const newColors = new Float32Array(newSize * 3);
+            
+            // Copy old data
+            newPositions.set(oldPositions);
+            newColors.set(oldColors);
+            
+            line.geometry.setAttribute('position', new THREE.BufferAttribute(newPositions, 3));
+            line.geometry.setAttribute('color', new THREE.BufferAttribute(newColors, 3));
+        }
+
         function updateAttractor() {
-            if (points.length >= maxPoints) return; // Stop when max reached
+            // Check if we need to stop (limited mode only)
+            if (!infiniteMode && points.length >= maxPoints) return;
+
+            // Expand buffers if needed (infinite mode)
+            if (infiniteMode && points.length >= line.geometry.attributes.position.count - 100) {
+                expandBuffers();
+            }
 
             const attractor = attractors[currentAttractor];
             const dt = 0.005 * simulationSpeed;
@@ -674,25 +736,24 @@
             );
             
             points.push(scaledPoint);
-            document.getElementById('point-count').textContent = points.length;
+            document.getElementById('point-count').textContent = points.length.toLocaleString();
 
             // Update geometry
             const positions = line.geometry.attributes.position.array;
             const colorArray = line.geometry.attributes.color.array;
             
-            for (let i = 0; i < points.length; i++) {
-                const point = points[i];
-                positions[i * 3] = point.x;
-                positions[i * 3 + 1] = point.y;
-                positions[i * 3 + 2] = point.z;
+            const idx = points.length - 1;
+            const point = points[idx];
+            
+            positions[idx * 3] = point.x;
+            positions[idx * 3 + 1] = point.y;
+            positions[idx * 3 + 2] = point.z;
 
-                // NO FADING - full brightness for all points
-                const t = i / Math.max(points.length - 1, 1);
-                const color = getColor(point, t);
-                colorArray[i * 3] = color.r;
-                colorArray[i * 3 + 1] = color.g;
-                colorArray[i * 3 + 2] = color.b;
-            }
+            const t = idx / Math.max(points.length - 1, 1);
+            const color = getColor(point, t);
+            colorArray[idx * 3] = color.r;
+            colorArray[idx * 3 + 1] = color.g;
+            colorArray[idx * 3 + 2] = color.b;
 
             line.geometry.setDrawRange(0, points.length);
             line.geometry.attributes.position.needsUpdate = true;
@@ -721,17 +782,9 @@
                 case 'dual':
                     color.lerpColors(color1, color2, t);
                     break;
-
-                case 'velocity':
-                    const speed = Math.abs(point.x) + Math.abs(point.y) + Math.abs(point.z);
-                    const speedNorm = Math.min(speed * 5, 1);
-                    color.lerpColors(color1, color2, speedNorm);
-                    break;
             }
 
-            // Apply brightness - NO FADING
             color.multiplyScalar(brightness);
-
             return color;
         }
 
@@ -786,13 +839,10 @@
             canvas.addEventListener('touchmove', (e) => {
                 if (touchStart) {
                     const deltaX = e.touches[0].clientX - touchStart.x;
-                    const deltaY = e.touches[0].clientY - touchStart.y;
-
                     const rotMatrix = new THREE.Matrix4();
                     rotMatrix.makeRotationY(deltaX * 0.005);
                     camera.position.applyMatrix4(rotMatrix);
                     camera.lookAt(0, 0, 0);
-
                     touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
                 }
             });
@@ -808,13 +858,11 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // Update attractor
             const stepsPerFrame = Math.max(1, Math.floor(simulationSpeed * 3));
             for (let i = 0; i < stepsPerFrame; i++) {
                 updateAttractor();
             }
 
-            // Auto rotate
             if (autoRotate) {
                 const rotMatrix = new THREE.Matrix4();
                 rotMatrix.makeRotationY(rotationSpeed);
@@ -824,12 +872,14 @@
 
             renderer.render(scene, camera);
 
-            // Recording
+            // Update recording time
             if (isRecording) {
-                captureFrame();
+                const elapsed = (performance.now() - recordingStartTime) / 1000;
+                document.getElementById('recordingTime').textContent = elapsed.toFixed(1) + 's';
+                const progress = (elapsed / recordingDuration) * 100;
+                document.getElementById('progressFill').style.width = Math.min(progress, 100) + '%';
             }
 
-            // FPS
             frameCount++;
             const currentTime = performance.now();
             if (currentTime - lastTime >= 1000) {
@@ -840,7 +890,7 @@
             }
         }
 
-        // Recording functions
+        // Recording functions using MediaRecorder (WebM)
         function toggleRecording() {
             if (isRecording) {
                 stopRecording();
@@ -850,121 +900,85 @@
         }
 
         function startRecording() {
-            // Clear and reset
             clearTrajectory();
             
             recordingDuration = parseInt(document.getElementById('recordDuration').value);
-            recordingFPS = parseInt(document.getElementById('recordFPS').value);
-            recordingResolution = parseInt(document.getElementById('recordResolution').value);
+            const fps = parseInt(document.getElementById('recordFPS').value);
+            const resolution = parseInt(document.getElementById('recordResolution').value);
             
-            recordedFrames = [];
-            recordingStartTime = performance.now();
+            // Resize for recording
+            const width = resolution * 16/9;
+            const height = resolution;
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+
+            // Create stream from canvas
+            stream = renderer.domElement.captureStream(fps);
+            
+            // Setup MediaRecorder
+            recordedChunks = [];
+            const options = {
+                mimeType: 'video/webm;codecs=vp9',
+                videoBitsPerSecond: 5000000
+            };
+
+            try {
+                mediaRecorder = new MediaRecorder(stream, options);
+            } catch(e) {
+                // Fallback to default codec
+                mediaRecorder = new MediaRecorder(stream);
+            }
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = `attractor-${currentAttractor}-${Date.now()}.webm`;
+                link.href = url;
+                link.click();
+                
+                document.getElementById('recordingOverlay').classList.remove('active');
+                restoreCanvasSize();
+                
+                alert('✅ Video exported successfully!');
+            };
+
+            mediaRecorder.start();
             isRecording = true;
+            recordingStartTime = performance.now();
 
             // Update UI
             document.getElementById('recordBtn').textContent = '⏹️ STOP RECORDING';
             document.getElementById('recordBtn').classList.add('recording');
-            document.getElementById('recordBtn').disabled = false;
             document.getElementById('recordingOverlay').classList.add('active');
-            document.getElementById('totalFrames').textContent = recordingDuration * recordingFPS;
-            document.getElementById('recordingStatus').textContent = 'Capturing frames...';
+            document.getElementById('totalTime').textContent = recordingDuration + 's';
+            document.getElementById('recordingStatus').textContent = 'Recording...';
 
-            // Resize canvas for recording
-            const aspect = recordingResolution === 1080 ? 16/9 : 1;
-            const width = recordingResolution * aspect;
-            const height = recordingResolution;
-            renderer.setSize(width, height);
-            camera.aspect = width / height;
-            camera.updateProjectionMatrix();
-        }
-
-        function captureFrame() {
-            const currentTime = performance.now();
-            const elapsed = (currentTime - recordingStartTime) / 1000;
-            const frameInterval = 1 / recordingFPS;
-            const expectedFrames = Math.floor(elapsed / frameInterval);
-
-            if (recordedFrames.length < expectedFrames) {
-                // Capture frame
-                const dataURL = renderer.domElement.toDataURL('image/png');
-                recordedFrames.push(dataURL);
-
-                // Update progress
-                const progress = (elapsed / recordingDuration) * 100;
-                document.getElementById('progressFill').style.width = progress + '%';
-                document.getElementById('currentFrame').textContent = recordedFrames.length;
-
-                // Check if done
-                if (elapsed >= recordingDuration) {
+            // Auto-stop after duration
+            setTimeout(() => {
+                if (isRecording) {
                     stopRecording();
                 }
-            }
+            }, recordingDuration * 1000);
         }
 
         function stopRecording() {
             isRecording = false;
             
-            // Update UI
-            document.getElementById('recordBtn').textContent = '🎥 START RECORDING';
-            document.getElementById('recordBtn').classList.remove('recording');
-            document.getElementById('recordingStatus').textContent = 'Processing GIF...';
-
-            // Generate GIF
-            setTimeout(() => {
-                generateGIF();
-            }, 100);
-        }
-
-        function generateGIF() {
-            if (recordedFrames.length === 0) {
-                alert('No frames recorded!');
-                document.getElementById('recordingOverlay').classList.remove('active');
-                restoreCanvasSize();
-                return;
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
             }
 
-            const gif = new GIF({
-                workers: 4,
-                quality: 10,
-                width: recordingResolution * (recordingResolution === 1080 ? 16/9 : 1),
-                height: recordingResolution,
-                workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
-            });
-
-            // Load images and add to GIF
-            let loadedCount = 0;
-            recordedFrames.forEach((dataURL, index) => {
-                const img = new Image();
-                img.onload = function() {
-                    gif.addFrame(img, { delay: 1000 / recordingFPS });
-                    loadedCount++;
-                    
-                    const progress = (loadedCount / recordedFrames.length) * 100;
-                    document.getElementById('progressFill').style.width = progress + '%';
-                    
-                    if (loadedCount === recordedFrames.length) {
-                        document.getElementById('recordingStatus').textContent = 'Encoding GIF...';
-                        gif.render();
-                    }
-                };
-                img.src = dataURL;
-            });
-
-            gif.on('finished', function(blob) {
-                // Download
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.download = `attractor-${currentAttractor}-${Date.now()}.gif`;
-                link.href = url;
-                link.click();
-
-                // Clean up
-                document.getElementById('recordingOverlay').classList.remove('active');
-                document.getElementById('progressFill').style.width = '0%';
-                restoreCanvasSize();
-                
-                alert('✅ GIF exported successfully!');
-            });
+            document.getElementById('recordBtn').textContent = '🎥 START RECORDING';
+            document.getElementById('recordBtn').classList.remove('recording');
+            document.getElementById('recordingStatus').textContent = 'Processing...';
         }
 
         function restoreCanvasSize() {
@@ -975,11 +989,29 @@
         }
 
         // UI Controls
+        function toggleInfiniteMode() {
+            infiniteMode = document.getElementById('infiniteMode').checked;
+            
+            if (infiniteMode) {
+                document.getElementById('limitControls').style.display = 'none';
+                document.getElementById('infiniteInfo').style.display = 'block';
+                document.getElementById('mode-display').textContent = 'Infinite Mode ∞';
+                document.getElementById('max-display').textContent = '';
+            } else {
+                document.getElementById('limitControls').style.display = 'block';
+                document.getElementById('infiniteInfo').style.display = 'none';
+                document.getElementById('mode-display').textContent = 'Limited Mode';
+                document.getElementById('max-display').textContent = ' / ' + maxPoints.toLocaleString();
+            }
+            
+            createLine();
+            clearTrajectory();
+        }
+
         function updateMaxPoints() {
             maxPoints = parseInt(document.getElementById('maxPoints').value);
-            document.getElementById('maxPointsValue').textContent = maxPoints;
-            document.getElementById('max-points').textContent = maxPoints;
-            createLine();
+            document.getElementById('maxPointsValue').textContent = maxPoints.toLocaleString();
+            document.getElementById('max-display').textContent = ' / ' + maxPoints.toLocaleString();
         }
 
         function changeAttractor() {
@@ -1053,24 +1085,14 @@
 
         function clearTrajectory() {
             points = [];
-            document.getElementById('point-count').textContent = 0;
+            document.getElementById('point-count').textContent = '0';
             
-            // Reset to initial conditions
             const init = attractors[currentAttractor].init;
             x = parseFloat(document.getElementById('initX').value) || init[0];
             y = parseFloat(document.getElementById('initY').value) || init[1];
             z = parseFloat(document.getElementById('initZ').value) || init[2];
 
-            // Clear geometry
-            const positions = line.geometry.attributes.position.array;
-            const colors = line.geometry.attributes.color.array;
-            for (let i = 0; i < maxPoints * 3; i++) {
-                positions[i] = 0;
-                colors[i] = 0;
-            }
-            line.geometry.setDrawRange(0, 0);
-            line.geometry.attributes.position.needsUpdate = true;
-            line.geometry.attributes.color.needsUpdate = true;
+            createLine();
         }
 
         function exportImage(width, height) {
