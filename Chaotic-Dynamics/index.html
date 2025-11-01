@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌀 Strange Attractors - Social Media Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a3e 100%);
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            height: 100vh;
+        }
+
+        #canvas-container {
+            flex: 1;
+            position: relative;
+            background: #000;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #controls {
+            width: 350px;
+            background: rgba(26, 26, 62, 0.95);
+            padding: 20px;
+            overflow-y: auto;
+            border-left: 2px solid #3b82f6;
+            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            color: #3b82f6;
+            font-size: 24px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .control-group h3 {
+            color: #3b82f6;
+            font-size: 14px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        label {
+            display: block;
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 5px;
+            margin-top: 10px;
+        }
+
+        select, input[type="range"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: #e0e0e0;
+            font-size: 13px;
+        }
+
+        input[type="range"] {
+            padding: 0;
+        }
+
+        input[type="color"] {
+            width: 100%;
+            height: 40px;
+            border: 2px solid #444;
+            border-radius: 5px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .value-display {
+            display: inline-block;
+            float: right;
+            color: #3b82f6;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .btn-export:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+
+        .btn-animate {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .btn-animate:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+        }
+
+        .btn-random {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        .btn-random:hover {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .btn-clear:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            padding: 8px;
+            font-size: 11px;
+            margin: 0;
+        }
+
+        #info-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 1px solid #3b82f6;
+            font-size: 13px;
+            max-width: 300px;
+        }
+
+        #info-overlay h2 {
+            color: #3b82f6;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        #info-overlay p {
+            color: #aaa;
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+
+        .stats {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #3b82f6;
+            font-size: 11px;
+            color: #aaa;
+        }
+
+        .stats span {
+            color: #3b82f6;
+            font-weight: bold;
+        }
+
+        .color-preset {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .color-preset-btn {
+            width: 30px;
+            height: 30px;
+            border: 2px solid #444;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .color-preset-btn:hover {
+            transform: scale(1.1);
+            border-color: #3b82f6;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+
+        .social-format {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .format-btn {
+            flex: 1;
+            padding: 8px;
+            font-size: 11px;
+            margin: 0;
+        }
+
+        .attractor-info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 11px;
+            line-height: 1.5;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="canvas-container">
+            <canvas id="renderCanvas"></canvas>
+            <div id="info-overlay">
+                <h2>🌀 Strange Attractors</h2>
+                <p><strong>Controls:</strong></p>
+                <p>🖱️ Left Click + Drag: Rotate</p>
+                <p>🖱️ Scroll: Zoom</p>
+                <p><strong>Current:</strong> <span id="current-attractor">Lorenz</span></p>
+            </div>
+            <div class="stats">
+                <strong>Particles:</strong> <span id="particle-count">5000</span> | 
+                <strong>FPS:</strong> <span id="fps">60</span>
+            </div>
+        </div>
+
+        <div id="controls">
+            <h1>🌀 Attractor Controls</h1>
+            <p class="subtitle">Generate beautiful chaotic dynamics</p>
+
+            <div class="control-group">
+                <h3>🎯 Attractor System</h3>
+                <select id="attractorType" onchange="changeAttractor()">
+                    <option value="lorenz">Lorenz Attractor (Butterfly)</option>
+                    <option value="rossler">Rössler Attractor (Spiral)</option>
+                    <option value="aizawa">Aizawa Attractor (Complex)</option>
+                    <option value="thomas">Thomas' Cyclically Symmetric</option>
+                    <option value="halvorsen">Halvorsen Attractor</option>
+                    <option value="dadras">Dadras Attractor</option>
+                    <option value="chen">Chen Attractor</option>
+                    <option value="sprottB">Sprott B (Simple)</option>
+                    <option value="sprottLinzF">Sprott-Linz F</option>
+                    <option value="fourWing">Four-Wing Attractor</option>
+                    <option value="rabinovich">Rabinovich-Fabrikant</option>
+                    <option value="newtonLeipnik">Newton-Leipnik</option>
+                </select>
+
+                <div class="attractor-info" id="attractor-description">
+                    The Lorenz attractor is a set of chaotic solutions to the Lorenz system, famous for its butterfly-like shape.
+                </div>
+
+                <div class="preset-grid">
+                    <button class="preset-btn" onclick="loadPreset('classic')">Classic</button>
+                    <button class="preset-btn" onclick="loadPreset('colorful')">Colorful</button>
+                    <button class="preset-btn" onclick="loadPreset('dense')">Dense</button>
+                    <button class="preset-btn" onclick="loadPreset('sparse')">Sparse</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>🎨 Visualization</h3>
+                
+                <label>Particle Count <span class="value-display" id="particleValue">5000</span></label>
+                <input type="range" id="particles" min="1000" max="20000" value="5000" step="1000" oninput="updateParticles()">
+
+                <label>Trail Length <span class="value-display" id="trailValue">100</span></label>
+                <input type="range" id="trailLength" min="20" max="500" value="100" step="10" oninput="updateTrailLength()">
+
+                <label>Particle Size <span class="value-display" id="sizeValue">2</span></label>
+                <input type="range" id="particleSize" min="1" max="8" value="2" step="0.5" oninput="updateParticleSize()">
+
+                <label>Speed <span class="value-display" id="speedValue">1</span></label>
+                <input type="range" id="speed" min="0.1" max="5" value="1" step="0.1" oninput="updateSpeed()">
+            </div>
+
+            <div class="control-group">
+                <h3>🌈 Colors</h3>
+                
+                <label>Color Mode</label>
+                <select id="colorMode" onchange="updateColorMode()">
+                    <option value="gradient">Velocity Gradient</option>
+                    <option value="position">Position Based</option>
+                    <option value="rainbow">Rainbow Trail</option>
+                    <option value="single">Single Color</option>
+                    <option value="dual">Dual Color</option>
+                    <option value="heatmap">Heat Map</option>
+                </select>
+
+                <label>Primary Color</label>
+                <input type="color" id="color1" value="#3b82f6" oninput="updateColors()">
+
+                <label>Secondary Color</label>
+                <input type="color" id="color2" value="#ef4444" oninput="updateColors()">
+
+                <div class="color-preset">
+                    <div class="color-preset-btn" style="background: #3b82f6;" onclick="setColors('#3b82f6', '#ef4444')"></div>
+                    <div class="color-preset-btn" style="background: #10b981;" onclick="setColors('#10b981', '#f59e0b')"></div>
+                    <div class="color-preset-btn" style="background: #8b5cf6;" onclick="setColors('#8b5cf6', '#ec4899')"></div>
+                    <div class="color-preset-btn" style="background: #f59e0b;" onclick="setColors('#f59e0b', '#ef4444')"></div>
+                    <div class="color-preset-btn" style="background: #06b6d4;" onclick="setColors('#06b6d4', '#8b5cf6')"></div>
+                    <div class="color-preset-btn" style="background: #000000;" onclick="setColors('#ffffff', '#000000')"></div>
+                </div>
+
+                <label>Brightness <span class="value-display" id="brightnessValue">1</span></label>
+                <input type="range" id="brightness" min="0.1" max="2" value="1" step="0.1" oninput="updateBrightness()">
+            </div>
+
+            <div class="control-group">
+                <h3>🎬 Animation</h3>
+                
+                <label>Rotation Speed <span class="value-display" id="rotSpeedValue">0.5</span></label>
+                <input type="range" id="rotSpeed" min="0" max="3" value="0.5" step="0.1" oninput="updateRotSpeed()">
+
+                <button class="btn-animate" onclick="toggleAutoRotate()">🔄 Toggle Auto-Rotate</button>
+                <button class="btn-clear" onclick="clearTrails()">🗑️ Clear Trails</button>
+                <button onclick="resetCamera()">📷 Reset Camera</button>
+            </div>
+
+            <div class="control-group">
+                <h3>📤 Export</h3>
+                
+                <label>Social Media Format</label>
+                <div class="social-format">
+                    <button class="format-btn" onclick="setExportSize(1080, 1080)">📷 Instagram<br>1:1</button>
+                    <button class="format-btn" onclick="setExportSize(1920, 1080)">🎬 YouTube<br>16:9</button>
+                    <button class="format-btn" onclick="setExportSize(1200, 630)">🐦 Twitter<br>1.91:1</button>
+                </div>
+
+                <button class="btn-export" onclick="exportImage()">💾 Download PNG</button>
+                <button class="btn-export" onclick="exportHighRes()">🖼️ Download 4K</button>
+            </div>
+
+            <div class="control-group">
+                <h3>🎲 Random</h3>
+                <button class="btn-random" onclick="randomize()">🎲 Randomize All</button>
+                <button onclick="resetToDefault()">🔄 Reset to Default</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Three.js Scene Setup
+        let scene, camera, renderer, particleSystem;
+        let autoRotate = false;
+        let rotationSpeed = 0.005;
+        let particles = [];
+        let particleCount = 5000;
+        let trailLength = 100;
+        let currentAttractor = 'lorenz';
+        let timeStep = 0.01;
+        let simulationSpeed = 1;
+
+        // Attractor parameters
+        const attractorParams = {
+            lorenz: { sigma: 10, rho: 28, beta: 8/3, scale: 0.03 },
+            rossler: { a: 0.2, b: 0.2, c: 5.7, scale: 0.05 },
+            aizawa: { a: 0.95, b: 0.7, c: 0.6, d: 3.5, e: 0.25, f: 0.1, scale: 0.2 },
+            thomas: { b: 0.208186, scale: 0.15 },
+            halvorsen: { a: 1.89, scale: 0.08 },
+            dadras: { a: 3, b: 2.7, c: 1.7, d: 2, e: 9, scale: 0.15 },
+            chen: { a: 5, b: -10, c: -0.38, scale: 0.05 },
+            sprottB: { a: 0.4, b: 1.2, scale: 0.3 },
+            sprottLinzF: { a: 0.5, scale: 0.25 },
+            fourWing: { a: 0.2, b: 0.01, c: -0.4, scale: 0.1 },
+            rabinovich: { alpha: 0.87, gamma: 0.1, scale: 0.3 },
+            newtonLeipnik: { a: 0.4, b: 0.175, scale: 0.15 }
+        };
+
+        // Color settings
+        let colorMode = 'gradient';
+        let color1 = new THREE.Color(0x3b82f6);
+        let color2 = new THREE.Color(0xef4444);
+        let brightness = 1;
+
+        // Initialize
+        function init() {
+            const canvas = document.getElementById('renderCanvas');
+            const container = document.getElementById('canvas-container');
+
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(
+                60,
+                container.clientWidth / container.clientHeight,
+                0.1,
+                1000
+            );
+            camera.position.set(0, 0, 10);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: canvas, 
+                antialias: true,
+                preserveDrawingBuffer: true 
+            });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            // Setup controls
+            setupControls();
+
+            // Initialize particles
+            initParticles();
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize);
+
+            // Animation loop
+            animate();
+        }
+
+        // Particle initialization
+        function initParticles() {
+            // Remove old system
+            if (particleSystem) {
+                scene.remove(particleSystem);
+            }
+
+            particles = [];
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * trailLength * 3);
+            const colors = new Float32Array(particleCount * trailLength * 3);
+
+            // Initialize particles with random positions near origin
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    position: new THREE.Vector3(
+                        (Math.random() - 0.5) * 2,
+                        (Math.random() - 0.5) * 2,
+                        (Math.random() - 0.5) * 2
+                    ),
+                    trail: []
+                });
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 2,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            particleSystem = new THREE.Points(geometry, material);
+            scene.add(particleSystem);
+        }
+
+        // Attractor differential equations
+        function attractorDerivative(x, y, z, type) {
+            const params = attractorParams[type];
+            let dx, dy, dz;
+
+            switch(type) {
+                case 'lorenz':
+                    dx = params.sigma * (y - x);
+                    dy = x * (params.rho - z) - y;
+                    dz = x * y - params.beta * z;
+                    break;
+
+                case 'rossler':
+                    dx = -y - z;
+                    dy = x + params.a * y;
+                    dz = params.b + z * (x - params.c);
+                    break;
+
+                case 'aizawa':
+                    dx = (z - params.b) * x - params.d * y;
+                    dy = params.d * x + (z - params.b) * y;
+                    dz = params.c + params.a * z - (z * z * z) / 3 - 
+                         (x * x + y * y) * (1 + params.e * z) + params.f * z * x * x * x;
+                    break;
+
+                case 'thomas':
+                    dx = Math.sin(y) - params.b * x;
+                    dy = Math.sin(z) - params.b * y;
+                    dz = Math.sin(x) - params.b * z;
+                    break;
+
+                case 'halvorsen':
+                    dx = -params.a * x - 4 * y - 4 * z - y * y;
+                    dy = -params.a * y - 4 * z - 4 * x - z * z;
+                    dz = -params.a * z - 4 * x - 4 * y - x * x;
+                    break;
+
+                case 'dadras':
+                    dx = y - params.a * x + params.b * y * z;
+                    dy = params.c * y - x * z + z;
+                    dz = params.d * x * y - params.e * z;
+                    break;
+
+                case 'chen':
+                    dx = params.a * x - y * z;
+                    dy = params.b * y + x * z;
+                    dz = params.c * z + x * y / 3;
+                    break;
+
+                case 'sprottB':
+                    dx = params.a * y * z;
+                    dy = x - params.b * y;
+                    dz = 1 - x * y;
+                    break;
+
+                case 'sprottLinzF':
+                    dx = y + z;
+                    dy = -x + params.a * y;
+                    dz = x * x - z;
+                    break;
+
+                case 'fourWing':
+                    dx = params.a * x + y * z;
+                    dy = params.b * x + params.c * y - x * z;
+                    dz = -z - x * y;
+                    break;
+
+                case 'rabinovich':
+                    dx = y * (z - 1 + x * x) + params.gamma * x;
+                    dy = x * (3 * z + 1 - x * x) + params.gamma * y;
+                    dz = -2 * z * (params.alpha + x * y);
+                    break;
+
+                case 'newtonLeipnik':
+                    dx = -params.a * x + y + 10 * y * z;
+                    dy = -x - 0.4 * y + 5 * x * z;
+                    dz = params.b * z - 5 * x * y;
+                    break;
+
+                default:
+                    dx = dy = dz = 0;
+            }
+
+            const scale = params.scale;
+            return { dx: dx * scale, dy: dy * scale, dz: dz * scale };
+        }
+
+        // Runge-Kutta 4th order integration
+        function rungeKutta4(pos, type, dt) {
+            const k1 = attractorDerivative(pos.x, pos.y, pos.z, type);
+            
+            const k2 = attractorDerivative(
+                pos.x + k1.dx * dt / 2,
+                pos.y + k1.dy * dt / 2,
+                pos.z + k1.dz * dt / 2,
+                type
+            );
+            
+            const k3 = attractorDerivative(
+                pos.x + k2.dx * dt / 2,
+                pos.y + k2.dy * dt / 2,
+                pos.z + k2.dz * dt / 2,
+                type
+            );
+            
+            const k4 = attractorDerivative(
+                pos.x + k3.dx * dt,
+                pos.y + k3.dy * dt,
+                pos.z + k3.dz * dt,
+                type
+            );
+
+            return new THREE.Vector3(
+                pos.x + (k1.dx + 2*k2.dx + 2*k3.dx + k4.dx) * dt / 6,
+                pos.y + (k1.dy + 2*k2.dy + 2*k3.dy + k4.dy) * dt / 6,
+                pos.z + (k1.dz + 2*k2.dz + 2*k3.dz + k4.dz) * dt / 6
+            );
+        }
+
+        // Update particles
+        function updateParticles() {
+            const positions = particleSystem.geometry.attributes.position.array;
+            const colors = particleSystem.geometry.attributes.color.array;
+
+            for (let i = 0; i < particles.length; i++) {
+                const particle = particles[i];
+                
+                // Update position using RK4
+                const newPos = rungeKutta4(particle.position, currentAttractor, timeStep * simulationSpeed);
+                
+                // Check for numerical instability
+                if (!isFinite(newPos.x) || !isFinite(newPos.y) || !isFinite(newPos.z)) {
+                    // Reset particle
+                    particle.position.set(
+                        (Math.random() - 0.5) * 2,
+                        (Math.random() - 0.5) * 2,
+                        (Math.random() - 0.5) * 2
+                    );
+                    particle.trail = [];
+                    continue;
+                }
+
+                particle.position.copy(newPos);
+                particle.trail.push(particle.position.clone());
+
+                // Limit trail length
+                if (particle.trail.length > trailLength) {
+                    particle.trail.shift();
+                }
+
+                // Update geometry
+                for (let j = 0; j < particle.trail.length; j++) {
+                    const idx = (i * trailLength + j) * 3;
+                    const pos = particle.trail[j];
+                    
+                    positions[idx] = pos.x;
+                    positions[idx + 1] = pos.y;
+                    positions[idx + 2] = pos.z;
+
+                    // Calculate color
+                    const t = j / particle.trail.length;
+                    const color = getParticleColor(pos, t, particle);
+                    
+                    colors[idx] = color.r * brightness;
+                    colors[idx + 1] = color.g * brightness;
+                    colors[idx + 2] = color.b * brightness;
+                }
+            }
+
+            particleSystem.geometry.attributes.position.needsUpdate = true;
+            particleSystem.geometry.attributes.color.needsUpdate = true;
+        }
+
+        // Get particle color based on mode
+        function getParticleColor(pos, t, particle) {
+            const color = new THREE.Color();
+
+            switch(colorMode) {
+                case 'gradient':
+                    // Color based on velocity/position magnitude
+                    const mag = Math.sqrt(pos.x*pos.x + pos.y*pos.y + pos.z*pos.z);
+                    const normalized = Math.min(mag / 3, 1);
+                    color.lerpColors(color1, color2, normalized);
+                    break;
+
+                case 'position':
+                    // Color based on XYZ position
+                    color.setRGB(
+                        (Math.sin(pos.x * 0.5) + 1) / 2,
+                        (Math.sin(pos.y * 0.5) + 1) / 2,
+                        (Math.sin(pos.z * 0.5) + 1) / 2
+                    );
+                    break;
+
+                case 'rainbow':
+                    // Rainbow trail
+                    const hue = (t + Date.now() * 0.0001) % 1;
+                    color.setHSL(hue, 1, 0.5);
+                    break;
+
+                case 'single':
+                    color.copy(color1);
+                    break;
+
+                case 'dual':
+                    color.lerpColors(color1, color2, t);
+                    break;
+
+                case 'heatmap':
+                    // Heat map based on trail position
+                    if (t < 0.33) {
+                        color.setRGB(0, t * 3, 1);
+                    } else if (t < 0.66) {
+                        color.setRGB((t - 0.33) * 3, 1, 1 - (t - 0.33) * 3);
+                    } else {
+                        color.setRGB(1, 1 - (t - 0.66) * 3, 0);
+                    }
+                    break;
+            }
+
+            // Fade trail
+            color.multiplyScalar(0.3 + t * 0.7);
+
+            return color;
+        }
+
+        // Manual orbit controls
+        function setupControls() {
+            const canvas = renderer.domElement;
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaX = e.clientX - previousMousePosition.x;
+                    const deltaY = e.clientY - previousMousePosition.y;
+
+                    // Rotate camera around scene
+                    const rotationMatrix = new THREE.Matrix4();
+                    rotationMatrix.makeRotationY(deltaX * 0.005);
+                    camera.position.applyMatrix4(rotationMatrix);
+
+                    rotationMatrix.makeRotationAxis(
+                        new THREE.Vector3(1, 0, 0).applyMatrix4(
+                            new THREE.Matrix4().makeRotationY(Math.atan2(camera.position.x, camera.position.z))
+                        ).normalize(),
+                        deltaY * 0.005
+                    );
+                    camera.position.applyMatrix4(rotationMatrix);
+
+                    camera.lookAt(0, 0, 0);
+
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                }
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomSpeed = 0.1;
+                const direction = camera.position.clone().normalize();
+                camera.position.addScaledVector(direction, e.deltaY * zoomSpeed * 0.01);
+                
+                // Clamp zoom
+                const distance = camera.position.length();
+                if (distance < 2) {
+                    camera.position.setLength(2);
+                } else if (distance > 50) {
+                    camera.position.setLength(50);
+                }
+            });
+
+            // Touch support
+            let touchStart = null;
+            canvas.addEventListener('touchstart', (e) => {
+                touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (touchStart) {
+                    const deltaX = e.touches[0].clientX - touchStart.x;
+                    const deltaY = e.touches[0].clientY - touchStart.y;
+
+                    const rotationMatrix = new THREE.Matrix4();
+                    rotationMatrix.makeRotationY(deltaX * 0.005);
+                    camera.position.applyMatrix4(rotationMatrix);
+
+                    camera.lookAt(0, 0, 0);
+
+                    touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+            });
+
+            canvas.addEventListener('touchend', () => {
+                touchStart = null;
+            });
+        }
+
+        // Animation loop
+        let lastTime = Date.now();
+        let frameCount = 0;
+        let fps = 60;
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // FPS calculation
+            frameCount++;
+            const currentTime = Date.now();
+            if (currentTime - lastTime >= 1000) {
+                fps = frameCount;
+                document.getElementById('fps').textContent = fps;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+
+            // Auto rotate
+            if (autoRotate) {
+                const rotationMatrix = new THREE.Matrix4();
+                rotationMatrix.makeRotationY(rotationSpeed);
+                camera.position.applyMatrix4(rotationMatrix);
+                camera.lookAt(0, 0, 0);
+            }
+
+            updateParticles();
+            renderer.render(scene, camera);
+        }
+
+        // UI Controls
+        function changeAttractor() {
+            currentAttractor = document.getElementById('attractorType').value;
+            document.getElementById('current-attractor').textContent = 
+                document.getElementById('attractorType').selectedOptions[0].text;
+            
+            // Update description
+            const descriptions = {
+                lorenz: "The Lorenz attractor is a set of chaotic solutions famous for its butterfly-like shape. Discovered by Edward Lorenz in 1963.",
+                rossler: "The Rössler attractor is a system of three differential equations exhibiting chaotic dynamics with a spiral structure.",
+                aizawa: "The Aizawa attractor produces a complex, toroidal structure with intricate details and symmetrical patterns.",
+                thomas: "Thomas' cyclically symmetric attractor exhibits rotational symmetry and creates beautiful flowing patterns.",
+                halvorsen: "The Halvorsen attractor is known for its four-wing butterfly-like structure with rotational symmetry.",
+                dadras: "The Dadras attractor creates complex, wing-like structures with multiple lobes and intricate trajectories.",
+                chen: "The Chen attractor is similar to Lorenz but with different parameters, creating unique scroll-like patterns.",
+                sprottB: "Sprott B is one of the simplest chaotic systems with minimal parameters but complex behavior.",
+                sprottLinzF: "Sprott-Linz F produces elegant, flowing patterns with a distinctive shape.",
+                fourWing: "The Four-Wing attractor exhibits four distinct wing-like lobes in its phase space.",
+                rabinovich: "Rabinovich-Fabrikant attractor creates intricate, intertwined patterns with complex dynamics.",
+                newtonLeipnik: "Newton-Leipnik attractor produces unique geometric patterns with multiple attracting regions."
+            };
+            
+            document.getElementById('attractor-description').textContent = descriptions[currentAttractor];
+            
+            clearTrails();
+        }
+
+        function updateParticles() {
+            particleCount = parseInt(document.getElementById('particles').value);
+            document.getElementById('particleValue').textContent = particleCount;
+            document.getElementById('particle-count').textContent = particleCount;
+            initParticles();
+        }
+
+        function updateTrailLength() {
+            trailLength = parseInt(document.getElementById('trailLength').value);
+            document.getElementById('trailValue').textContent = trailLength;
+            initParticles();
+        }
+
+        function updateParticleSize() {
+            const size = parseFloat(document.getElementById('particleSize').value);
+            document.getElementById('sizeValue').textContent = size;
+            particleSystem.material.size = size;
+        }
+
+        function updateSpeed() {
+            simulationSpeed = parseFloat(document.getElementById('speed').value);
+            document.getElementById('speedValue').textContent = simulationSpeed.toFixed(1);
+        }
+
+        function updateColorMode() {
+            colorMode = document.getElementById('colorMode').value;
+        }
+
+        function updateColors() {
+            color1.set(document.getElementById('color1').value);
+            color2.set(document.getElementById('color2').value);
+        }
+
+        function setColors(c1, c2) {
+            document.getElementById('color1').value = c1;
+            document.getElementById('color2').value = c2;
+            updateColors();
+        }
+
+        function updateBrightness() {
+            brightness = parseFloat(document.getElementById('brightness').value);
+            document.getElementById('brightnessValue').textContent = brightness.toFixed(1);
+        }
+
+        function updateRotSpeed() {
+            rotationSpeed = parseFloat(document.getElementById('rotSpeed').value) * 0.001;
+            document.getElementById('rotSpeedValue').textContent = document.getElementById('rotSpeed').value;
+        }
+
+        function toggleAutoRotate() {
+            autoRotate = !autoRotate;
+        }
+
+        function clearTrails() {
+            particles.forEach(p => {
+                p.position.set(
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 2
+                );
+                p.trail = [];
+            });
+        }
+
+        function resetCamera() {
+            camera.position.set(0, 0, 10);
+            camera.lookAt(0, 0, 0);
+        }
+
+        function loadPreset(preset) {
+            switch(preset) {
+                case 'classic':
+                    document.getElementById('particles').value = 5000;
+                    document.getElementById('trailLength').value = 100;
+                    document.getElementById('colorMode').value = 'gradient';
+                    document.getElementById('color1').value = '#3b82f6';
+                    document.getElementById('color2').value = '#ef4444';
+                    break;
+                case 'colorful':
+                    document.getElementById('colorMode').value = 'rainbow';
+                    document.getElementById('trailLength').value = 150;
+                    break;
+                case 'dense':
+                    document.getElementById('particles').value = 15000;
+                    document.getElementById('trailLength').value = 200;
+                    break;
+                case 'sparse':
+                    document.getElementById('particles').value = 2000;
+                    document.getElementById('trailLength').value = 50;
+                    break;
+            }
+            updateParticles();
+            updateTrailLength();
+            updateColorMode();
+            updateColors();
+        }
+
+        function randomize() {
+            const attractors = ['lorenz', 'rossler', 'aizawa', 'thomas', 'halvorsen', 'dadras', 'chen'];
+            const colors = ['gradient', 'position', 'rainbow', 'dual', 'heatmap'];
+            
+            document.getElementById('attractorType').value = attractors[Math.floor(Math.random() * attractors.length)];
+            document.getElementById('particles').value = Math.floor(Math.random() * 15000) + 2000;
+            document.getElementById('trailLength').value = Math.floor(Math.random() * 200) + 50;
+            document.getElementById('colorMode').value = colors[Math.floor(Math.random() * colors.length)];
+            document.getElementById('speed').value = (Math.random() * 2 + 0.5).toFixed(1);
+            
+            changeAttractor();
+            updateParticles();
+            updateTrailLength();
+            updateColorMode();
+            updateSpeed();
+        }
+
+        function resetToDefault() {
+            document.getElementById('attractorType').value = 'lorenz';
+            document.getElementById('particles').value = 5000;
+            document.getElementById('trailLength').value = 100;
+            document.getElementById('particleSize').value = 2;
+            document.getElementById('speed').value = 1;
+            document.getElementById('colorMode').value = 'gradient';
+            document.getElementById('color1').value = '#3b82f6';
+            document.getElementById('color2').value = '#ef4444';
+            document.getElementById('brightness').value = 1;
+            document.getElementById('rotSpeed').value = 0.5;
+            
+            changeAttractor();
+            updateParticles();
+            updateTrailLength();
+            updateParticleSize();
+            updateSpeed();
+            updateColorMode();
+            updateColors();
+            updateBrightness();
+            updateRotSpeed();
+        }
+
+        // Export functions
+        function setExportSize(width, height) {
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            
+            setTimeout(() => {
+                const container = document.getElementById('canvas-container');
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+            }, 2000);
+        }
+
+        function exportImage() {
+            renderer.render(scene, camera);
+            const dataURL = renderer.domElement.toDataURL('image/png');
+            downloadImage(dataURL, `strange-attractor-${currentAttractor}.png`);
+        }
+
+        function exportHighRes() {
+            const container = document.getElementById('canvas-container');
+            const originalWidth = container.clientWidth;
+            const originalHeight = container.clientHeight;
+            
+            renderer.setSize(3840, 2160);
+            camera.aspect = 3840 / 2160;
+            camera.updateProjectionMatrix();
+            
+            setTimeout(() => {
+                renderer.render(scene, camera);
+                const dataURL = renderer.domElement.toDataURL('image/png');
+                downloadImage(dataURL, `strange-attractor-${currentAttractor}-4k.png`);
+                
+                renderer.setSize(originalWidth, originalHeight);
+                camera.aspect = originalWidth / originalHeight;
+                camera.updateProjectionMatrix();
+            }, 100);
+        }
+
+        function downloadImage(dataURL, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = dataURL;
+            link.click();
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
