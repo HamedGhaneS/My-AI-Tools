@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Fractal Social Media Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a3e 100%);
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            height: 100vh;
+        }
+
+        #canvas-container {
+            flex: 1;
+            position: relative;
+            background: #000;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #controls {
+            width: 350px;
+            background: rgba(26, 26, 62, 0.95);
+            padding: 20px;
+            overflow-y: auto;
+            border-left: 2px solid #3b82f6;
+            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            color: #3b82f6;
+            font-size: 24px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .control-group h3 {
+            color: #3b82f6;
+            font-size: 14px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        label {
+            display: block;
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 5px;
+            margin-top: 10px;
+        }
+
+        select, input[type="range"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: #e0e0e0;
+            font-size: 13px;
+        }
+
+        input[type="range"] {
+            padding: 0;
+        }
+
+        input[type="color"] {
+            width: 100%;
+            height: 40px;
+            border: 2px solid #444;
+            border-radius: 5px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .value-display {
+            display: inline-block;
+            float: right;
+            color: #3b82f6;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .btn-export:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+
+        .btn-animate {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .btn-animate:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+        }
+
+        .btn-random {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        .btn-random:hover {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            padding: 8px;
+            font-size: 11px;
+            margin: 0;
+        }
+
+        #info-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 1px solid #3b82f6;
+            font-size: 13px;
+            max-width: 300px;
+        }
+
+        #info-overlay h2 {
+            color: #3b82f6;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        #info-overlay p {
+            color: #aaa;
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #3b82f6;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #333;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .color-preset {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .color-preset-btn {
+            width: 30px;
+            height: 30px;
+            border: 2px solid #444;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .color-preset-btn:hover {
+            transform: scale(1.1);
+            border-color: #3b82f6;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+
+        .social-format {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .format-btn {
+            flex: 1;
+            padding: 8px;
+            font-size: 11px;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="canvas-container">
+            <canvas id="renderCanvas"></canvas>
+            <div id="info-overlay">
+                <h2>🎨 3D Fractal Generator</h2>
+                <p><strong>Controls:</strong></p>
+                <p>🖱️ Left Click + Drag: Rotate</p>
+                <p>🖱️ Right Click + Drag: Pan</p>
+                <p>🖱️ Scroll: Zoom</p>
+                <p><strong>Current:</strong> <span id="current-fractal">Mandelbulb</span></p>
+            </div>
+            <div id="loading" class="loading" style="display: none;">
+                <div class="loading-spinner"></div>
+                Generating Fractal...
+            </div>
+        </div>
+
+        <div id="controls">
+            <h1>⚡ Fractal Controls</h1>
+            <p class="subtitle">Create stunning 3D fractals for social media</p>
+
+            <div class="control-group">
+                <h3>🎯 Fractal Type</h3>
+                <select id="fractalType" onchange="updateFractal()">
+                    <option value="mandelbulb">Mandelbulb (Classic 3D)</option>
+                    <option value="julia">Julia Set 3D</option>
+                    <option value="menger">Menger Sponge</option>
+                    <option value="sierpinski">Sierpinski Pyramid</option>
+                    <option value="apollonian">Apollonian Gasket</option>
+                    <option value="plasma">Plasma Cloud</option>
+                </select>
+
+                <div class="preset-grid">
+                    <button class="preset-btn" onclick="loadPreset('power8')">Power 8</button>
+                    <button class="preset-btn" onclick="loadPreset('power12')">Power 12</button>
+                    <button class="preset-btn" onclick="loadPreset('julia1')">Julia 1</button>
+                    <button class="preset-btn" onclick="loadPreset('julia2')">Julia 2</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>🎨 Visual Settings</h3>
+                
+                <label>Power <span class="value-display" id="powerValue">8</span></label>
+                <input type="range" id="power" min="2" max="16" value="8" step="0.5" oninput="updatePower()">
+
+                <label>Detail Level <span class="value-display" id="detailValue">128</span></label>
+                <input type="range" id="detail" min="32" max="256" value="128" step="32" oninput="updateDetail()">
+
+                <label>Iterations <span class="value-display" id="iterValue">8</span></label>
+                <input type="range" id="iterations" min="4" max="20" value="8" step="1" oninput="updateIterations()">
+
+                <label>Color Scheme</label>
+                <select id="colorScheme" onchange="updateColors()">
+                    <option value="rainbow">🌈 Rainbow</option>
+                    <option value="fire">🔥 Fire</option>
+                    <option value="ocean">🌊 Ocean</option>
+                    <option value="galaxy">🌌 Galaxy</option>
+                    <option value="neon">💫 Neon</option>
+                    <option value="sunset">🌅 Sunset</option>
+                    <option value="monochrome">⚫ Monochrome</option>
+                </select>
+
+                <label>Base Color</label>
+                <input type="color" id="baseColor" value="#3b82f6" oninput="updateColors()">
+
+                <div class="color-preset">
+                    <div class="color-preset-btn" style="background: #3b82f6;" onclick="setColor('#3b82f6')"></div>
+                    <div class="color-preset-btn" style="background: #ef4444;" onclick="setColor('#ef4444')"></div>
+                    <div class="color-preset-btn" style="background: #10b981;" onclick="setColor('#10b981')"></div>
+                    <div class="color-preset-btn" style="background: #f59e0b;" onclick="setColor('#f59e0b')"></div>
+                    <div class="color-preset-btn" style="background: #8b5cf6;" onclick="setColor('#8b5cf6')"></div>
+                    <div class="color-preset-btn" style="background: #ec4899;" onclick="setColor('#ec4899')"></div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>✨ Effects</h3>
+                
+                <label>Glow Intensity <span class="value-display" id="glowValue">0.5</span></label>
+                <input type="range" id="glow" min="0" max="1" value="0.5" step="0.1" oninput="updateGlow()">
+
+                <label>Rotation Speed <span class="value-display" id="rotSpeedValue">1</span></label>
+                <input type="range" id="rotSpeed" min="0" max="5" value="1" step="0.5" oninput="updateRotSpeed()">
+
+                <button class="btn-animate" onclick="toggleAnimation()">▶️ Toggle Animation</button>
+            </div>
+
+            <div class="control-group">
+                <h3>📤 Export</h3>
+                
+                <label>Social Media Format</label>
+                <div class="social-format">
+                    <button class="format-btn" onclick="setExportSize(1080, 1080)">📷 Instagram<br>1:1</button>
+                    <button class="format-btn" onclick="setExportSize(1920, 1080)">🎬 YouTube<br>16:9</button>
+                    <button class="format-btn" onclick="setExportSize(1200, 630)">🐦 Twitter<br>1.91:1</button>
+                </div>
+
+                <button class="btn-export" onclick="exportImage()">💾 Download PNG</button>
+                <button class="btn-export" onclick="exportHighRes()">🖼️ Download 4K</button>
+            </div>
+
+            <div class="control-group">
+                <h3>🎲 Random</h3>
+                <button class="btn-random" onclick="randomize()">🎲 Randomize All</button>
+                <button onclick="resetToDefault()">🔄 Reset to Default</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Three.js Scene Setup
+        let scene, camera, renderer, fractalMesh, controls;
+        let animating = false;
+        let rotationSpeed = 0.01;
+
+        // Fractal parameters
+        let fractalParams = {
+            type: 'mandelbulb',
+            power: 8,
+            detail: 128,
+            iterations: 8,
+            colorScheme: 'rainbow',
+            baseColor: 0x3b82f6,
+            glow: 0.5
+        };
+
+        // Initialize Three.js
+        function init() {
+            const canvas = document.getElementById('renderCanvas');
+            const container = document.getElementById('canvas-container');
+
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000);
+            scene.fog = new THREE.Fog(0x000000, 10, 50);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(
+                60,
+                container.clientWidth / container.clientHeight,
+                0.1,
+                1000
+            );
+            camera.position.z = 5;
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: canvas, 
+                antialias: true,
+                preserveDrawingBuffer: true 
+            });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0x404040, 2);
+            scene.add(ambientLight);
+
+            const pointLight1 = new THREE.PointLight(0x3b82f6, 2, 100);
+            pointLight1.position.set(10, 10, 10);
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0xef4444, 2, 100);
+            pointLight2.position.set(-10, -10, 10);
+            scene.add(pointLight2);
+
+            // Simple orbit controls (manual implementation)
+            setupControls();
+
+            // Generate initial fractal
+            generateFractal();
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize);
+
+            // Animation loop
+            animate();
+        }
+
+        // Manual orbit controls
+        function setupControls() {
+            const canvas = renderer.domElement;
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+            let rotation = { x: 0, y: 0 };
+
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (isDragging && fractalMesh) {
+                    const deltaX = e.clientX - previousMousePosition.x;
+                    const deltaY = e.clientY - previousMousePosition.y;
+
+                    rotation.y += deltaX * 0.01;
+                    rotation.x += deltaY * 0.01;
+
+                    fractalMesh.rotation.y = rotation.y;
+                    fractalMesh.rotation.x = rotation.x;
+
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                }
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                camera.position.z += e.deltaY * 0.01;
+                camera.position.z = Math.max(2, Math.min(20, camera.position.z));
+            });
+
+            // Touch support
+            let touchStart = null;
+            canvas.addEventListener('touchstart', (e) => {
+                touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (touchStart && fractalMesh) {
+                    const deltaX = e.touches[0].clientX - touchStart.x;
+                    const deltaY = e.touches[0].clientY - touchStart.y;
+
+                    rotation.y += deltaX * 0.01;
+                    rotation.x += deltaY * 0.01;
+
+                    fractalMesh.rotation.y = rotation.y;
+                    fractalMesh.rotation.x = rotation.x;
+
+                    touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+            });
+
+            canvas.addEventListener('touchend', () => {
+                touchStart = null;
+            });
+        }
+
+        // Generate fractal geometry
+        function generateFractal() {
+            showLoading(true);
+
+            // Remove old mesh
+            if (fractalMesh) {
+                scene.remove(fractalMesh);
+                fractalMesh.geometry.dispose();
+                fractalMesh.material.dispose();
+            }
+
+            setTimeout(() => {
+                let geometry;
+
+                switch (fractalParams.type) {
+                    case 'mandelbulb':
+                        geometry = createMandelbulb();
+                        break;
+                    case 'julia':
+                        geometry = createJuliaSet();
+                        break;
+                    case 'menger':
+                        geometry = createMengerSponge();
+                        break;
+                    case 'sierpinski':
+                        geometry = createSierpinski();
+                        break;
+                    case 'apollonian':
+                        geometry = createApollonian();
+                        break;
+                    case 'plasma':
+                        geometry = createPlasmaCloud();
+                        break;
+                    default:
+                        geometry = createMandelbulb();
+                }
+
+                const material = new THREE.MeshPhongMaterial({
+                    color: fractalParams.baseColor,
+                    emissive: fractalParams.baseColor,
+                    emissiveIntensity: fractalParams.glow,
+                    shininess: 100,
+                    specular: 0xffffff,
+                    vertexColors: true,
+                    flatShading: false
+                });
+
+                fractalMesh = new THREE.Mesh(geometry, material);
+                scene.add(fractalMesh);
+
+                showLoading(false);
+            }, 100);
+        }
+
+        // Mandelbulb implementation
+        function createMandelbulb() {
+            const vertices = [];
+            const colors = [];
+            const resolution = fractalParams.detail;
+            const power = fractalParams.power;
+            const maxIterations = fractalParams.iterations;
+
+            for (let i = 0; i < resolution; i++) {
+                for (let j = 0; j < resolution; j++) {
+                    for (let k = 0; k < resolution; k++) {
+                        const x = (i / resolution - 0.5) * 4;
+                        const y = (j / resolution - 0.5) * 4;
+                        const z = (k / resolution - 0.5) * 4;
+
+                        if (mandelbulbDistance(x, y, z, power, maxIterations) < 0.01) {
+                            vertices.push(x, y, z);
+                            
+                            // Color based on position
+                            const color = getColorForPosition(x, y, z, i / resolution);
+                            colors.push(color.r, color.g, color.b);
+                        }
+                    }
+                }
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.computeVertexNormals();
+
+            return geometry;
+        }
+
+        function mandelbulbDistance(x0, y0, z0, power, maxIter) {
+            let x = x0, y = y0, z = z0;
+            let dr = 1.0;
+            let r = 0.0;
+
+            for (let i = 0; i < maxIter; i++) {
+                r = Math.sqrt(x*x + y*y + z*z);
+                
+                if (r > 2) break;
+
+                // Convert to polar coordinates
+                let theta = Math.acos(z / r);
+                let phi = Math.atan2(y, x);
+                dr = Math.pow(r, power - 1) * power * dr + 1;
+
+                // Scale and rotate the point
+                let zr = Math.pow(r, power);
+                theta = theta * power;
+                phi = phi * power;
+
+                // Convert back to cartesian coordinates
+                x = zr * Math.sin(theta) * Math.cos(phi) + x0;
+                y = zr * Math.sin(theta) * Math.sin(phi) + y0;
+                z = zr * Math.cos(theta) + z0;
+            }
+
+            return 0.5 * Math.log(r) * r / dr;
+        }
+
+        // Julia Set 3D
+        function createJuliaSet() {
+            const vertices = [];
+            const colors = [];
+            const resolution = fractalParams.detail;
+            const c = { x: -0.4, y: 0.6, z: 0.2, w: 0.3 };
+
+            for (let i = 0; i < resolution; i++) {
+                for (let j = 0; j < resolution; j++) {
+                    for (let k = 0; k < resolution; k++) {
+                        const x = (i / resolution - 0.5) * 4;
+                        const y = (j / resolution - 0.5) * 4;
+                        const z = (k / resolution - 0.5) * 4;
+
+                        if (juliaSetDistance(x, y, z, c) < 0.02) {
+                            vertices.push(x, y, z);
+                            
+                            const color = getColorForPosition(x, y, z, j / resolution);
+                            colors.push(color.r, color.g, color.b);
+                        }
+                    }
+                }
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.computeVertexNormals();
+
+            return geometry;
+        }
+
+        function juliaSetDistance(x, y, z, c) {
+            let iterations = 0;
+            const maxIter = fractalParams.iterations * 2;
+            let qx = x, qy = y, qz = z, qw = 0;
+
+            while (iterations < maxIter) {
+                const qx2 = qx * qx;
+                const qy2 = qy * qy;
+                const qz2 = qz * qz;
+                const qw2 = qw * qw;
+
+                if (qx2 + qy2 + qz2 + qw2 > 4) break;
+
+                const newQx = qx2 - qy2 - qz2 - qw2 + c.x;
+                const newQy = 2 * qx * qy + c.y;
+                const newQz = 2 * qx * qz + c.z;
+                const newQw = 2 * qx * qw + c.w;
+
+                qx = newQx;
+                qy = newQy;
+                qz = newQz;
+                qw = newQw;
+
+                iterations++;
+            }
+
+            return iterations / maxIter;
+        }
+
+        // Menger Sponge
+        function createMengerSponge() {
+            const vertices = [];
+            const colors = [];
+            const depth = Math.min(4, Math.floor(fractalParams.iterations / 3));
+
+            function mengerRecursive(x, y, z, size, level) {
+                if (level === 0) {
+                    vertices.push(x, y, z);
+                    const color = getColorForPosition(x, y, z, level / depth);
+                    colors.push(color.r, color.g, color.b);
+                    return;
+                }
+
+                const newSize = size / 3;
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        for (let k = 0; k < 3; k++) {
+                            const count = (i === 1 ? 1 : 0) + (j === 1 ? 1 : 0) + (k === 1 ? 1 : 0);
+                            if (count <= 1) {
+                                mengerRecursive(
+                                    x + (i - 1) * newSize,
+                                    y + (j - 1) * newSize,
+                                    z + (k - 1) * newSize,
+                                    newSize,
+                                    level - 1
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
+            mengerRecursive(0, 0, 0, 2, depth);
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.computeVertexNormals();
+
+            return geometry;
+        }
+
+        // Sierpinski Pyramid
+        function createSierpinski() {
+            const vertices = [];
+            const colors = [];
+            const depth = Math.min(5, fractalParams.iterations);
+
+            const tetrahedron = [
+                [0, 1, 0],
+                [-0.866, -0.5, 0.5],
+                [0.866, -0.5, 0.5],
+                [0, -0.5, -1]
+            ];
+
+            function sierpinskiRecursive(points, level) {
+                if (level === 0) {
+                    points.forEach(p => {
+                        vertices.push(p[0], p[1], p[2]);
+                        const color = getColorForPosition(p[0], p[1], p[2], level / depth);
+                        colors.push(color.r, color.g, color.b);
+                    });
+                    return;
+                }
+
+                const midpoints = [
+                    [(points[0][0] + points[1][0]) / 2, (points[0][1] + points[1][1]) / 2, (points[0][2] + points[1][2]) / 2],
+                    [(points[0][0] + points[2][0]) / 2, (points[0][1] + points[2][1]) / 2, (points[0][2] + points[2][2]) / 2],
+                    [(points[0][0] + points[3][0]) / 2, (points[0][1] + points[3][1]) / 2, (points[0][2] + points[3][2]) / 2],
+                    [(points[1][0] + points[2][0]) / 2, (points[1][1] + points[2][1]) / 2, (points[1][2] + points[2][2]) / 2],
+                    [(points[1][0] + points[3][0]) / 2, (points[1][1] + points[3][1]) / 2, (points[1][2] + points[3][2]) / 2],
+                    [(points[2][0] + points[3][0]) / 2, (points[2][1] + points[3][1]) / 2, (points[2][2] + points[3][2]) / 2]
+                ];
+
+                sierpinskiRecursive([points[0], midpoints[0], midpoints[1], midpoints[2]], level - 1);
+                sierpinskiRecursive([midpoints[0], points[1], midpoints[3], midpoints[4]], level - 1);
+                sierpinskiRecursive([midpoints[1], midpoints[3], points[2], midpoints[5]], level - 1);
+                sierpinskiRecursive([midpoints[2], midpoints[4], midpoints[5], points[3]], level - 1);
+            }
+
+            sierpinskiRecursive(tetrahedron, depth);
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.computeVertexNormals();
+
+            return geometry;
+        }
+
+        // Apollonian Gasket
+        function createApollonian() {
+            const vertices = [];
+            const colors = [];
+            const depth = Math.min(6, fractalParams.iterations);
+
+            function createSphere(x, y, z, r, level) {
+                const segments = 16;
+                for (let i = 0; i <= segments; i++) {
+                    const theta = (i / segments) * Math.PI * 2;
+                    for (let j = 0; j <= segments; j++) {
+                        const phi = (j / segments) * Math.PI;
+                        const px = x + r * Math.sin(phi) * Math.cos(theta);
+                        const py = y + r * Math.sin(phi) * Math.sin(theta);
+                        const pz = z + r * Math.cos(phi);
+                        
+                        vertices.push(px, py, pz);
+                        const color = getColorForPosition(px, py, pz, level / depth);
+                        colors.push(color.r, color.g, color.b);
+                    }
+                }
+            }
+
+            function apollonianRecursive(x1, y1, r1, x2, y2, r2, x3, y3, r3, level) {
+                if (level === 0) return;
+
+                const k1 = 1 / r1;
+                const k2 = 1 / r2;
+                const k3 = 1 / r3;
+                const k4 = k1 + k2 + k3 + 2 * Math.sqrt(k1 * k2 + k2 * k3 + k3 * k1);
+
+                if (k4 <= 0) return;
+
+                const r4 = 1 / k4;
+                const x4 = (k1 * x1 + k2 * x2 + k3 * x3 + 2 * Math.sqrt(k1 * k2 * x1 * x2 + k2 * k3 * x2 * x3 + k3 * k1 * x3 * x1)) / k4;
+                const y4 = (k1 * y1 + k2 * y2 + k3 * y3 + 2 * Math.sqrt(k1 * k2 * y1 * y2 + k2 * k3 * y2 * y3 + k3 * k1 * y3 * y1)) / k4;
+
+                createSphere(x4, y4, 0, r4, level);
+
+                apollonianRecursive(x2, y2, r2, x3, y3, r3, x4, y4, r4, level - 1);
+                apollonianRecursive(x1, y1, r1, x3, y3, r3, x4, y4, r4, level - 1);
+                apollonianRecursive(x1, y1, r1, x2, y2, r2, x4, y4, r4, level - 1);
+            }
+
+            createSphere(0, 0, 0, 1, depth);
+            createSphere(-0.5, 0, 0, 0.5, depth);
+            createSphere(0.5, 0, 0, 0.5, depth);
+            createSphere(0, 0.866, 0, 0.5, depth);
+
+            apollonianRecursive(-0.5, 0, 0.5, 0.5, 0, 0.5, 0, 0.866, 0.5, depth);
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.computeVertexNormals();
+
+            return geometry;
+        }
+
+        // Plasma Cloud
+        function createPlasmaCloud() {
+            const vertices = [];
+            const colors = [];
+            const resolution = fractalParams.detail;
+
+            for (let i = 0; i < resolution * 2; i++) {
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+                const radius = Math.random() * 2 + 1;
+
+                const x = radius * Math.sin(phi) * Math.cos(theta);
+                const y = radius * Math.sin(phi) * Math.sin(theta);
+                const z = radius * Math.cos(phi);
+
+                const noise = (Math.sin(x * 2) + Math.cos(y * 2) + Math.sin(z * 2)) / 3;
+
+                if (noise > 0) {
+                    vertices.push(x, y, z);
+                    const color = getColorForPosition(x, y, z, (noise + 1) / 2);
+                    colors.push(color.r, color.g, color.b);
+                }
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.computeVertexNormals();
+
+            return geometry;
+        }
+
+        // Color schemes
+        function getColorForPosition(x, y, z, t) {
+            const colorScheme = fractalParams.colorScheme;
+            let r, g, b;
+
+            switch (colorScheme) {
+                case 'rainbow':
+                    r = Math.sin(t * Math.PI * 2) * 0.5 + 0.5;
+                    g = Math.sin(t * Math.PI * 2 + Math.PI * 2/3) * 0.5 + 0.5;
+                    b = Math.sin(t * Math.PI * 2 + Math.PI * 4/3) * 0.5 + 0.5;
+                    break;
+                
+                case 'fire':
+                    r = 1;
+                    g = t * 0.7;
+                    b = t * 0.2;
+                    break;
+                
+                case 'ocean':
+                    r = t * 0.2;
+                    g = t * 0.6 + 0.4;
+                    b = 1;
+                    break;
+                
+                case 'galaxy':
+                    r = 0.5 + Math.sin(t * Math.PI) * 0.5;
+                    g = 0.2 + Math.cos(t * Math.PI) * 0.3;
+                    b = 0.8 + Math.sin(t * Math.PI * 2) * 0.2;
+                    break;
+                
+                case 'neon':
+                    r = Math.abs(Math.sin(t * Math.PI * 3));
+                    g = Math.abs(Math.cos(t * Math.PI * 3));
+                    b = Math.abs(Math.sin(t * Math.PI * 3 + Math.PI/2));
+                    break;
+                
+                case 'sunset':
+                    r = 1;
+                    g = 0.4 + t * 0.6;
+                    b = t * 0.4;
+                    break;
+                
+                case 'monochrome':
+                    const hex = fractalParams.baseColor;
+                    r = ((hex >> 16) & 255) / 255;
+                    g = ((hex >> 8) & 255) / 255;
+                    b = (hex & 255) / 255;
+                    const intensity = t * 0.5 + 0.5;
+                    r *= intensity;
+                    g *= intensity;
+                    b *= intensity;
+                    break;
+                
+                default:
+                    r = g = b = t;
+            }
+
+            return { r, g, b };
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (animating && fractalMesh) {
+                fractalMesh.rotation.y += rotationSpeed * 0.01;
+                fractalMesh.rotation.x += rotationSpeed * 0.005;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // UI Controls
+        function updateFractal() {
+            fractalParams.type = document.getElementById('fractalType').value;
+            document.getElementById('current-fractal').textContent = 
+                document.getElementById('fractalType').selectedOptions[0].text;
+            generateFractal();
+        }
+
+        function updatePower() {
+            fractalParams.power = parseFloat(document.getElementById('power').value);
+            document.getElementById('powerValue').textContent = fractalParams.power;
+            generateFractal();
+        }
+
+        function updateDetail() {
+            fractalParams.detail = parseInt(document.getElementById('detail').value);
+            document.getElementById('detailValue').textContent = fractalParams.detail;
+            generateFractal();
+        }
+
+        function updateIterations() {
+            fractalParams.iterations = parseInt(document.getElementById('iterations').value);
+            document.getElementById('iterValue').textContent = fractalParams.iterations;
+            generateFractal();
+        }
+
+        function updateColors() {
+            fractalParams.colorScheme = document.getElementById('colorScheme').value;
+            fractalParams.baseColor = parseInt(document.getElementById('baseColor').value.replace('#', '0x'));
+            generateFractal();
+        }
+
+        function setColor(color) {
+            document.getElementById('baseColor').value = color;
+            updateColors();
+        }
+
+        function updateGlow() {
+            fractalParams.glow = parseFloat(document.getElementById('glow').value);
+            document.getElementById('glowValue').textContent = fractalParams.glow;
+            if (fractalMesh) {
+                fractalMesh.material.emissiveIntensity = fractalParams.glow;
+            }
+        }
+
+        function updateRotSpeed() {
+            rotationSpeed = parseFloat(document.getElementById('rotSpeed').value);
+            document.getElementById('rotSpeedValue').textContent = rotationSpeed;
+        }
+
+        function toggleAnimation() {
+            animating = !animating;
+        }
+
+        function loadPreset(preset) {
+            switch(preset) {
+                case 'power8':
+                    document.getElementById('power').value = 8;
+                    document.getElementById('fractalType').value = 'mandelbulb';
+                    break;
+                case 'power12':
+                    document.getElementById('power').value = 12;
+                    document.getElementById('fractalType').value = 'mandelbulb';
+                    break;
+                case 'julia1':
+                    document.getElementById('fractalType').value = 'julia';
+                    document.getElementById('iterations').value = 12;
+                    break;
+                case 'julia2':
+                    document.getElementById('fractalType').value = 'julia';
+                    document.getElementById('iterations').value = 16;
+                    break;
+            }
+            updatePower();
+            updateIterations();
+            updateFractal();
+        }
+
+        function randomize() {
+            const types = ['mandelbulb', 'julia', 'menger', 'sierpinski', 'apollonian', 'plasma'];
+            const colors = ['rainbow', 'fire', 'ocean', 'galaxy', 'neon', 'sunset'];
+            
+            document.getElementById('fractalType').value = types[Math.floor(Math.random() * types.length)];
+            document.getElementById('power').value = Math.floor(Math.random() * 12) + 4;
+            document.getElementById('iterations').value = Math.floor(Math.random() * 12) + 6;
+            document.getElementById('colorScheme').value = colors[Math.floor(Math.random() * colors.length)];
+            document.getElementById('glow').value = Math.random();
+            
+            updatePower();
+            updateIterations();
+            updateGlow();
+            updateFractal();
+        }
+
+        function resetToDefault() {
+            document.getElementById('fractalType').value = 'mandelbulb';
+            document.getElementById('power').value = 8;
+            document.getElementById('detail').value = 128;
+            document.getElementById('iterations').value = 8;
+            document.getElementById('colorScheme').value = 'rainbow';
+            document.getElementById('baseColor').value = '#3b82f6';
+            document.getElementById('glow').value = 0.5;
+            document.getElementById('rotSpeed').value = 1;
+            
+            updatePower();
+            updateDetail();
+            updateIterations();
+            updateGlow();
+            updateRotSpeed();
+            updateFractal();
+        }
+
+        // Export functions
+        function setExportSize(width, height) {
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            
+            setTimeout(() => {
+                const container = document.getElementById('canvas-container');
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+            }, 2000);
+        }
+
+        function exportImage() {
+            renderer.render(scene, camera);
+            const dataURL = renderer.domElement.toDataURL('image/png');
+            downloadImage(dataURL, '3d-fractal.png');
+        }
+
+        function exportHighRes() {
+            const container = document.getElementById('canvas-container');
+            const originalWidth = container.clientWidth;
+            const originalHeight = container.clientHeight;
+            
+            renderer.setSize(3840, 2160);
+            camera.aspect = 3840 / 2160;
+            camera.updateProjectionMatrix();
+            
+            setTimeout(() => {
+                renderer.render(scene, camera);
+                const dataURL = renderer.domElement.toDataURL('image/png');
+                downloadImage(dataURL, '3d-fractal-4k.png');
+                
+                renderer.setSize(originalWidth, originalHeight);
+                camera.aspect = originalWidth / originalHeight;
+                camera.updateProjectionMatrix();
+            }, 100);
+        }
+
+        function downloadImage(dataURL, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = dataURL;
+            link.click();
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
