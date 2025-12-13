@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knight's Tour - Algorithm Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 30px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1400px;
+        }
+
+        .board-section {
+            flex: 0 0 auto;
+        }
+
+        .sidebar {
+            flex: 1;
+            min-width: 350px;
+            max-width: 450px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .chessboard {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            gap: 0;
+            border: 3px solid #333;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .square {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-weight: bold;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .square.light {
+            background-color: #f0d9b5;
+        }
+
+        .square.dark {
+            background-color: #b58863;
+        }
+
+        .square.visited {
+            background-color: #81c784 !important;
+        }
+
+        .square.current {
+            background-color: #ffd54f !important;
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        .square.possible {
+            background-color: #64b5f6 !important;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .knight {
+            font-size: 36px;
+            position: absolute;
+            animation: fadeIn 0.3s ease-in;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .move-number {
+            font-size: 12px;
+            color: #fff;
+            background: rgba(0,0,0,0.6);
+            padding: 2px 6px;
+            border-radius: 10px;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-start {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-pause {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-reset {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-step {
+            background: #2196f3;
+            color: white;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .speed-control input {
+            flex: 1;
+        }
+
+        .algorithm-panel {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .algorithm-panel h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .algorithm-panel p {
+            color: #666;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .status {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .status-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .status-value {
+            color: #2196f3;
+            font-weight: 700;
+        }
+
+        .decision-log {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            border-left: 4px solid #ff9800;
+        }
+
+        .decision-log h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .log-entry {
+            padding: 8px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 5px;
+            font-size: 13px;
+            line-height: 1.5;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .log-entry.current-move {
+            background: #fff59d;
+            border-left: 3px solid #fbc02d;
+        }
+
+        .possible-moves {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .possible-moves h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .move-option {
+            padding: 6px 10px;
+            margin-bottom: 5px;
+            background: white;
+            border-radius: 5px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .move-option.best {
+            background: #c8e6c9;
+            font-weight: 600;
+        }
+
+        .accessibility {
+            color: #4caf50;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .completed {
+            background: #4caf50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            animation: celebration 0.6s ease-in-out;
+        }
+
+        @keyframes celebration {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.05) rotate(2deg); }
+            75% { transform: scale(1.05) rotate(-2deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="board-section">
+            <h1>Knight's Tour</h1>
+            <p class="subtitle">Watch the algorithm solve the classic chess puzzle</p>
+
+            <div class="chessboard" id="chessboard"></div>
+
+            <div class="controls">
+                <button class="btn-start" id="startBtn">Start</button>
+                <button class="btn-pause" id="pauseBtn">Pause</button>
+                <button class="btn-step" id="stepBtn">Step</button>
+                <button class="btn-reset" id="resetBtn">Reset</button>
+            </div>
+
+            <div class="speed-control">
+                <label for="speedRange"><strong>Speed:</strong></label>
+                <input type="range" id="speedRange" min="1" max="100" value="50">
+                <span id="speedValue">50</span>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="algorithm-panel">
+                <h3>🧠 Warnsdorff's Heuristic</h3>
+                <p>
+                    <strong>Strategy:</strong> Always move the knight to the square from which it will have the
+                    <em>fewest onward moves</em>. This greedy approach avoids getting trapped and successfully
+                    completes the tour in most cases.
+                </p>
+            </div>
+
+            <div class="status">
+                <div class="status-item">
+                    <span class="status-label">Moves Made:</span>
+                    <span class="status-value" id="moveCount">0 / 64</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Current Position:</span>
+                    <span class="status-value" id="currentPos">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Status:</span>
+                    <span class="status-value" id="status">Ready</span>
+                </div>
+            </div>
+
+            <div class="possible-moves" id="possibleMovesPanel">
+                <h3>⚡ Evaluating Positions</h3>
+                <div id="possibleMovesList"></div>
+            </div>
+
+            <div class="decision-log">
+                <h3>📋 Decision Log</h3>
+                <div id="logEntries"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BOARD_SIZE = 8;
+        const KNIGHT_MOVES = [
+            [-2, -1], [-2, 1], [-1, -2], [-1, 2],
+            [1, -2], [1, 2], [2, -1], [2, 1]
+        ];
+
+        let board = [];
+        let currentRow = 0;
+        let currentCol = 0;
+        let moveCount = 0;
+        let isRunning = false;
+        let isPaused = false;
+        let speed = 50;
+        let animationTimeout = null;
+
+        // Initialize board
+        function initBoard() {
+            board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0));
+            currentRow = 0;
+            currentCol = 0;
+            moveCount = 1;
+            board[currentRow][currentCol] = moveCount;
+            renderBoard();
+            updateStatus();
+            addLog(`Starting at position (${currentRow}, ${currentCol})`);
+        }
+
+        // Render the chessboard
+        function renderBoard(possibleMoves = []) {
+            const chessboard = document.getElementById('chessboard');
+            chessboard.innerHTML = '';
+
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    const square = document.createElement('div');
+                    square.className = 'square';
+                    square.className += (row + col) % 2 === 0 ? ' light' : ' dark';
+
+                    if (board[row][col] > 0) {
+                        square.classList.add('visited');
+                        const moveNum = document.createElement('div');
+                        moveNum.className = 'move-number';
+                        moveNum.textContent = board[row][col];
+                        square.appendChild(moveNum);
+                    }
+
+                    if (row === currentRow && col === currentCol) {
+                        square.classList.add('current');
+                        const knight = document.createElement('div');
+                        knight.className = 'knight';
+                        knight.textContent = '♞';
+                        square.appendChild(knight);
+                    }
+
+                    // Highlight possible moves
+                    if (possibleMoves.some(move => move.row === row && move.col === col)) {
+                        square.classList.add('possible');
+                    }
+
+                    chessboard.appendChild(square);
+                }
+            }
+        }
+
+        // Check if position is valid
+        function isValid(row, col) {
+            return row >= 0 && row < BOARD_SIZE &&
+                   col >= 0 && col < BOARD_SIZE &&
+                   board[row][col] === 0;
+        }
+
+        // Get accessibility (number of onward moves) from a position
+        function getAccessibility(row, col) {
+            let count = 0;
+            for (let [dRow, dCol] of KNIGHT_MOVES) {
+                const newRow = row + dRow;
+                const newCol = col + dCol;
+                if (isValid(newRow, newCol)) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        // Get all possible moves from current position
+        function getPossibleMoves() {
+            const moves = [];
+
+            for (let [dRow, dCol] of KNIGHT_MOVES) {
+                const newRow = currentRow + dRow;
+                const newCol = currentCol + dCol;
+
+                if (isValid(newRow, newCol)) {
+                    const accessibility = getAccessibility(newRow, newCol);
+                    moves.push({
+                        row: newRow,
+                        col: newCol,
+                        accessibility: accessibility
+                    });
+                }
+            }
+
+            // Sort by accessibility (Warnsdorff's heuristic)
+            moves.sort((a, b) => a.accessibility - b.accessibility);
+
+            return moves;
+        }
+
+        // Display possible moves in sidebar
+        function displayPossibleMoves(moves) {
+            const movesList = document.getElementById('possibleMovesList');
+            movesList.innerHTML = '';
+
+            if (moves.length === 0) {
+                movesList.innerHTML = '<p style="color: #666;">No valid moves available</p>';
+                return;
+            }
+
+            moves.forEach((move, index) => {
+                const moveDiv = document.createElement('div');
+                moveDiv.className = 'move-option';
+                if (index === 0) moveDiv.classList.add('best');
+
+                moveDiv.innerHTML = `
+                    <span>Position (${move.row}, ${move.col})</span>
+                    <span class="accessibility">${move.accessibility} moves</span>
+                `;
+                movesList.appendChild(moveDiv);
+            });
+        }
+
+        // Add log entry
+        function addLog(message, isCurrent = true) {
+            const logEntries = document.getElementById('logEntries');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            if (isCurrent) entry.classList.add('current-move');
+            entry.textContent = message;
+
+            logEntries.insertBefore(entry, logEntries.firstChild);
+
+            // Keep only last 10 entries
+            while (logEntries.children.length > 10) {
+                logEntries.removeChild(logEntries.lastChild);
+            }
+        }
+
+        // Update status display
+        function updateStatus() {
+            document.getElementById('moveCount').textContent = `${moveCount} / 64`;
+            document.getElementById('currentPos').textContent = `(${currentRow}, ${currentCol})`;
+
+            let statusText = 'Ready';
+            if (isRunning && !isPaused) statusText = 'Running';
+            else if (isPaused) statusText = 'Paused';
+            else if (moveCount === 64) statusText = 'Completed! 🎉';
+
+            document.getElementById('status').textContent = statusText;
+        }
+
+        // Perform one step of the algorithm
+        function step() {
+            if (moveCount === 64) {
+                addLog('🎉 Tour completed! All 64 squares visited!');
+                updateStatus();
+
+                // Show completion message
+                const panel = document.getElementById('possibleMovesPanel');
+                panel.innerHTML = '<div class="completed">✨ Knight\'s Tour Complete! ✨</div>';
+
+                isRunning = false;
+                return false;
+            }
+
+            const possibleMoves = getPossibleMoves();
+            displayPossibleMoves(possibleMoves);
+
+            if (possibleMoves.length === 0) {
+                addLog('❌ No valid moves available. Tour incomplete.');
+                updateStatus();
+                isRunning = false;
+                return false;
+            }
+
+            // Choose best move (lowest accessibility)
+            const bestMove = possibleMoves[0];
+
+            addLog(`Move ${moveCount}: (${currentRow}, ${currentCol}) → (${bestMove.row}, ${bestMove.col}) [${bestMove.accessibility} exits]`);
+
+            // Make the move
+            currentRow = bestMove.row;
+            currentCol = bestMove.col;
+            moveCount++;
+            board[currentRow][currentCol] = moveCount;
+
+            renderBoard(possibleMoves);
+            updateStatus();
+
+            return true;
+        }
+
+        // Animation loop
+        function animate() {
+            if (!isRunning || isPaused) return;
+
+            const continueAnimation = step();
+
+            if (continueAnimation && isRunning && !isPaused) {
+                const delay = 1000 - (speed * 9); // Convert speed to delay
+                animationTimeout = setTimeout(animate, delay);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (!isRunning) {
+                isRunning = true;
+                isPaused = false;
+                updateStatus();
+                animate();
+            } else if (isPaused) {
+                isPaused = false;
+                updateStatus();
+                animate();
+            }
+        });
+
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            if (isRunning) {
+                isPaused = true;
+                updateStatus();
+                if (animationTimeout) {
+                    clearTimeout(animationTimeout);
+                }
+            }
+        });
+
+        document.getElementById('stepBtn').addEventListener('click', () => {
+            if (!isRunning) {
+                isRunning = true;
+            }
+            isPaused = true;
+            step();
+            updateStatus();
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            isRunning = false;
+            isPaused = false;
+            if (animationTimeout) {
+                clearTimeout(animationTimeout);
+            }
+            document.getElementById('logEntries').innerHTML = '';
+            initBoard();
+        });
+
+        document.getElementById('speedRange').addEventListener('input', (e) => {
+            speed = parseInt(e.target.value);
+            document.getElementById('speedValue').textContent = speed;
+        });
+
+        // Initialize
+        initBoard();
+    </script>
+</body>
+</html>
