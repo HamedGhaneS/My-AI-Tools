@@ -1,0 +1,2107 @@
+<!DOCTYPE html>
+<!--
+================================================================================
+Context-Aware English Learning Companion v2.0
+================================================================================
+A sophisticated language learning application with DEEP CONTENT UNDERSTANDING.
+Unlike simple transcript search, this app:
+1. Fetches complete movie/series metadata (plot, characters, themes)
+2. Pre-analyzes entire content to understand context, relationships, scenes
+3. Provides context-aware explanations that understand the MEANING behind dialogue
+
+INPUT:  
+  - Movie/Series selection (via search or manual entry)
+  - SRT subtitles (upload or auto-fetch from OpenSubtitles)
+  - User queries about terms, expressions, idioms
+
+OUTPUT: 
+  - Deep contextual explanations considering full story context
+  - Character relationship context
+  - Scene emotional analysis
+  - Persian translations with cultural equivalents
+  - Auto-tracked vocabulary with full context
+
+Author: Hamed Ghane
+Date:   2025-02-01
+================================================================================
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context English Learner | Deep Understanding</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- React -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        /* ============================================
+           CSS Variables & Theme
+           ============================================ */
+        :root {
+            --color-bg-primary: #0a0a0b;
+            --color-bg-secondary: #141417;
+            --color-bg-tertiary: #1e1e24;
+            --color-bg-card: #18181c;
+            --color-bg-hover: #252530;
+            
+            --color-accent-primary: #f0c14b;
+            --color-accent-secondary: #d4a84b;
+            --color-accent-glow: rgba(240, 193, 75, 0.12);
+            
+            --color-text-primary: #f8f8f8;
+            --color-text-secondary: #9a9aa8;
+            --color-text-muted: #5a5a6a;
+            
+            --color-success: #4ade80;
+            --color-error: #f87171;
+            --color-info: #60a5fa;
+            --color-warning: #fbbf24;
+            
+            --color-persian: #c084fc;
+            --color-context: #34d399;
+            --color-scene: #f472b6;
+            
+            --font-display: 'Playfair Display', Georgia, serif;
+            --font-body: 'Source Sans 3', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            
+            --space-xs: 0.25rem;
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+            --space-2xl: 3rem;
+            
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.4);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.6);
+            --shadow-glow: 0 0 40px var(--color-accent-glow);
+            
+            --transition-fast: 150ms ease;
+            --transition-normal: 250ms ease;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html { font-size: 16px; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Subtle noise texture */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.025;
+            z-index: 1000;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        #root { position: relative; z-index: 1; }
+
+        h1, h2, h3, h4 {
+            font-family: var(--font-display);
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        a {
+            color: var(--color-accent-primary);
+            text-decoration: none;
+        }
+
+        /* Layout */
+        .app-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: var(--space-lg);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-lg) 0;
+            border-bottom: 1px solid var(--color-bg-tertiary);
+            margin-bottom: var(--space-xl);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .logo-icon {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .logo-text {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo-subtitle {
+            font-size: 0.7rem;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 340px 1fr 340px;
+            gap: var(--space-xl);
+            flex: 1;
+            min-height: 0;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+            max-height: calc(100vh - 180px);
+            overflow-y: auto;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-bg-tertiary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        /* Buttons */
+        .btn {
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: var(--space-sm) var(--space-lg);
+            border-radius: var(--radius-md);
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+            color: var(--color-bg-primary);
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--color-bg-tertiary);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-bg-hover);
+        }
+
+        .btn-secondary:hover { background: var(--color-bg-hover); }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--color-text-secondary);
+        }
+
+        .btn-ghost:hover {
+            color: var(--color-text-primary);
+            background: var(--color-bg-tertiary);
+        }
+
+        .btn-icon { padding: var(--space-sm); }
+
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Form Elements */
+        .input-group { margin-bottom: var(--space-lg); }
+
+        .input-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-sm);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: var(--space-md);
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-bg-tertiary);
+            border-radius: var(--radius-md);
+            color: var(--color-text-primary);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: all var(--transition-fast);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--color-accent-primary);
+            box-shadow: 0 0 0 3px var(--color-accent-glow);
+        }
+
+        .input-field::placeholder { color: var(--color-text-muted); }
+
+        select.input-field {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235a5a6a' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right var(--space-md) center;
+            padding-right: var(--space-2xl);
+        }
+
+        /* Content List */
+        .content-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            border: 1px solid transparent;
+            margin-bottom: var(--space-sm);
+        }
+
+        .content-item:hover { background: var(--color-bg-tertiary); }
+
+        .content-item.active {
+            border-color: var(--color-accent-primary);
+            background: var(--color-accent-glow);
+        }
+
+        .content-poster {
+            width: 50px;
+            height: 75px;
+            background: var(--color-bg-tertiary);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .content-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .content-info { flex: 1; min-width: 0; }
+
+        .content-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .content-meta {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+        }
+
+        .content-status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.7rem;
+            margin-top: 4px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-dot.ready { background: var(--color-success); }
+        .status-dot.processing { background: var(--color-warning); animation: pulse 1.5s infinite; }
+        .status-dot.error { background: var(--color-error); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Chat Interface */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-bg-tertiary);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: var(--space-md) var(--space-lg);
+            border-bottom: 1px solid var(--color-bg-tertiary);
+            background: var(--color-bg-secondary);
+        }
+
+        .chat-context-banner {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-sm) var(--space-md);
+            background: var(--color-accent-glow);
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+        }
+
+        .chat-context-banner .poster {
+            width: 32px;
+            height: 48px;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        .chat-context-banner .poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: var(--space-xl);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+        }
+
+        .message {
+            max-width: 88%;
+            animation: msgSlide 0.3s ease;
+        }
+
+        @keyframes msgSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user { align-self: flex-end; }
+        .message.assistant { align-self: flex-start; }
+
+        .message-bubble {
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-lg);
+            line-height: 1.6;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+            color: var(--color-bg-primary);
+            border-bottom-right-radius: var(--radius-sm);
+        }
+
+        .message.assistant .message-bubble {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-bg-tertiary);
+            border-bottom-left-radius: var(--radius-sm);
+        }
+
+        /* Response Formatting */
+        .response-section {
+            margin: var(--space-md) 0;
+            padding: var(--space-md);
+            border-radius: var(--radius-md);
+            border-left: 3px solid;
+        }
+
+        .response-section.context {
+            background: rgba(52, 211, 153, 0.08);
+            border-color: var(--color-context);
+        }
+
+        .response-section.persian {
+            background: rgba(192, 132, 252, 0.08);
+            border-color: var(--color-persian);
+            direction: rtl;
+            text-align: right;
+            font-size: 1.05rem;
+        }
+
+        .response-section.scene {
+            background: rgba(244, 114, 182, 0.08);
+            border-color: var(--color-scene);
+        }
+
+        .response-section.examples {
+            background: rgba(96, 165, 250, 0.08);
+            border-color: var(--color-info);
+        }
+
+        .section-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: var(--space-sm);
+            opacity: 0.7;
+        }
+
+        .highlight {
+            background: var(--color-accent-glow);
+            color: var(--color-accent-primary);
+            padding: 1px 6px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+        }
+
+        .chat-input-area {
+            padding: var(--space-lg);
+            border-top: 1px solid var(--color-bg-tertiary);
+            background: var(--color-bg-secondary);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: var(--space-md);
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: var(--space-md) var(--space-lg);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-bg-tertiary);
+            border-radius: var(--radius-xl);
+            color: var(--color-text-primary);
+            font-family: var(--font-body);
+            font-size: 1rem;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--color-accent-primary);
+        }
+
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+            border: none;
+            color: var(--color-bg-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* Vocabulary Panel */
+        .vocab-item {
+            padding: var(--space-md);
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-sm);
+            border-left: 3px solid var(--color-accent-primary);
+        }
+
+        .vocab-term {
+            font-weight: 600;
+            color: var(--color-accent-primary);
+            margin-bottom: 4px;
+        }
+
+        .vocab-translation {
+            font-size: 0.9rem;
+            color: var(--color-persian);
+            direction: rtl;
+            text-align: right;
+        }
+
+        .vocab-context {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-top: 6px;
+            font-style: italic;
+        }
+
+        .vocab-source {
+            font-size: 0.7rem;
+            color: var(--color-text-muted);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-bg-tertiary);
+            border-radius: var(--radius-xl);
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlide 0.3s ease;
+        }
+
+        @keyframes modalSlide {
+            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-xl);
+            border-bottom: 1px solid var(--color-bg-tertiary);
+        }
+
+        .modal-body { padding: var(--space-xl); }
+
+        .modal-footer {
+            padding: var(--space-lg) var(--space-xl);
+            border-top: 1px solid var(--color-bg-tertiary);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--space-md);
+        }
+
+        /* Search Results */
+        .search-result {
+            display: flex;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            margin-bottom: var(--space-sm);
+        }
+
+        .search-result:hover { background: var(--color-bg-tertiary); }
+
+        .search-result.selected {
+            border: 1px solid var(--color-accent-primary);
+            background: var(--color-accent-glow);
+        }
+
+        .search-poster {
+            width: 60px;
+            height: 90px;
+            background: var(--color-bg-tertiary);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .search-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .search-info { flex: 1; }
+
+        .search-title { font-weight: 600; margin-bottom: 4px; }
+
+        .search-meta {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+        }
+
+        .search-overview {
+            font-size: 0.85rem;
+            color: var(--color-text-secondary);
+            margin-top: var(--space-sm);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Processing Status */
+        .processing-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 10, 11, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: var(--radius-lg);
+        }
+
+        .processing-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--color-bg-tertiary);
+            border-top-color: var(--color-accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .processing-text {
+            margin-top: var(--space-lg);
+            color: var(--color-text-secondary);
+            text-align: center;
+        }
+
+        .processing-step {
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            margin-top: var(--space-sm);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-lg);
+            border-bottom: 1px solid var(--color-bg-tertiary);
+            padding-bottom: var(--space-md);
+        }
+
+        .tab {
+            padding: var(--space-sm) var(--space-lg);
+            background: transparent;
+            border: none;
+            color: var(--color-text-secondary);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+        }
+
+        .tab:hover {
+            color: var(--color-text-primary);
+            background: var(--color-bg-tertiary);
+        }
+
+        .tab.active {
+            color: var(--color-accent-primary);
+            background: var(--color-accent-glow);
+        }
+
+        /* File Upload */
+        .file-upload-area {
+            border: 2px dashed var(--color-bg-tertiary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-2xl);
+            text-align: center;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .file-upload-area:hover,
+        .file-upload-area.dragging {
+            border-color: var(--color-accent-primary);
+            background: var(--color-accent-glow);
+        }
+
+        /* Auth */
+        .auth-container {
+            max-width: 420px;
+            margin: var(--space-2xl) auto;
+        }
+
+        .auth-card {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-bg-tertiary);
+            border-radius: var(--radius-xl);
+            padding: var(--space-2xl);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .auth-header { text-align: center; margin-bottom: var(--space-xl); }
+
+        .auth-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto var(--space-lg);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: var(--space-lg) 0;
+            color: var(--color-text-muted);
+            font-size: 0.8rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--color-bg-tertiary);
+        }
+
+        .divider::before { margin-right: var(--space-md); }
+        .divider::after { margin-left: var(--space-md); }
+
+        .google-btn {
+            width: 100%;
+            padding: var(--space-md);
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-bg-tertiary);
+            border-radius: var(--radius-md);
+            color: var(--color-text-primary);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-md);
+            transition: all var(--transition-fast);
+        }
+
+        .google-btn:hover {
+            background: var(--color-bg-tertiary);
+            border-color: var(--color-accent-primary);
+        }
+
+        /* Loading */
+        .loading-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            background: var(--color-accent-primary);
+            border-radius: 50%;
+            animation: bounce 1.4s ease-in-out infinite;
+        }
+
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: var(--space-xl);
+            right: var(--space-xl);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .toast {
+            padding: var(--space-md) var(--space-lg);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-bg-tertiary);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            animation: toastSlide 0.3s ease;
+        }
+
+        @keyframes toastSlide {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .toast.success { border-left: 3px solid var(--color-success); }
+        .toast.error { border-left: 3px solid var(--color-error); }
+        .toast.info { border-left: 3px solid var(--color-info); }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-layout { grid-template-columns: 300px 1fr; }
+            .sidebar:last-child { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .main-layout { grid-template-columns: 1fr; }
+            .sidebar { max-height: none; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--color-bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--color-bg-tertiary); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+
+        /* Utilities */
+        .text-center { text-align: center; }
+        .text-muted { color: var(--color-text-muted); }
+        .text-accent { color: var(--color-accent-primary); }
+        .text-success { color: var(--color-success); }
+        .text-error { color: var(--color-error); }
+        .mt-md { margin-top: var(--space-md); }
+        .mb-md { margin-bottom: var(--space-md); }
+        .flex { display: flex; }
+        .flex-1 { flex: 1; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-sm { gap: var(--space-sm); }
+        .gap-md { gap: var(--space-md); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        
+        // Firebase Config - Replace with your own
+        const firebaseConfig = {
+            apiKey: "YOUR_FIREBASE_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // TMDB API (free, for movie/series metadata)
+        const TMDB_API_KEY = ""; // Get free key from themoviedb.org
+        const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+        const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w200";
+
+        // Initialize Firebase
+        let firebaseApp = null, auth = null, db = null;
+        try {
+            firebaseApp = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+        } catch (e) { console.warn("Firebase init failed:", e); }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+
+        // Parse SRT with scene detection
+        function parseSRT(content) {
+            const subtitles = [];
+            const blocks = content.trim().split(/\n\n+/);
+            
+            for (const block of blocks) {
+                const lines = block.split('\n');
+                if (lines.length >= 3) {
+                    const timeMatch = lines[1]?.match(/(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/);
+                    if (timeMatch) {
+                        subtitles.push({
+                            index: parseInt(lines[0]) || subtitles.length + 1,
+                            startTime: timeMatch[1],
+                            endTime: timeMatch[2],
+                            startSeconds: timeToSeconds(timeMatch[1]),
+                            text: lines.slice(2).join(' ').replace(/<[^>]*>/g, '').trim()
+                        });
+                    }
+                }
+            }
+            return subtitles;
+        }
+
+        function timeToSeconds(time) {
+            const [h, m, rest] = time.split(':');
+            const [s, ms] = rest.split(',');
+            return parseInt(h) * 3600 + parseInt(m) * 60 + parseInt(s) + parseInt(ms) / 1000;
+        }
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            return h > 0 ? `${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}` 
+                         : `${m}:${s.toString().padStart(2,'0')}`;
+        }
+
+        // Segment subtitles into scenes (based on time gaps)
+        function segmentIntoScenes(subtitles, gapThreshold = 3) {
+            const scenes = [];
+            let currentScene = [];
+            
+            for (let i = 0; i < subtitles.length; i++) {
+                currentScene.push(subtitles[i]);
+                
+                const nextSub = subtitles[i + 1];
+                if (!nextSub || (nextSub.startSeconds - subtitles[i].startSeconds > gapThreshold)) {
+                    if (currentScene.length > 0) {
+                        scenes.push({
+                            startTime: currentScene[0].startTime,
+                            endTime: currentScene[currentScene.length - 1].endTime,
+                            dialogue: currentScene.map(s => s.text).join(' '),
+                            subtitles: [...currentScene]
+                        });
+                    }
+                    currentScene = [];
+                }
+            }
+            
+            return scenes;
+        }
+
+        // Search content for relevant context
+        function findRelevantContext(content, query, windowSize = 10) {
+            if (!content?.subtitles) return null;
+            
+            const queryLower = query.toLowerCase();
+            const results = [];
+            
+            for (let i = 0; i < content.subtitles.length; i++) {
+                if (content.subtitles[i].text.toLowerCase().includes(queryLower)) {
+                    const start = Math.max(0, i - windowSize);
+                    const end = Math.min(content.subtitles.length, i + windowSize + 1);
+                    const context = content.subtitles.slice(start, end);
+                    
+                    results.push({
+                        matchIndex: i - start,
+                        timestamp: content.subtitles[i].startTime,
+                        subtitles: context,
+                        dialogue: context.map(s => s.text).join(' ')
+                    });
+                }
+            }
+            
+            return results.slice(0, 3); // Return top 3 matches
+        }
+
+        // Export functions
+        function exportToCSV(vocabulary) {
+            const headers = ['Term', 'Persian Translation', 'Scene Context', 'Source', 'Episode/Movie Context', 'Date'];
+            const rows = vocabulary.map(v => [
+                v.term, v.persianTranslation, v.sceneContext || '', v.source || '', 
+                v.episodeContext || '', v.dateAdded
+            ]);
+            return [headers, ...rows].map(r => r.map(c => `"${(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+        }
+
+        function exportToJSON(vocabulary) {
+            return JSON.stringify(vocabulary, null, 2);
+        }
+
+        function exportToAnki(vocabulary) {
+            return vocabulary.map(v => 
+                `${v.term}\t${v.persianTranslation}\t${v.sceneContext || ''}\t${v.source || ''}`
+            ).join('\n');
+        }
+
+        // ============================================
+        // ICONS
+        // ============================================
+        const Icons = {
+            Film: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>,
+            Book: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
+            Search: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+            Send: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
+            Settings: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+            Plus: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+            X: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+            Check: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>,
+            Trash: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
+            Download: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+            Upload: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+            User: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+            LogOut: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
+            Brain: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2z"/></svg>,
+            Tv: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>,
+        };
+
+        // ============================================
+        // COMPONENTS
+        // ============================================
+
+        // Toast
+        function Toast({ message, type, onClose }) {
+            React.useEffect(() => {
+                const timer = setTimeout(onClose, 4000);
+                return () => clearTimeout(timer);
+            }, [onClose]);
+            return <div className={`toast ${type}`}><span>{message}</span></div>;
+        }
+
+        function ToastContainer({ toasts, removeToast }) {
+            return (
+                <div className="toast-container">
+                    {toasts.map(t => <Toast key={t.id} {...t} onClose={() => removeToast(t.id)} />)}
+                </div>
+            );
+        }
+
+        // Loading
+        function LoadingDots() {
+            return <div className="loading-dots"><span/><span/><span/></div>;
+        }
+
+        // Settings Modal
+        function SettingsModal({ isOpen, onClose, settings, onSave }) {
+            const [geminiKey, setGeminiKey] = React.useState(settings.geminiApiKey || '');
+            const [tmdbKey, setTmdbKey] = React.useState(settings.tmdbApiKey || '');
+            const [openSubKey, setOpenSubKey] = React.useState(settings.openSubtitlesApiKey || '');
+
+            if (!isOpen) return null;
+
+            const handleSave = () => {
+                localStorage.setItem('gemini_api_key', geminiKey);
+                localStorage.setItem('tmdb_api_key', tmdbKey);
+                localStorage.setItem('opensubtitles_api_key', openSubKey);
+                onSave({ geminiApiKey: geminiKey, tmdbApiKey: tmdbKey, openSubtitlesApiKey: openSubKey });
+                onClose();
+            };
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>⚙️ API Settings</h3>
+                            <button className="btn btn-ghost btn-icon" onClick={onClose}><Icons.X /></button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="input-group">
+                                <label className="input-label">Gemini API Key (Required)</label>
+                                <input type="password" className="input-field" value={geminiKey} 
+                                    onChange={e => setGeminiKey(e.target.value)} placeholder="Enter Gemini API key"/>
+                                <small className="text-muted">Free from <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a></small>
+                            </div>
+                            <div className="input-group">
+                                <label className="input-label">TMDB API Key (For movie metadata)</label>
+                                <input type="password" className="input-field" value={tmdbKey}
+                                    onChange={e => setTmdbKey(e.target.value)} placeholder="Enter TMDB API key"/>
+                                <small className="text-muted">Free from <a href="https://www.themoviedb.org/settings/api" target="_blank">TMDB</a></small>
+                            </div>
+                            <div className="input-group">
+                                <label className="input-label">OpenSubtitles API Key (Optional)</label>
+                                <input type="password" className="input-field" value={openSubKey}
+                                    onChange={e => setOpenSubKey(e.target.value)} placeholder="Enter OpenSubtitles API key"/>
+                                <small className="text-muted">From <a href="https://www.opensubtitles.com/en/consumers" target="_blank">OpenSubtitles</a></small>
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                            <button className="btn btn-primary" onClick={handleSave}>Save</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Add Content Modal with TMDB Search
+        function AddContentModal({ isOpen, onClose, onAdd, settings, addToast }) {
+            const [activeTab, setActiveTab] = React.useState('search');
+            const [searchQuery, setSearchQuery] = React.useState('');
+            const [searchResults, setSearchResults] = React.useState([]);
+            const [selectedResult, setSelectedResult] = React.useState(null);
+            const [mediaType, setMediaType] = React.useState('multi');
+            const [isSearching, setIsSearching] = React.useState(false);
+            const [subtitleFile, setSubtitleFile] = React.useState(null);
+            const [parsedSubtitles, setParsedSubtitles] = React.useState(null);
+            const [isProcessing, setIsProcessing] = React.useState(false);
+            const [processingStep, setProcessingStep] = React.useState('');
+            const [seasonNumber, setSeasonNumber] = React.useState('1');
+            const [episodeNumber, setEpisodeNumber] = React.useState('1');
+            const [isDragging, setIsDragging] = React.useState(false);
+
+            if (!isOpen) return null;
+
+            // Search TMDB
+            const searchTMDB = async () => {
+                const apiKey = settings.tmdbApiKey || localStorage.getItem('tmdb_api_key');
+                if (!apiKey) {
+                    addToast('Please set your TMDB API key in settings', 'error');
+                    return;
+                }
+
+                setIsSearching(true);
+                try {
+                    const response = await fetch(
+                        `${TMDB_BASE_URL}/search/${mediaType}?api_key=${apiKey}&query=${encodeURIComponent(searchQuery)}`
+                    );
+                    const data = await response.json();
+                    setSearchResults(data.results || []);
+                } catch (error) {
+                    addToast('Search failed: ' + error.message, 'error');
+                } finally {
+                    setIsSearching(false);
+                }
+            };
+
+            // Get detailed info from TMDB
+            const getDetailedInfo = async (item) => {
+                const apiKey = settings.tmdbApiKey || localStorage.getItem('tmdb_api_key');
+                const type = item.media_type || mediaType;
+                
+                try {
+                    // Get main details
+                    const detailsRes = await fetch(
+                        `${TMDB_BASE_URL}/${type === 'tv' ? 'tv' : 'movie'}/${item.id}?api_key=${apiKey}&append_to_response=credits`
+                    );
+                    const details = await detailsRes.json();
+
+                    // For TV shows, get episode details if season/episode specified
+                    let episodeDetails = null;
+                    if (type === 'tv' && seasonNumber && episodeNumber) {
+                        try {
+                            const epRes = await fetch(
+                                `${TMDB_BASE_URL}/tv/${item.id}/season/${seasonNumber}/episode/${episodeNumber}?api_key=${apiKey}`
+                            );
+                            episodeDetails = await epRes.json();
+                        } catch (e) {
+                            console.warn('Could not fetch episode details');
+                        }
+                    }
+
+                    return { ...details, episodeDetails, mediaType: type };
+                } catch (error) {
+                    console.error('Failed to get details:', error);
+                    return null;
+                }
+            };
+
+            // Handle file upload
+            const handleFileUpload = (file) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const parsed = parseSRT(e.target.result);
+                    setParsedSubtitles(parsed);
+                    setSubtitleFile(file);
+                };
+                reader.readAsText(file);
+            };
+
+            // Process and add content
+            const handleAdd = async () => {
+                if (!selectedResult || !parsedSubtitles) {
+                    addToast('Please select a movie/series and upload subtitles', 'error');
+                    return;
+                }
+
+                const geminiKey = settings.geminiApiKey || localStorage.getItem('gemini_api_key');
+                if (!geminiKey) {
+                    addToast('Please set your Gemini API key in settings', 'error');
+                    return;
+                }
+
+                setIsProcessing(true);
+                
+                try {
+                    // Step 1: Get detailed metadata from TMDB
+                    setProcessingStep('Fetching movie/series metadata...');
+                    const detailedInfo = await getDetailedInfo(selectedResult);
+
+                    // Step 2: Segment subtitles into scenes
+                    setProcessingStep('Analyzing scene structure...');
+                    const scenes = segmentIntoScenes(parsedSubtitles);
+
+                    // Step 3: Generate content understanding document using Gemini
+                    setProcessingStep('AI is analyzing the entire content...');
+                    
+                    const fullTranscript = parsedSubtitles.map(s => s.text).join(' ');
+                    const truncatedTranscript = fullTranscript.slice(0, 30000); // Limit for API
+                    
+                    // Build context for AI analysis
+                    const mediaInfo = detailedInfo?.mediaType === 'tv' ? {
+                        title: detailedInfo.name,
+                        type: 'TV Series',
+                        overview: detailedInfo.overview,
+                        genres: detailedInfo.genres?.map(g => g.name).join(', '),
+                        characters: detailedInfo.credits?.cast?.slice(0, 10).map(c => `${c.name} as ${c.character}`).join(', '),
+                        episodeTitle: detailedInfo.episodeDetails?.name,
+                        episodeOverview: detailedInfo.episodeDetails?.overview,
+                        seasonEpisode: `S${seasonNumber}E${episodeNumber}`
+                    } : {
+                        title: detailedInfo?.title || selectedResult.title,
+                        type: 'Movie',
+                        overview: detailedInfo?.overview,
+                        genres: detailedInfo?.genres?.map(g => g.name).join(', '),
+                        characters: detailedInfo?.credits?.cast?.slice(0, 10).map(c => `${c.name} as ${c.character}`).join(', ')
+                    };
+
+                    const analysisPrompt = `You are analyzing a ${mediaInfo.type}: "${mediaInfo.title}"
+${mediaInfo.seasonEpisode ? `Episode: ${mediaInfo.seasonEpisode} - "${mediaInfo.episodeTitle}"` : ''}
+
+METADATA:
+- Overview: ${mediaInfo.overview || 'Not available'}
+- Genres: ${mediaInfo.genres || 'Not available'}
+- Main Cast: ${mediaInfo.characters || 'Not available'}
+${mediaInfo.episodeOverview ? `- Episode Synopsis: ${mediaInfo.episodeOverview}` : ''}
+
+TRANSCRIPT (partial):
+${truncatedTranscript}
+
+---
+
+Create a comprehensive CONTENT UNDERSTANDING DOCUMENT that will help answer future questions about expressions, idioms, and dialogue from this content. Include:
+
+1. **PLOT SUMMARY**: Brief summary of what happens in this content (2-3 paragraphs)
+
+2. **CHARACTER ANALYSIS**: For each main character who speaks:
+   - Their personality traits
+   - Their relationships with other characters
+   - Their speaking style/patterns
+   - Their emotional arc in this content
+
+3. **KEY SCENES**: Identify 5-10 important scenes with:
+   - What happens
+   - Emotional tone
+   - Important dialogue/expressions used
+
+4. **IDIOMS & EXPRESSIONS DETECTED**: List any idioms, slang, cultural references found with:
+   - The expression
+   - Who said it
+   - Context/situation
+   - Meaning in context
+
+5. **THEMES & TONE**: Overall themes, humor style, cultural context
+
+6. **RELATIONSHIP DYNAMICS**: Key relationships and tensions between characters
+
+This document will be used to provide context-aware answers when someone asks about specific dialogue or expressions from this content.`;
+
+                    const response = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ role: 'user', parts: [{ text: analysisPrompt }] }],
+                                generationConfig: { temperature: 0.3, maxOutputTokens: 4096 }
+                            })
+                        }
+                    );
+
+                    const aiData = await response.json();
+                    const contentUnderstanding = aiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+                    // Step 4: Create the content object
+                    setProcessingStep('Finalizing content...');
+                    
+                    const content = {
+                        id: Date.now().toString(),
+                        title: mediaInfo.seasonEpisode 
+                            ? `${mediaInfo.title} ${mediaInfo.seasonEpisode}` 
+                            : mediaInfo.title,
+                        type: mediaInfo.type.toLowerCase(),
+                        tmdbId: selectedResult.id,
+                        posterPath: selectedResult.poster_path,
+                        metadata: {
+                            ...mediaInfo,
+                            year: selectedResult.release_date?.split('-')[0] || selectedResult.first_air_date?.split('-')[0]
+                        },
+                        subtitles: parsedSubtitles,
+                        scenes: scenes,
+                        contentUnderstanding: contentUnderstanding, // THE KEY ADDITION!
+                        dateAdded: new Date().toISOString(),
+                        status: 'ready'
+                    };
+
+                    onAdd(content);
+                    addToast(`Added "${content.title}" with AI analysis!`, 'success');
+                    onClose();
+
+                } catch (error) {
+                    console.error('Processing error:', error);
+                    addToast('Failed to process content: ' + error.message, 'error');
+                } finally {
+                    setIsProcessing(false);
+                    setProcessingStep('');
+                }
+            };
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px' }}>
+                        {isProcessing && (
+                            <div className="processing-overlay">
+                                <div className="processing-spinner"></div>
+                                <div className="processing-text">Processing Content</div>
+                                <div className="processing-step">{processingStep}</div>
+                            </div>
+                        )}
+                        
+                        <div className="modal-header">
+                            <h3>📽️ Add Movie or Series</h3>
+                            <button className="btn btn-ghost btn-icon" onClick={onClose}><Icons.X /></button>
+                        </div>
+
+                        <div className="modal-body">
+                            {/* Step 1: Search */}
+                            <div style={{ marginBottom: 'var(--space-xl)' }}>
+                                <h4 style={{ marginBottom: 'var(--space-md)' }}>Step 1: Find your content</h4>
+                                <div className="flex gap-md">
+                                    <select className="input-field" value={mediaType} onChange={e => setMediaType(e.target.value)} style={{ width: '140px' }}>
+                                        <option value="multi">All</option>
+                                        <option value="movie">Movies</option>
+                                        <option value="tv">TV Series</option>
+                                    </select>
+                                    <input
+                                        type="text"
+                                        className="input-field flex-1"
+                                        value={searchQuery}
+                                        onChange={e => setSearchQuery(e.target.value)}
+                                        onKeyPress={e => e.key === 'Enter' && searchTMDB()}
+                                        placeholder="Search movies or TV series..."
+                                    />
+                                    <button className="btn btn-primary" onClick={searchTMDB} disabled={isSearching}>
+                                        {isSearching ? <LoadingDots /> : <><Icons.Search /> Search</>}
+                                    </button>
+                                </div>
+
+                                {/* Search Results */}
+                                {searchResults.length > 0 && (
+                                    <div style={{ maxHeight: '250px', overflowY: 'auto', marginTop: 'var(--space-md)' }}>
+                                        {searchResults.map(result => (
+                                            <div
+                                                key={result.id}
+                                                className={`search-result ${selectedResult?.id === result.id ? 'selected' : ''}`}
+                                                onClick={() => setSelectedResult(result)}
+                                            >
+                                                <div className="search-poster">
+                                                    {result.poster_path ? (
+                                                        <img src={`${TMDB_IMAGE_BASE}${result.poster_path}`} alt="" />
+                                                    ) : <span style={{ fontSize: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>🎬</span>}
+                                                </div>
+                                                <div className="search-info">
+                                                    <div className="search-title">{result.title || result.name}</div>
+                                                    <div className="search-meta">
+                                                        {result.media_type === 'tv' ? '📺 TV' : '🎬 Movie'} • {(result.release_date || result.first_air_date || '').split('-')[0]}
+                                                    </div>
+                                                    <div className="search-overview">{result.overview}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* For TV: Season/Episode selector */}
+                            {selectedResult && (selectedResult.media_type === 'tv' || mediaType === 'tv') && (
+                                <div style={{ marginBottom: 'var(--space-xl)' }}>
+                                    <h4 style={{ marginBottom: 'var(--space-md)' }}>Step 1b: Select Episode</h4>
+                                    <div className="flex gap-md">
+                                        <div className="input-group" style={{ marginBottom: 0 }}>
+                                            <label className="input-label">Season</label>
+                                            <input type="number" className="input-field" min="1" value={seasonNumber}
+                                                onChange={e => setSeasonNumber(e.target.value)} style={{ width: '80px' }}/>
+                                        </div>
+                                        <div className="input-group" style={{ marginBottom: 0 }}>
+                                            <label className="input-label">Episode</label>
+                                            <input type="number" className="input-field" min="1" value={episodeNumber}
+                                                onChange={e => setEpisodeNumber(e.target.value)} style={{ width: '80px' }}/>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Step 2: Upload Subtitles */}
+                            <div>
+                                <h4 style={{ marginBottom: 'var(--space-md)' }}>Step 2: Upload Subtitles</h4>
+                                <div
+                                    className={`file-upload-area ${isDragging ? 'dragging' : ''}`}
+                                    onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+                                    onDragLeave={() => setIsDragging(false)}
+                                    onDrop={e => {
+                                        e.preventDefault();
+                                        setIsDragging(false);
+                                        const file = e.dataTransfer.files[0];
+                                        if (file?.name.endsWith('.srt')) handleFileUpload(file);
+                                    }}
+                                    onClick={() => document.getElementById('srt-input').click()}
+                                >
+                                    <input
+                                        id="srt-input"
+                                        type="file"
+                                        accept=".srt"
+                                        style={{ display: 'none' }}
+                                        onChange={e => e.target.files[0] && handleFileUpload(e.target.files[0])}
+                                    />
+                                    <div style={{ fontSize: '2.5rem', marginBottom: 'var(--space-md)' }}>
+                                        {parsedSubtitles ? '✅' : '📄'}
+                                    </div>
+                                    <div style={{ color: parsedSubtitles ? 'var(--color-success)' : 'var(--color-text-secondary)' }}>
+                                        {parsedSubtitles 
+                                            ? `Loaded ${parsedSubtitles.length} subtitle lines from ${subtitleFile.name}`
+                                            : 'Drop SRT file here or click to browse'
+                                        }
+                                    </div>
+                                    <div className="text-muted" style={{ fontSize: '0.85rem', marginTop: 'var(--space-sm)' }}>
+                                        Get subtitles from <a href="https://www.opensubtitles.org" target="_blank" onClick={e => e.stopPropagation()}>OpenSubtitles.org</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                            <button 
+                                className="btn btn-primary" 
+                                onClick={handleAdd}
+                                disabled={!selectedResult || !parsedSubtitles || isProcessing}
+                            >
+                                <Icons.Brain /> Analyze & Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Export Modal
+        function ExportModal({ isOpen, onClose, vocabulary }) {
+            const [format, setFormat] = React.useState('csv');
+            if (!isOpen) return null;
+
+            const handleExport = () => {
+                let content, filename, mimeType;
+                switch (format) {
+                    case 'csv': content = exportToCSV(vocabulary); filename = 'vocabulary.csv'; mimeType = 'text/csv'; break;
+                    case 'json': content = exportToJSON(vocabulary); filename = 'vocabulary.json'; mimeType = 'application/json'; break;
+                    case 'anki': content = exportToAnki(vocabulary); filename = 'vocabulary_anki.txt'; mimeType = 'text/plain'; break;
+                }
+                const blob = new Blob([content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = filename; a.click();
+                URL.revokeObjectURL(url);
+                onClose();
+            };
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>📥 Export Vocabulary</h3>
+                            <button className="btn btn-ghost btn-icon" onClick={onClose}><Icons.X /></button>
+                        </div>
+                        <div className="modal-body">
+                            <p className="mb-md">{vocabulary.length} items to export</p>
+                            <div className="input-group">
+                                <label className="input-label">Format</label>
+                                <select className="input-field" value={format} onChange={e => setFormat(e.target.value)}>
+                                    <option value="csv">CSV (Spreadsheet)</option>
+                                    <option value="json">JSON (Data)</option>
+                                    <option value="anki">Anki (Flashcards)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                            <button className="btn btn-primary" onClick={handleExport}><Icons.Download /> Export</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Auth Screen
+        function AuthScreen({ onAuth }) {
+            const [email, setEmail] = React.useState('');
+            const [password, setPassword] = React.useState('');
+            const [isSignUp, setIsSignUp] = React.useState(false);
+            const [loading, setLoading] = React.useState(false);
+            const [error, setError] = React.useState('');
+
+            const handleGoogleSignIn = async () => {
+                if (!auth) { onAuth({ uid: 'local', email: 'local@user.com' }); return; }
+                setLoading(true);
+                try {
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    const result = await auth.signInWithPopup(provider);
+                    onAuth(result.user);
+                } catch (e) { setError(e.message); }
+                finally { setLoading(false); }
+            };
+
+            const handleEmailAuth = async (e) => {
+                e.preventDefault();
+                if (!auth) { onAuth({ uid: 'local', email }); return; }
+                setLoading(true); setError('');
+                try {
+                    const method = isSignUp ? 'createUserWithEmailAndPassword' : 'signInWithEmailAndPassword';
+                    const result = await auth[method](email, password);
+                    onAuth(result.user);
+                } catch (e) { setError(e.message); }
+                finally { setLoading(false); }
+            };
+
+            return (
+                <div className="app-container">
+                    <div className="auth-container">
+                        <div className="auth-card">
+                            <div className="auth-header">
+                                <div className="auth-logo">🎬</div>
+                                <h2>Context English Learner</h2>
+                                <p className="text-muted">Deep understanding from movies & series</p>
+                            </div>
+                            <button className="google-btn" onClick={handleGoogleSignIn} disabled={loading}>
+                                <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                                Continue with Google
+                            </button>
+                            <div className="divider">or</div>
+                            <form onSubmit={handleEmailAuth}>
+                                <div className="input-group">
+                                    <input type="email" className="input-field" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" required/>
+                                </div>
+                                <div className="input-group">
+                                    <input type="password" className="input-field" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" required/>
+                                </div>
+                                {error && <p className="text-error mb-md">{error}</p>}
+                                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>{isSignUp ? 'Sign Up' : 'Sign In'}</button>
+                            </form>
+                            <p className="text-center mt-md text-muted">
+                                <a href="#" onClick={e => { e.preventDefault(); setIsSignUp(!isSignUp); }}>{isSignUp ? 'Have an account? Sign In' : 'Need account? Sign Up'}</a>
+                            </p>
+                            <div className="divider">or</div>
+                            <button className="btn btn-ghost" style={{ width: '100%' }} onClick={() => onAuth({ uid: 'local', email: 'local' })}>
+                                Continue without account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Content Sidebar
+        function ContentSidebar({ contents, selectedContent, onSelect, onAdd }) {
+            return (
+                <div className="card">
+                    <div className="card-header">
+                        <h3 className="card-title"><Icons.Film /> My Library</h3>
+                        <button className="btn btn-ghost btn-icon" onClick={onAdd}><Icons.Plus /></button>
+                    </div>
+                    {contents.length === 0 ? (
+                        <p className="text-muted text-center">Add a movie or series to start learning!</p>
+                    ) : (
+                        contents.map(content => (
+                            <div
+                                key={content.id}
+                                className={`content-item ${selectedContent?.id === content.id ? 'active' : ''}`}
+                                onClick={() => onSelect(content)}
+                            >
+                                <div className="content-poster">
+                                    {content.posterPath ? (
+                                        <img src={`${TMDB_IMAGE_BASE}${content.posterPath}`} alt="" />
+                                    ) : <span style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>🎬</span>}
+                                </div>
+                                <div className="content-info">
+                                    <div className="content-title">{content.title}</div>
+                                    <div className="content-meta">
+                                        {content.metadata?.year} • {content.subtitles?.length || 0} lines
+                                    </div>
+                                    <div className="content-status">
+                                        <span className={`status-dot ${content.status || 'ready'}`}></span>
+                                        <span>{content.contentUnderstanding ? 'AI Analyzed' : 'Ready'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            );
+        }
+
+        // Vocabulary Sidebar
+        function VocabularySidebar({ vocabulary, onExport, onToggle, onDelete }) {
+            return (
+                <div className="card">
+                    <div className="card-header">
+                        <h3 className="card-title"><Icons.Book /> Vocabulary</h3>
+                        <button className="btn btn-ghost btn-icon" onClick={onExport} disabled={!vocabulary.length}><Icons.Download /></button>
+                    </div>
+                    <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                        {vocabulary.length === 0 ? (
+                            <p className="text-muted text-center">Ask about expressions to build your vocabulary!</p>
+                        ) : (
+                            vocabulary.slice().reverse().map(item => (
+                                <div key={item.id} className="vocab-item">
+                                    <div className="vocab-term">{item.term}</div>
+                                    <div className="vocab-translation">{item.persianTranslation}</div>
+                                    {item.sceneContext && <div className="vocab-context">"{item.sceneContext}"</div>}
+                                    <div className="vocab-source">📺 {item.source}</div>
+                                    <div className="flex justify-between items-center mt-md">
+                                        <span 
+                                            onClick={() => onToggle(item.id)}
+                                            style={{ cursor: 'pointer', fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px',
+                                                background: item.status === 'learned' ? 'rgba(74,222,128,0.2)' : 'rgba(96,165,250,0.2)',
+                                                color: item.status === 'learned' ? 'var(--color-success)' : 'var(--color-info)'
+                                            }}
+                                        >
+                                            {item.status}
+                                        </span>
+                                        <button className="btn btn-ghost btn-icon" onClick={() => onDelete(item.id)}><Icons.Trash /></button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // Format AI response for display
+        function formatResponse(text) {
+            // Replace markdown-style sections with styled divs
+            let formatted = text
+                // Persian translations
+                .replace(/【(.*?)】/gs, '<div class="response-section persian"><div class="section-label">Persian Translation</div>$1</div>')
+                // Scene context
+                .replace(/\[SCENE:(.*?)\]/gs, '<div class="response-section scene"><div class="section-label">Scene Context</div>$1</div>')
+                // Examples
+                .replace(/\[EXAMPLES?\](.*?)\[\/EXAMPLES?\]/gs, '<div class="response-section examples"><div class="section-label">Examples</div>$1</div>')
+                // Bold
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                // Inline code/highlight
+                .replace(/`(.*?)`/g, '<span class="highlight">$1</span>')
+                // Line breaks
+                .replace(/\n/g, '<br/>');
+            
+            return formatted;
+        }
+
+        // Chat Interface - THE MAIN COMPONENT
+        function ChatInterface({ selectedContent, onAddVocabulary, addToast, settings }) {
+            const [messages, setMessages] = React.useState([]);
+            const [input, setInput] = React.useState('');
+            const [isLoading, setIsLoading] = React.useState(false);
+            const messagesEndRef = React.useRef(null);
+
+            React.useEffect(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, [messages]);
+
+            const sendMessage = async () => {
+                if (!input.trim() || isLoading) return;
+
+                const geminiKey = settings.geminiApiKey || localStorage.getItem('gemini_api_key');
+                if (!geminiKey) {
+                    addToast('Please set your Gemini API key in settings', 'error');
+                    return;
+                }
+
+                const userMessage = { id: Date.now(), role: 'user', content: input };
+                setMessages(prev => [...prev, userMessage]);
+                const query = input;
+                setInput('');
+                setIsLoading(true);
+
+                try {
+                    // Find relevant transcript context
+                    let transcriptContext = '';
+                    if (selectedContent?.subtitles) {
+                        const results = findRelevantContext(selectedContent, query);
+                        if (results?.length > 0) {
+                            transcriptContext = results.map(r => 
+                                `[${r.timestamp}]\n${r.subtitles.map((s, i) => 
+                                    i === r.matchIndex ? `>>> ${s.text} <<<` : s.text
+                                ).join('\n')}`
+                            ).join('\n\n---\n\n');
+                        }
+                    }
+
+                    // Build comprehensive system prompt with ALL context
+                    const systemPrompt = `You are an expert English language teacher helping a Persian speaker learn English through movies and TV series.
+
+You have DEEP UNDERSTANDING of the content the user is watching. You don't just translate - you explain the FULL CONTEXT: why characters say things, the emotional undertones, cultural references, and the scene's significance.
+
+${selectedContent ? `
+=== CURRENT CONTENT ===
+Title: ${selectedContent.title}
+Type: ${selectedContent.type}
+${selectedContent.metadata?.overview ? `Overview: ${selectedContent.metadata.overview}` : ''}
+${selectedContent.metadata?.genres ? `Genres: ${selectedContent.metadata.genres}` : ''}
+${selectedContent.metadata?.characters ? `Cast: ${selectedContent.metadata.characters}` : ''}
+${selectedContent.metadata?.episodeOverview ? `Episode Synopsis: ${selectedContent.metadata.episodeOverview}` : ''}
+
+=== AI CONTENT ANALYSIS ===
+${selectedContent.contentUnderstanding || 'No deep analysis available for this content.'}
+
+${transcriptContext ? `=== RELEVANT TRANSCRIPT SECTION ===
+${transcriptContext}` : ''}
+` : 'No content selected. Answer general English questions.'}
+
+=== YOUR RESPONSE FORMAT ===
+
+When explaining a term, expression, or dialogue:
+
+1. **Direct Meaning**: What does it literally mean?
+
+2. **Contextual Meaning**: In THIS specific scene, why did the character say this? What's the subtext? Consider:
+   - The character's personality and motivations
+   - Their relationship with who they're talking to
+   - What just happened / what's about to happen
+   - The emotional tone of the moment
+
+3. **Persian Translation**: Provide the Persian equivalent in this exact format:
+   【Persian translation here - use natural Persian, not word-for-word】
+
+4. **Cultural/Linguistic Notes**: Is this an idiom? Slang? Formal? When would you use this?
+
+5. [EXAMPLES]
+   - Example 1: A real-world usage example
+   - Example 2: Another context where this could be used
+   [/EXAMPLES]
+
+Keep explanations conversational but thorough. The user wants to truly UNDERSTAND, not just get a translation.`;
+
+                    const response = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [
+                                    { role: 'user', parts: [{ text: systemPrompt }] },
+                                    { role: 'model', parts: [{ text: 'I understand. I will provide deep, context-aware explanations considering the full content, characters, and scenes. I\'ll include Persian translations in 【】 brackets.' }] },
+                                    ...messages.slice(-10).map(m => ({
+                                        role: m.role === 'user' ? 'user' : 'model',
+                                        parts: [{ text: m.content }]
+                                    })),
+                                    { role: 'user', parts: [{ text: query }] }
+                                ],
+                                generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+                            })
+                        }
+                    );
+
+                    const data = await response.json();
+                    if (data.error) throw new Error(data.error.message);
+
+                    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.';
+                    
+                    setMessages(prev => [...prev, { id: Date.now() + 1, role: 'assistant', content: aiResponse }]);
+
+                    // Auto-save vocabulary
+                    const persianMatch = aiResponse.match(/【(.*?)】/s);
+                    if (persianMatch) {
+                        onAddVocabulary({
+                            id: Date.now().toString(),
+                            term: query,
+                            persianTranslation: persianMatch[1].trim(),
+                            sceneContext: transcriptContext?.slice(0, 150) || '',
+                            source: selectedContent?.title || 'General',
+                            episodeContext: selectedContent?.metadata?.episodeOverview || '',
+                            status: 'learning',
+                            dateAdded: new Date().toISOString()
+                        });
+                        addToast(`Added "${query}" to vocabulary`, 'success');
+                    }
+
+                } catch (error) {
+                    console.error('API Error:', error);
+                    addToast(error.message || 'Failed to get response', 'error');
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            return (
+                <div className="chat-container">
+                    {selectedContent && (
+                        <div className="chat-header">
+                            <div className="chat-context-banner">
+                                <div className="poster">
+                                    {selectedContent.posterPath ? (
+                                        <img src={`${TMDB_IMAGE_BASE}${selectedContent.posterPath}`} alt="" />
+                                    ) : <span>🎬</span>}
+                                </div>
+                                <div>
+                                    <strong>{selectedContent.title}</strong>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                                        {selectedContent.contentUnderstanding ? '🧠 AI Deep Analysis Active' : '📄 Transcript Loaded'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="chat-messages">
+                        {messages.length === 0 && (
+                            <div className="text-center" style={{ margin: 'auto' }}>
+                                <div style={{ fontSize: '4rem', marginBottom: 'var(--space-lg)' }}>🧠</div>
+                                <h3>Deep Context-Aware Learning</h3>
+                                <p className="text-muted" style={{ maxWidth: '400px', margin: 'var(--space-md) auto' }}>
+                                    {selectedContent 
+                                        ? `Ask about any expression, idiom, or dialogue from "${selectedContent.title}". I understand the full context!`
+                                        : 'Select a movie or series from your library to get context-aware explanations.'
+                                    }
+                                </p>
+                                {selectedContent?.contentUnderstanding && (
+                                    <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'var(--color-accent-glow)', borderRadius: 'var(--radius-md)' }}>
+                                        <small className="text-accent">✨ This content has been AI-analyzed for deep understanding</small>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        
+                        {messages.map(msg => (
+                            <div key={msg.id} className={`message ${msg.role}`}>
+                                <div className="message-bubble">
+                                    {msg.role === 'assistant' 
+                                        ? <div dangerouslySetInnerHTML={{ __html: formatResponse(msg.content) }} />
+                                        : msg.content
+                                    }
+                                </div>
+                            </div>
+                        ))}
+                        
+                        {isLoading && (
+                            <div className="message assistant">
+                                <div className="message-bubble"><LoadingDots /></div>
+                            </div>
+                        )}
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    <div className="chat-input-area">
+                        <div className="chat-input-wrapper">
+                            <input
+                                type="text"
+                                className="chat-input"
+                                value={input}
+                                onChange={e => setInput(e.target.value)}
+                                onKeyPress={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                                placeholder={selectedContent ? `Ask about anything from "${selectedContent.title}"...` : 'Ask any English question...'}
+                                disabled={isLoading}
+                            />
+                            <button className="send-btn" onClick={sendMessage} disabled={!input.trim() || isLoading}>
+                                <Icons.Send />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ============================================
+        // MAIN APP
+        // ============================================
+        function App() {
+            const [user, setUser] = React.useState(null);
+            const [contents, setContents] = React.useState(() => {
+                try { return JSON.parse(localStorage.getItem('cel_contents') || '[]'); } catch { return []; }
+            });
+            const [vocabulary, setVocabulary] = React.useState(() => {
+                try { return JSON.parse(localStorage.getItem('cel_vocabulary') || '[]'); } catch { return []; }
+            });
+            const [selectedContent, setSelectedContent] = React.useState(null);
+            const [settings, setSettings] = React.useState({
+                geminiApiKey: localStorage.getItem('gemini_api_key') || '',
+                tmdbApiKey: localStorage.getItem('tmdb_api_key') || '',
+                openSubtitlesApiKey: localStorage.getItem('opensubtitles_api_key') || ''
+            });
+            const [toasts, setToasts] = React.useState([]);
+            const [showSettings, setShowSettings] = React.useState(false);
+            const [showAddContent, setShowAddContent] = React.useState(false);
+            const [showExport, setShowExport] = React.useState(false);
+
+            // Save to localStorage
+            React.useEffect(() => {
+                localStorage.setItem('cel_contents', JSON.stringify(contents));
+            }, [contents]);
+
+            React.useEffect(() => {
+                localStorage.setItem('cel_vocabulary', JSON.stringify(vocabulary));
+            }, [vocabulary]);
+
+            // Firebase sync
+            React.useEffect(() => {
+                if (user && db && user.uid !== 'local') {
+                    const saveTimeout = setTimeout(() => {
+                        db.collection('users').doc(user.uid).set({ contents, vocabulary }, { merge: true });
+                    }, 2000);
+                    return () => clearTimeout(saveTimeout);
+                }
+            }, [contents, vocabulary, user]);
+
+            const addToast = (message, type = 'info') => {
+                setToasts(prev => [...prev, { id: Date.now(), message, type }]);
+            };
+
+            const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
+
+            const handleAddContent = (content) => setContents(prev => [...prev, content]);
+
+            const handleAddVocabulary = (item) => {
+                setVocabulary(prev => {
+                    if (prev.some(v => v.term.toLowerCase() === item.term.toLowerCase())) return prev;
+                    return [...prev, item];
+                });
+            };
+
+            const handleToggleVocabStatus = (id) => {
+                setVocabulary(prev => prev.map(v => 
+                    v.id === id ? { ...v, status: v.status === 'learned' ? 'learning' : 'learned' } : v
+                ));
+            };
+
+            const handleDeleteVocab = (id) => {
+                setVocabulary(prev => prev.filter(v => v.id !== id));
+                addToast('Removed from vocabulary', 'info');
+            };
+
+            const handleSignOut = async () => {
+                if (auth) await auth.signOut();
+                setUser(null);
+            };
+
+            if (!user) return <AuthScreen onAuth={setUser} />;
+
+            return (
+                <div className="app-container">
+                    <header className="main-header">
+                        <div className="logo">
+                            <div className="logo-icon">🎬</div>
+                            <div>
+                                <div className="logo-text">Context English Learner</div>
+                                <div className="logo-subtitle">Deep AI Understanding</div>
+                            </div>
+                        </div>
+                        <div className="flex gap-md items-center">
+                            <span className="text-muted"><Icons.User /> {user.email}</span>
+                            <button className="btn btn-ghost btn-icon" onClick={() => setShowSettings(true)}><Icons.Settings /></button>
+                            <button className="btn btn-ghost btn-icon" onClick={handleSignOut}><Icons.LogOut /></button>
+                        </div>
+                    </header>
+
+                    <div className="main-layout">
+                        <aside className="sidebar">
+                            <ContentSidebar
+                                contents={contents}
+                                selectedContent={selectedContent}
+                                onSelect={setSelectedContent}
+                                onAdd={() => setShowAddContent(true)}
+                            />
+                        </aside>
+
+                        <main style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                            <ChatInterface
+                                selectedContent={selectedContent}
+                                onAddVocabulary={handleAddVocabulary}
+                                addToast={addToast}
+                                settings={settings}
+                            />
+                        </main>
+
+                        <aside className="sidebar">
+                            <VocabularySidebar
+                                vocabulary={vocabulary}
+                                onExport={() => setShowExport(true)}
+                                onToggle={handleToggleVocabStatus}
+                                onDelete={handleDeleteVocab}
+                            />
+                        </aside>
+                    </div>
+
+                    <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} settings={settings} onSave={setSettings} />
+                    <AddContentModal isOpen={showAddContent} onClose={() => setShowAddContent(false)} onAdd={handleAddContent} settings={settings} addToast={addToast} />
+                    <ExportModal isOpen={showExport} onClose={() => setShowExport(false)} vocabulary={vocabulary} />
+                    <ToastContainer toasts={toasts} removeToast={removeToast} />
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
